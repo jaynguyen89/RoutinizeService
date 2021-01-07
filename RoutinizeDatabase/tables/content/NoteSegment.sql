@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[NoteSegment]
+(
+	Id INT IDENTITY(1, 1) NOT NULL,
+	NoteId INT NOT NULL,
+	Body NVARCHAR(4000) DEFAULT NULL,
+	CONSTRAINT [PK_NoteSegment_Id] PRIMARY KEY ([Id] ASC),
+	CONSTRAINT [FK_NoteSegment_Note_NoteId] FOREIGN KEY ([NoteId]) REFERENCES [dbo].[Note] ([Id]) --ON DELETE CASCADE,
+)

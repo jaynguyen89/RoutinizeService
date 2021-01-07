@@ -14,5 +14,5 @@
 	UnitSystem TINYINT NOT NULL DEFAULT 0,
 	AddressFormat TINYINT NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_AppSetting_Id] PRIMARY KEY ([Id] ASC),
-	CONSTRAINT [FK_AppSetting_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]) ON DELETE CASCADE
+	CONSTRAINT [FK_AppSetting_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]) --ON DELETE CASCADE
 )

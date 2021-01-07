@@ -9,6 +9,6 @@
 	PreferredName NVARCHAR(50) DEFAULT NULL,
 	Gender BIT NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_User_Id] PRIMARY KEY ([Id] ASC),
-	CONSTRAINT [FK_User_Account_AccountId] FOREIGN KEY ([AccountId]) REFERENCES [dbo].[Account] ([Id]),
+	CONSTRAINT [FK_User_Account_AccountId] FOREIGN KEY ([AccountId]) REFERENCES [dbo].[Account] ([Id]), --ON DELETE CASCADE
 	CONSTRAINT [FK_User_Address_AddressId] FOREIGN KEY ([AddressId]) REFERENCES [dbo].[Address] ([Id])
 )
