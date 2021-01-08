@@ -3,7 +3,7 @@
 
 -- More work:
 -- # Adjust this table to support mentioning @Member, or @Collaborator, or @TaskName, or @Note, or @Project, or @Iteration
--- # Memtioning can be injected at anywhere in the comment content
+-- # Mentioning can be injected at anywhere in the comment content
 
 CREATE TABLE [dbo].[TaskComment]
 (

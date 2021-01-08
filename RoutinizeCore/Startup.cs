@@ -1,10 +1,14 @@
+using System;
+using HelperLibrary;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MongoLibrary;
 using RoutinizeCore.Services;
+using RoutinizeCore.Services.ApplicationServices.CacheService;
 
 namespace RoutinizeCore {
     
@@ -24,9 +28,25 @@ namespace RoutinizeCore {
                     .AddSessionStateTempDataProvider()
                     .SetCompatibilityVersion(CompatibilityVersion.Latest);
 
+            services.AddSession(options => {
+                options.IdleTimeout = TimeSpan.FromMinutes(double.Parse(Configuration.GetSection("Session")["IdleTimeout"]));
+                options.Cookie.IsEssential = bool.Parse(Configuration.GetSection("Session")["RequireCookie"]);
+            });
+
             services.AddHttpContextAccessor();
 
+            services.RegisterHelperServices();
             services.RegisterRoutinizeCoreServices();
+
+            services.Configure<MongoDbOptions>(Configuration.GetSection("MongoServer"));
+            services.RegisterMongoLibraryServices();
+
+            services.AddStackExchangeRedisCache(options => {
+                options.Configuration = Configuration.GetSection("RedisServer")["Connection"];
+                options.InstanceName = Configuration.GetSection("RedisServer")["RoutinizeCache"];
+            });
+            
+            services.Configure<CacheOptions>(Configuration.GetSection("MemoryCache"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,6 +56,7 @@ namespace RoutinizeCore {
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
+            app.UseSession();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

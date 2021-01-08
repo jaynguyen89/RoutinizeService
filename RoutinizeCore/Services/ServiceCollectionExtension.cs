@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RoutinizeCore.Services.ApplicationServices.CacheService;
 
 namespace RoutinizeCore.Services {
 
@@ -6,6 +7,8 @@ namespace RoutinizeCore.Services {
 
         public static IServiceCollection RegisterRoutinizeCoreServices(this IServiceCollection services) {
             //Add all services here
+
+            services.AddSingleton<RoutinizeMemoryCache>();
 
             return services;
         }
