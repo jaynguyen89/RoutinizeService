@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using AssistantLibrary;
 using MongoLibrary;
 using RoutinizeCore.Services;
-using RoutinizeCore.Services.ApplicationServices.CacheService;
 
 namespace RoutinizeCore {
     
@@ -36,6 +36,7 @@ namespace RoutinizeCore {
             services.AddHttpContextAccessor();
 
             services.RegisterHelperServices();
+            services.RegisterAssistantLibraryServices();
             services.RegisterRoutinizeCoreServices();
 
             services.Configure<MongoDbOptions>(Configuration.GetSection("MongoServer"));
@@ -45,8 +46,6 @@ namespace RoutinizeCore {
                 options.Configuration = Configuration.GetSection("RedisServer")["Connection"];
                 options.InstanceName = Configuration.GetSection("RedisServer")["RoutinizeCache"];
             });
-            
-            services.Configure<CacheOptions>(Configuration.GetSection("MemoryCache"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

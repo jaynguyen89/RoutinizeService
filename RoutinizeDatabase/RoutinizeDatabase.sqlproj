@@ -69,6 +69,7 @@
     <Folder Include="tables\content" />
     <Folder Include="tables\collaboration" />
     <Folder Include="tables\interaction" />
+    <Folder Include="publish\scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="tables\managing\Account.sql" />
@@ -90,6 +91,10 @@
     <Build Include="tables\interaction\TaskComment.sql" />
     <Build Include="tables\interaction\TeamInvitation.sql" />
     <Build Include="tables\interaction\TeamRequest.sql" />
+    <Build Include="publish\scripts\prepopulated_data.sql" />
+    <Build Include="tables\interaction\AttachmentPermission.sql" />
+    <Build Include="tables\managing\Role.sql" />
+    <Build Include="tables\managing\RoleClaim.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="obj\Debug\RoutinizeDatabase.sqlproj.FileListAbsolute.txt" />
@@ -102,7 +107,7 @@
     <None Include="RoutinizeDatabase.jfm" />
     <None Include="RoutinizeDatabase.sln" />
     <None Include="RoutinizeDatabase.sqlproj.user" />
-    <None Include="RoutinizeDatabase.publish.xml" />
+    <None Include="publish\RoutinizeDatabase.Local.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="tables\managing\Address.sql" />

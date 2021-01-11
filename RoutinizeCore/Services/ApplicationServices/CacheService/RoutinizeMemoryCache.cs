@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
@@ -10,14 +11,14 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
         
         private MemoryCacheEntryOptions EntryOptions { get; set; }
 
-        public RoutinizeMemoryCache(IOptions<CacheOptions> options) {
+        public RoutinizeMemoryCache(IConfiguration configuration) {
             MemoryCache = new MemoryCache(new MemoryCacheOptions {
-                SizeLimit = int.Parse(options.Value.Size),
-                CompactionPercentage = double.Parse(options.Value.Compaction),
-                ExpirationScanFrequency = TimeSpan.FromSeconds(int.Parse(options.Value.ScanFrequency))
+                SizeLimit = int.Parse(configuration.GetSection("CacheSettings")["Size"]),
+                CompactionPercentage = double.Parse(configuration.GetSection("CacheSettings")["Compaction"]),
+                ExpirationScanFrequency = TimeSpan.FromSeconds(int.Parse(configuration.GetSection("CacheSettings")["ScanFrequency"]))
             });
 
-            EntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromSeconds(int.Parse(options.Value.SlidingExpiration)));
+            EntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromSeconds(int.Parse(configuration.GetSection("CacheSettings")["SlidingExpiration"])));
         }
 
         public void SetCacheEntry(CacheEntry entry) {

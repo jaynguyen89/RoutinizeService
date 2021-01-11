@@ -10,6 +10,7 @@ namespace RoutinizeCore.Models
         public User()
         {
             AppSettings = new HashSet<AppSetting>();
+            Attachments = new HashSet<Attachment>();
             CollaborationCollaborators = new HashSet<Collaboration>();
             CollaborationUsers = new HashSet<Collaboration>();
             CollaboratorTasks = new HashSet<CollaboratorTask>();
@@ -38,6 +39,7 @@ namespace RoutinizeCore.Models
         public virtual Account Account { get; set; }
         public virtual Address Address { get; set; }
         public virtual ICollection<AppSetting> AppSettings { get; set; }
+        public virtual ICollection<Attachment> Attachments { get; set; }
         public virtual ICollection<Collaboration> CollaborationCollaborators { get; set; }
         public virtual ICollection<Collaboration> CollaborationUsers { get; set; }
         public virtual ICollection<CollaboratorTask> CollaboratorTasks { get; set; }

@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GoogleAuthenticator" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="5.0.1" />
@@ -25,10 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers" />
+    <Folder Include="PartialModels" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AssistantLibrary\AssistantLibrary.csproj" />
     <ProjectReference Include="..\HelperLibrary\HelperLibrary.csproj" />
     <ProjectReference Include="..\MongoLibrary\MongoLibrary.csproj" />
   </ItemGroup>

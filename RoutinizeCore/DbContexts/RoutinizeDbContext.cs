@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using RoutinizeCore.Models;
 
 #nullable disable
@@ -20,6 +22,7 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<Address> Addresses { get; set; }
         public virtual DbSet<AppSetting> AppSettings { get; set; }
         public virtual DbSet<Attachment> Attachments { get; set; }
+        public virtual DbSet<AttachmentPermission> AttachmentPermissions { get; set; }
         public virtual DbSet<AuthRecord> AuthRecords { get; set; }
         public virtual DbSet<Collaboration> Collaborations { get; set; }
         public virtual DbSet<CollaboratorTask> CollaboratorTasks { get; set; }
@@ -29,6 +32,8 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<ProjectIteration> ProjectIterations { get; set; }
         public virtual DbSet<RandomIdea> RandomIdeas { get; set; }
+        public virtual DbSet<Role> Roles { get; set; }
+        public virtual DbSet<RoleClaim> RoleClaims { get; set; }
         public virtual DbSet<TaskComment> TaskComments { get; set; }
         public virtual DbSet<TaskPermission> TaskPermissions { get; set; }
         public virtual DbSet<TaskRelation> TaskRelations { get; set; }
@@ -120,6 +125,8 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Attachment");
 
+                entity.Property(e => e.AttachedOn).HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.AttachmentName).HasMaxLength(100);
 
                 entity.Property(e => e.AttachmentUrl).HasMaxLength(250);
@@ -127,6 +134,28 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.ItemType)
                     .IsRequired()
                     .HasMaxLength(30);
+
+                entity.HasOne(d => d.Permission)
+                    .WithMany(p => p.Attachments)
+                    .HasForeignKey(d => d.PermissionId);
+
+                entity.HasOne(d => d.UploadedBy)
+                    .WithMany(p => p.Attachments)
+                    .HasForeignKey(d => d.UploadedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<AttachmentPermission>(entity =>
+            {
+                entity.ToTable("AttachmentPermission");
+
+                entity.Property(e => e.MembersToAllowDelete).HasMaxLength(250);
+
+                entity.Property(e => e.MembersToAllowDownload).HasMaxLength(250);
+
+                entity.Property(e => e.MembersToAllowEdit).HasMaxLength(250);
+
+                entity.Property(e => e.MembersToAllowView).HasMaxLength(250);
             });
 
             modelBuilder.Entity<AuthRecord>(entity =>
@@ -279,6 +308,34 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.RandomIdeas)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.ToTable("Role");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.RoleName)
+                    .IsRequired()
+                    .HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<RoleClaim>(entity =>
+            {
+                entity.ToTable("RoleClaim");
+
+                entity.HasOne(d => d.Claimer)
+                    .WithMany(p => p.RoleClaims)
+                    .HasForeignKey(d => d.ClaimerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.RoleClaims)
+                    .HasForeignKey(d => d.RoleId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 

@@ -7,6 +7,11 @@ namespace RoutinizeCore.Models
 {
     public partial class TeamMember
     {
+        public TeamMember()
+        {
+            RoleClaims = new HashSet<RoleClaim>();
+        }
+
         public int Id { get; set; }
         public int TeamId { get; set; }
         public int MemberId { get; set; }
@@ -15,5 +20,6 @@ namespace RoutinizeCore.Models
 
         public virtual User Member { get; set; }
         public virtual Team Team { get; set; }
+        public virtual ICollection<RoleClaim> RoleClaims { get; set; }
     }
 }
