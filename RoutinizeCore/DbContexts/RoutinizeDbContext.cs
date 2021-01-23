@@ -1,6 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 using RoutinizeCore.Models;
 
 #nullable disable
@@ -162,9 +160,9 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("AuthRecord");
 
-                entity.Property(e => e.AuthToken)
+                entity.Property(e => e.AuthTokenSalt)
                     .IsRequired()
-                    .HasMaxLength(250);
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.DeviceInformation).HasMaxLength(250);
 

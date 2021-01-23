@@ -25,30 +25,31 @@ namespace MongoLibrary.Services {
         }
 
         public async Task InsertRoutinizeCoreLog(RoutinizeCoreLog log) {
-            _logger.LogInformation($"{ nameof(RoutinizeCoreLogService) }.{ nameof(InsertRoutinizeCoreLog) } - Service starts: Add log entry for RoutinizeCore.");
-
+            _logger.LogInformation("RoutinizeCoreLogService.InsertRoutinizeCoreLog - Service starts: Add log entry for RoutinizeCore");
+            log.RecordedOn = DateTime.UtcNow;
+            
             try {
                 await _context.RoutinizeCoreLogCollection.InsertOneAsync(log);
-                _logger.LogInformation($"{ nameof(RoutinizeCoreLogService) }.{ nameof(InsertRoutinizeCoreLog) } - Service done.");
+                _logger.LogInformation("RoutinizeCoreLogService.InsertRoutinizeCoreLog - Service done");
             }
             catch (Exception e) {
-                _logger.LogError($"{ nameof(RoutinizeCoreLogService) }.{ nameof(InsertRoutinizeCoreLog) } - Error: " + e.Message);
+                _logger.LogError("RoutinizeCoreLogService.InsertRoutinizeCoreLog - Error: " + e.Message);
             }
         }
 
         public async Task<List<RoutinizeCoreLog>> GetRoutinizeCoreLogInRange(int start = 0, int end = 100) {
-            _logger.LogInformation($"{ nameof(RoutinizeCoreLogService) }.{ nameof(GetRoutinizeCoreLogInRange) } - Service starts: Get log entries from { start } to { end } for RoutinizeCore.");
+            _logger.LogInformation("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Service starts");
 
             List<RoutinizeCoreLog> logs;
             try {
                 logs = await _context.RoutinizeCoreLogCollection.Find(Builders<RoutinizeCoreLog>.Filter.Empty).Skip(start).Limit(end).ToListAsync();
             }
             catch (Exception e) {
-                _logger.LogInformation($"{ nameof(RoutinizeCoreLogService) }.{ nameof(GetRoutinizeCoreLogInRange) } - Error: " + e.Message);
+                _logger.LogInformation("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Error: " + e.Message);
                 return null;
             }
             
-            _logger.LogInformation($"{ nameof(RoutinizeCoreLogService) }.{ nameof(GetRoutinizeCoreLogInRange) } - Service done.");
+            _logger.LogInformation("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Service done");
             return logs;
         }
     }

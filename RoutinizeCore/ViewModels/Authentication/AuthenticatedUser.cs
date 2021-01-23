@@ -1,15 +1,23 @@
 ﻿namespace RoutinizeCore.ViewModels.Authentication {
 
-    public sealed class AuthenticatedUser {
+    public class AuthenticatedUser {
         
-        public string AuthenticationToken { get; set; }
+        public string SessionId { get; set; }
         
-        public int AuthenticatedUserId { get; set; }
+        public int? UserId { get; set; }
         
-        public string UserEmail { get; set; }
+        public int AccountId { get; set; }
         
-        public string ValidityDuration { get; set; }
-        
-        public string AuthenticationTimestamp { get; set; }
+        public string AuthToken { get; set; }
+
+        private bool TrustedAuth;
+
+        public void SetTrustedAuth(bool trustedAuth) {
+            TrustedAuth = trustedAuth;
+        }
+
+        public bool GetTrustedAuth() {
+            return TrustedAuth;
+        }
     }
 }

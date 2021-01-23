@@ -5,9 +5,9 @@ namespace MongoLibrary.Models {
 
     public class LogData {
         
-        public string Controller { get; set; }
+        public string Location { get; set; }
         
-        public string Action { get; set; }
+        public string Caller { get; set; }
         
         public string ParamData { get; set; }
         

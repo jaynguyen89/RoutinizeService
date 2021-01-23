@@ -9,6 +9,7 @@ namespace AssistantLibrary {
         public static IServiceCollection RegisterAssistantLibraryServices(this IServiceCollection services) {
             //Add all services here
 
+            services.AddScoped<IAssistantService, AssistantService>();
             services.AddScoped<IEmailSenderService, EmailSenderService>();
             services.AddScoped<IGoogleRecaptchaService, GoogleRecaptchaService>();
 

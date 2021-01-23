@@ -55,10 +55,10 @@ namespace RoutinizeCore.Services {
         protected async Task InsertRedisCacheEntry(CacheEntry entry) {
             if (!_cacheSettings.RedisCacheEnabled) return;
             
-            var userId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AuthenticatedUserId));
+            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
 
             await _redisCache.SetAsync(
-                $"{ entry.EntryKey }_{ userId }",
+                $"{ entry.EntryKey }_{ accountId }",
                 Helpers.EncodeDataUtf8(entry.Data),
                 new DistributedCacheEntryOptions {
                     SlidingExpiration = TimeSpan.FromDays(_cacheSettings.RedisSlidingExpiration),
@@ -68,17 +68,17 @@ namespace RoutinizeCore.Services {
         }
 
         protected async Task<T> GetRedisCacheEntry<T>(string entryKey) {
-            var userId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AuthenticatedUserId));
+            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
 
-            var cachedData = await _redisCache.GetAsync($"{ entryKey }_{ userId }");
+            var cachedData = await _redisCache.GetAsync($"{ entryKey }_{ accountId }");
             return cachedData == null ? default : Helpers.DecodeUtf8<T>(cachedData);
         }
 
         protected void InsertMemoryCacheEntry(CacheEntry entry) {
             if (!_cacheSettings.MemoryCacheEnabled) return;
             
-            var userId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AuthenticatedUserId));
-            entry.EntryKey = $"{ entry.EntryKey }_{ userId }";
+            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+            entry.EntryKey = $"{ entry.EntryKey }_{ accountId }";
                 
             _memoryCache.SetCacheEntry(entry);
         }
@@ -86,8 +86,8 @@ namespace RoutinizeCore.Services {
         protected T GetMemoryCacheEntry<T>(string entryKey) {
             if (!_cacheSettings.MemoryCacheEnabled) return default;
             
-            var userId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AuthenticatedUserId));
-            return _memoryCache.GetCacheEntryFor<T>($"{ entryKey }_{ userId }");
+            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+            return _memoryCache.GetCacheEntryFor<T>($"{ entryKey }_{ accountId }");
         }
     }
 }

@@ -10,8 +10,9 @@ namespace RoutinizeCore.Models
         public int Id { get; set; }
         public int AccountId { get; set; }
         public string SessionId { get; set; }
-        public string AuthToken { get; set; }
-        public int AuthTimestamp { get; set; }
+        public bool TrustedAuth { get; set; }
+        public string AuthTokenSalt { get; set; }
+        public long AuthTimestamp { get; set; }
         public string DeviceInformation { get; set; }
 
         public virtual Account Account { get; set; }

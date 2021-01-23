@@ -7,8 +7,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AssistantLibrary;
+using AssistantLibrary.Models;
+using Microsoft.AspNetCore.Http;
 using MongoLibrary;
 using RoutinizeCore.Services;
+using RoutinizeCore.ViewModels;
 
 namespace RoutinizeCore {
     
@@ -22,6 +25,7 @@ namespace RoutinizeCore {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
+            //services.AddCors();
             services.AddControllers();
 
             services.AddMvc(options => options.EnableEndpointRouting = false)
@@ -29,17 +33,21 @@ namespace RoutinizeCore {
                     .SetCompatibilityVersion(CompatibilityVersion.Latest);
 
             services.AddSession(options => {
-                options.IdleTimeout = TimeSpan.FromMinutes(double.Parse(Configuration.GetSection("Session")["IdleTimeout"]));
+                options.IdleTimeout = TimeSpan.FromMinutes(int.Parse(Configuration.GetSection("Session")["IdleTimeout"]));
                 options.Cookie.IsEssential = bool.Parse(Configuration.GetSection("Session")["RequireCookie"]);
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
 
             services.AddHttpContextAccessor();
 
+            services.Configure<GoogleRecaptchaOptions>(Configuration.GetSection("RoutinizeSettings"));
+            services.Configure<MailServerOptions>(Configuration.GetSection("RoutinizeSettings"));
+            
             services.RegisterHelperServices();
             services.RegisterAssistantLibraryServices();
             services.RegisterRoutinizeCoreServices();
 
-            services.Configure<MongoDbOptions>(Configuration.GetSection("MongoServer"));
+            services.Configure<MongoDbOptions>(Configuration.GetSection(nameof(MongoDbOptions)));
             services.RegisterMongoLibraryServices();
 
             services.AddStackExchangeRedisCache(options => {
@@ -54,8 +62,9 @@ namespace RoutinizeCore {
 
             app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseAuthorization();
+            //app.UseAuthorization();
             app.UseSession();
+            app.UseCookiePolicy();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

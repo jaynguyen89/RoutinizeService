@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Activate Account</title>
+    <style>
+        body {
+            width: 100%;
+            background-color: #49A9D6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .email-body {
+            background-color: white;
+            width: 80%;
+            height: 100%;
+            padding: 20px;
+            margin: auto;
+        }
+
+        .notice {
+            font-size: 10px;
+            border-top: 1px solid grey;
+            background-color: #F2F2F2;
+        }
+    </style>
+</head>
+
+<body>
+<div class="email-body">
+    <h5>[EMAIL_TITLE]</h5>
+    <p><b>Dear [USER_NAME],</b></p>
+    <p>
+        Your Routinize account has been created successfully.<br />
+        Please click <a href="http://localhost:3000/activate-account?email=[USER_EMAIL]&token=[ACTIVATION_TOKEN]">HERE</a> and follow the instructions to activate your account.
+    </p>
+
+    <br />
+    <p style="color: orangered;">**Please note: this email only stays valid for [VALIDITY_DURATION] hours. If this email expired, you will need to request another Account 
+        Activation email.</p>
+
+    <br />
+    <p>To request another Account Activation email, please click <a href="http://localhost:3000/request-activation-email?email=[USER_EMAIL]">HERE</a>.</p>
+
+    <br />
+    <p>Kind regards,<br />Routinize Team</p>
+
+    <br />
+    <p class="notice">**Please contact Routinize Team if you do not recognize this activity or you have problems while activating your account.</p>
+</div>
+</body>
+</html>

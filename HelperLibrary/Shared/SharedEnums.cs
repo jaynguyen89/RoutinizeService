@@ -6,7 +6,9 @@ namespace HelperLibrary.Shared {
 
         public enum SessionKeys {
             [StringValue("IsUserAuthenticated")]
-            IsUserAuthenticated
+            IsUserAuthenticated,
+            [StringValue("AuthenticatedUser")]
+            AuthenticatedUser
         }
 
         public enum ActionFilterResults {
@@ -33,6 +35,13 @@ namespace HelperLibrary.Shared {
             High,
             [StringValue("Fatal")]
             Fatal
+        }
+
+        public enum DateTimeFormats {
+            [StringValue("dd-MM-yyyy HH:mm")]
+            COMPACT_H_DMY,
+            [StringValue("dd-MM-yyyy hh:mm tt")]
+            COMPACT_T_DMY
         }
 
         public enum HttpStatusCodes {
