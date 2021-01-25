@@ -14,5 +14,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<Account> GetUnactivatedUserAccountByEmail(string email);
         
         Task<bool> UpdateUserAccount(Account userAccount);
+
+        Task<Account> GetAccountById(int accountId);
     }
 }

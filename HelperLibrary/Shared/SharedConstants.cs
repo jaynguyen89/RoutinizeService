@@ -1,8 +1,11 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace HelperLibrary.Shared {
 
     public static class SharedConstants {
+
+        public const int CACHE_ABSOLUTE_EXPIRATION = 3600; //seconds
 
         public const int ACCOUNT_UNIQUE_ID_LENGTH = 16;
         public const char ACCOUNT_UNIQUE_ID_DELIMITER = '-';
@@ -30,5 +33,9 @@ namespace HelperLibrary.Shared {
         public const int SECONDS_PER_MINUTE = 60;
         public const int TICKS_PER_SECOND = 100;
         public const int MILLIS_PER_SECOND = 1000;
+
+        public static readonly List<string> INVALID_EMAIL_TOKENS = new List<string> {
+            "--", "_@", "-@", ".-", "-.", "._", "_.", " ", "@_", "@-", "__", "..", "_-", "-_"
+        };
     }
 }

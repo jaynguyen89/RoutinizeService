@@ -10,6 +10,7 @@ namespace MongoLibrary {
             //Add all services here
 
             services.AddScoped<IRoutinizeCoreLogService, RoutinizeCoreLogService>();
+            services.AddScoped<IRoutinizeAccountLogService, RoutinizeAccountLogService>();
 
             return services;
         }

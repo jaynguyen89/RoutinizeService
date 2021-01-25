@@ -10,6 +10,7 @@ namespace RoutinizeCore.Models
         public Account()
         {
             AuthRecords = new HashSet<AuthRecord>();
+            ChallengeRecords = new HashSet<ChallengeRecord>();
             Users = new HashSet<User>();
         }
 
@@ -33,6 +34,7 @@ namespace RoutinizeCore.Models
         public DateTime? TokenSetOn { get; set; }
 
         public virtual ICollection<AuthRecord> AuthRecords { get; set; }
+        public virtual ICollection<ChallengeRecord> ChallengeRecords { get; set; }
         public virtual ICollection<User> Users { get; set; }
     }
 }

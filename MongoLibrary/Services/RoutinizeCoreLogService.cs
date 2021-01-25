@@ -45,7 +45,7 @@ namespace MongoLibrary.Services {
                 logs = await _context.RoutinizeCoreLogCollection.Find(Builders<RoutinizeCoreLog>.Filter.Empty).Skip(start).Limit(end).ToListAsync();
             }
             catch (Exception e) {
-                _logger.LogInformation("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Error: " + e.Message);
+                _logger.LogError("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Error: " + e.Message);
                 return null;
             }
             

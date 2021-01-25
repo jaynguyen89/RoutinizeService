@@ -17,5 +17,9 @@ namespace AssistantLibrary.Services {
         public string GenerateRandomString(int length = 8) {
             return BCryptHelper.GenerateSalt(length);
         }
+
+        public bool IsHashMatchesPlainText(string hash, string plainText) {
+            return BCryptHelper.CheckPassword(hash, plainText);
+        }
     }
 }

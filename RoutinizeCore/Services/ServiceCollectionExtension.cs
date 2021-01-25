@@ -10,7 +10,8 @@ namespace RoutinizeCore.Services {
         public static IServiceCollection RegisterRoutinizeCoreServices(this IServiceCollection services) {
             //Add all services here
 
-            services.AddSingleton<RoutinizeMemoryCache>();
+            services.AddSingleton<IRoutinizeMemoryCache, RoutinizeMemoryCache>();
+            
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();

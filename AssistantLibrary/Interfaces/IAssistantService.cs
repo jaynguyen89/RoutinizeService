@@ -8,5 +8,7 @@ namespace AssistantLibrary.Interfaces {
         KeyValuePair<string, string> GenerateHashAndSalt(string plainText);
 
         string GenerateRandomString(int length = 8);
+
+        bool IsHashMatchesPlainText(string hash, string plainText);
     }
 }

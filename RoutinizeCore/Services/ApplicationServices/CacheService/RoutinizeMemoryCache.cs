@@ -1,11 +1,12 @@
 ﻿using System;
+using HelperLibrary.Shared;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
-    public sealed class RoutinizeMemoryCache {
+    public sealed class RoutinizeMemoryCache : IRoutinizeMemoryCache {
         
         private MemoryCache MemoryCache { get; set; }
         
@@ -23,7 +24,15 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
         public void SetCacheEntry(CacheEntry entry) {
             EntryOptions.SetPriority(entry.Priority).SetSize(entry.Size);
-            if (entry.AbsoluteExpiration > 0) EntryOptions.SetAbsoluteExpiration(TimeSpan.FromSeconds(entry.AbsoluteExpiration));
+
+            try {
+                EntryOptions.SetAbsoluteExpiration(
+                    entry.AbsoluteExpiration > 0 ? TimeSpan.FromSeconds(entry.AbsoluteExpiration) : EntryOptions.SlidingExpiration.Value
+                );
+            }
+            catch (InvalidOperationException) {
+                EntryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(SharedConstants.CACHE_ABSOLUTE_EXPIRATION));
+            }
 
             MemoryCache.Set(entry.EntryKey, entry.Data, EntryOptions);
         }

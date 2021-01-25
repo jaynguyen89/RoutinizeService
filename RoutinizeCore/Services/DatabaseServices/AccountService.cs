@@ -5,24 +5,29 @@ using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MongoLibrary.Interfaces;
 using MongoLibrary.Models;
 using Newtonsoft.Json;
 using RoutinizeCore.DbContexts;
 using RoutinizeCore.Models;
+using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
     public sealed class AccountService : CacheServiceBase, IAccountService {
 
+        private readonly IRoutinizeMemoryCache _memoryCache;
         private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly RoutinizeDbContext _dbContext;
 
         public AccountService(
+            IRoutinizeMemoryCache memoryCache,
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
         ) {
+            _memoryCache = memoryCache;
             _coreLogService = coreLogService;
             _dbContext = dbContext;
         }
@@ -141,6 +146,23 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
                 return false;
             }
+        }
+
+        public async Task<Account> GetAccountById(int accountId) {
+            var cachedAccount = _memoryCache.GetCacheEntryFor<Account>($"{ nameof(Account) }_{ accountId }");
+            if (cachedAccount != null) return cachedAccount;
+            
+            var dbAccount = await _dbContext.Accounts.FindAsync(accountId);
+            if (dbAccount != null)
+                _memoryCache.SetCacheEntry(new CacheEntry {
+                    Data = dbAccount,
+                    Priority = CacheItemPriority.High,
+                    Size = dbAccount.GetType().GetProperties().Length,
+                    AbsoluteExpiration = SharedConstants.CACHE_ABSOLUTE_EXPIRATION,
+                    EntryKey = $"{ nameof(Account) }_{ accountId }"
+                });
+
+            return dbAccount;
         }
     }
 }

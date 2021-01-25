@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using HelperLibrary;
+using HelperLibrary.Shared;
 
 namespace RoutinizeCore.ViewModels.Authentication {
 
@@ -21,10 +22,6 @@ namespace RoutinizeCore.ViewModels.Authentication {
         
         public string RecoveryToken { get; set; }
         
-        private static readonly List<string> INVALIDS = new List<string> {
-            "--", "_@", "-@", ".-", "-.", "._", "_.", " ", "@_", "@-", "__", "..", "_-", "-_"
-        };
-        
         public List<int> VerifyEmail() {
             Email = Email.Trim().ToLower();
 
@@ -38,7 +35,7 @@ namespace RoutinizeCore.ViewModels.Authentication {
                 errors.Add(1);
 
             var fmTest = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-            if (!fmTest.IsMatch(Email) || INVALIDS.Any(Email.Contains))
+            if (!fmTest.IsMatch(Email) || SharedConstants.INVALID_EMAIL_TOKENS.Any(Email.Contains))
                 errors.Add(2);
 
             if (errors.Count == 0) {
@@ -66,7 +63,7 @@ namespace RoutinizeCore.ViewModels.Authentication {
             if (!spTest.IsMatch(Username))
                 errors.Add(6);
 
-            if (errors.Count == 0 && (INVALIDS.Any(Username.Contains) ||
+            if (errors.Count == 0 && (SharedConstants.INVALID_EMAIL_TOKENS.Any(Username.Contains) ||
                 "_-.".Contains(Username[0]) || "_-.".Contains(Username[^1])))
                 errors.Add(7);
 

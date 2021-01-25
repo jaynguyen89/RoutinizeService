@@ -7,7 +7,6 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MongoLibrary.Interfaces;
 using Newtonsoft.Json;
 using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
@@ -20,7 +19,6 @@ namespace RoutinizeCore.Controllers {
     [Route("authentication")]
     public sealed class AuthenticationController : ControllerBase  {
         
-        private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly IAuthenticationService _authenticationService;
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
@@ -30,7 +28,6 @@ namespace RoutinizeCore.Controllers {
         private readonly IEmailSenderService _emailSenderService;
 
         public AuthenticationController(
-            IRoutinizeCoreLogService coreLogService,
             IAuthenticationService authenticationService,
             IAccountService accountService,
             IUserService userService,
@@ -38,7 +35,6 @@ namespace RoutinizeCore.Controllers {
             IGoogleRecaptchaService googleRecaptchaService,
             IEmailSenderService emailSenderService
         ) {
-            _coreLogService = coreLogService;
             _authenticationService = authenticationService;
             _accountService = accountService;
             _userService = userService;
@@ -112,8 +108,8 @@ namespace RoutinizeCore.Controllers {
                 accountUniqueId = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_UNIQUE_ID_LENGTH);
                 isAccountUniqueIdValid = await _accountService.IsAccountUniqueIdAvailable(accountUniqueId);
 
-                if (isAccountUniqueIdValid)
-                    accountUniqueId = Helpers.AppendCharacterToString(accountUniqueId);
+                // if (isAccountUniqueIdValid)
+                //     accountUniqueId = Helpers.AppendCharacterToString(accountUniqueId);
             }
 
             var activationToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
@@ -210,8 +206,7 @@ namespace RoutinizeCore.Controllers {
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationEmail.html");
             var accountActivationEmailTemplate = await fileReader.ReadToEndAsync();
 
-            var accountActivationEmailContent = accountActivationEmailTemplate.Replace("[EMAIL_TITLE]", "Activate your account");
-            accountActivationEmailContent = accountActivationEmailTemplate.Replace("[USER_NAME]", username);
+            var accountActivationEmailContent = accountActivationEmailTemplate.Replace("[USER_NAME]", username);
             accountActivationEmailContent = accountActivationEmailTemplate.Replace("[USER_EMAIL]", email);
             accountActivationEmailContent = accountActivationEmailTemplate.Replace("[ACTIVATION_TOKEN]", activationToken);
             accountActivationEmailContent = accountActivationEmailTemplate.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
@@ -223,6 +218,7 @@ namespace RoutinizeCore.Controllers {
                 ReceiverAddress = email
             };
 
+            fileReader.Close();
             return await _emailSenderService.SendEmailSingle(accountActivationEmail);
         }
 
@@ -238,11 +234,12 @@ namespace RoutinizeCore.Controllers {
             }
 
             var (isSuccessful, userAccount) = await _authenticationService.AuthenticateUserAccount(authenticationData);
-            if (!isSuccessful) return new JsonResult(new JsonResponse {
-                Result = SharedEnums.RequestResults.Failed,
-                Message = "No account matches the authentication data.",
-                Error = SharedEnums.HttpStatusCodes.NotFound
-            });
+            if (!isSuccessful || !_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, authenticationData.Password))
+                return new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "No account matches the authentication data.",
+                    Error = SharedEnums.HttpStatusCodes.NotFound
+                });
 
             var authenticationTimestamp = DateTime.UtcNow;
             var tokenSalt = _assistantService.GenerateRandomString();
@@ -330,6 +327,11 @@ namespace RoutinizeCore.Controllers {
         public JsonResult Unauthenticate() {
             HttpContext.Session.Clear();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpPost("recover-password")]
+        public async Task<JsonResult> RecoverPassword() {
+            throw new NotImplementedException();
         }
     }
 }

@@ -12,6 +12,6 @@
         
         public string ClientLogCollection { get; set; }
         
-        public string DataLogCollection { get; set; }
+        public string AccountLogCollection { get; set; }
     }
 }

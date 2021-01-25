@@ -22,6 +22,8 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<Attachment> Attachments { get; set; }
         public virtual DbSet<AttachmentPermission> AttachmentPermissions { get; set; }
         public virtual DbSet<AuthRecord> AuthRecords { get; set; }
+        public virtual DbSet<ChallengeQuestion> ChallengeQuestions { get; set; }
+        public virtual DbSet<ChallengeRecord> ChallengeRecords { get; set; }
         public virtual DbSet<Collaboration> Collaborations { get; set; }
         public virtual DbSet<CollaboratorTask> CollaboratorTasks { get; set; }
         public virtual DbSet<IterationTask> IterationTasks { get; set; }
@@ -173,6 +175,38 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AuthRecords)
                     .HasForeignKey(d => d.AccountId);
+            });
+
+            modelBuilder.Entity<ChallengeQuestion>(entity =>
+            {
+                entity.ToTable("ChallengeQuestion");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Question)
+                    .IsRequired()
+                    .HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<ChallengeRecord>(entity =>
+            {
+                entity.ToTable("ChallengeRecord");
+
+                entity.Property(e => e.RecordedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Response)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.ChallengeRecords)
+                    .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Question)
+                    .WithMany(p => p.ChallengeRecords)
+                    .HasForeignKey(d => d.QuestionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<Collaboration>(entity =>

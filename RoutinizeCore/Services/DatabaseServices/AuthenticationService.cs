@@ -10,6 +10,7 @@ using MongoLibrary.Models;
 using Newtonsoft.Json;
 using RoutinizeCore.DbContexts;
 using RoutinizeCore.Models;
+using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels.Authentication;
 
@@ -158,16 +159,16 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
         public async Task<KeyValuePair<bool, Account>> AuthenticateUserAccount(AuthenticationVM authenticationData) {
             try {
-                Account dbAccount = null;
-                if (Helpers.IsProperString(authenticationData.Email))
-                    dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(
-                        account => account.Email.ToLower().Equals(authenticationData.Email.ToLower()) &&
-                                   account.EmailConfirmed == true
-                    );
-                else
-                    dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(
-                        account => account.Username.ToLower().Equals(authenticationData.Username.ToLower())
-                    );
+                Account dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(
+                    account => (
+                                   Helpers.IsProperString(authenticationData.Email)
+                                       ? account.Email.ToLower().Equals(authenticationData.Email.ToLower())
+                                       : account.Username.ToLower().Equals(authenticationData.Username)
+                               ) &&
+                               account.EmailConfirmed == true &&
+                               account.RecoveryToken == null &&
+                               account.TokenSetOn == null
+                );
 
                 return dbAccount == null
                     ? new KeyValuePair<bool, Account>(false, null)
