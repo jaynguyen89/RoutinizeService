@@ -52,13 +52,16 @@ namespace RoutinizeCore.Services {
             _cacheSettings.RedisAbsoluteExpiration = int.Parse(configuration.GetSection("CacheSettings")["RedisAbsoluteExpiration"]);
         }
 
-        protected async Task InsertRedisCacheEntry(CacheEntry entry) {
+        protected async Task InsertRedisCacheEntry<T>(CacheEntry entry) {
             if (!_cacheSettings.RedisCacheEnabled) return;
-            
-            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+
+            if (!Helpers.IsProperString(entry.EntryKey)) {
+                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+                entry.EntryKey = $"{ nameof(T) }_{ accountId }";
+            }
 
             await _redisCache.SetAsync(
-                $"{ entry.EntryKey }_{ accountId }",
+                $"{ entry.EntryKey }",
                 Helpers.EncodeDataUtf8(entry.Data),
                 new DistributedCacheEntryOptions {
                     SlidingExpiration = TimeSpan.FromDays(_cacheSettings.RedisSlidingExpiration),
@@ -67,27 +70,39 @@ namespace RoutinizeCore.Services {
             );
         }
 
-        protected async Task<T> GetRedisCacheEntry<T>(string entryKey) {
-            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+        protected async Task<T> GetRedisCacheEntry<T>(string entryKey = null) {
+            if (!_cacheSettings.RedisCacheEnabled) return default(T);
 
-            var cachedData = await _redisCache.GetAsync($"{ entryKey }_{ accountId }");
-            return cachedData == null ? default : Helpers.DecodeUtf8<T>(cachedData);
+            if (!Helpers.IsProperString(entryKey)) {
+                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+                entryKey = $"{ nameof(T) }_{ accountId }";
+            }
+
+            var cachedData = await _redisCache.GetAsync(entryKey);
+            return cachedData.Length == 0 ? default(T) : Helpers.DecodeUtf8<T>(cachedData);
         }
 
-        protected void InsertMemoryCacheEntry(CacheEntry entry) {
+        protected void InsertMemoryCacheEntry<T>(CacheEntry entry) {
             if (!_cacheSettings.MemoryCacheEnabled) return;
             
-            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-            entry.EntryKey = $"{ entry.EntryKey }_{ accountId }";
-                
+            if (!Helpers.IsProperString(entry.EntryKey)) {
+                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
+                entry.EntryKey = $"{nameof(T)}_{accountId}";
+            }
+
             _memoryCache.SetCacheEntry(entry);
         }
 
-        protected T GetMemoryCacheEntry<T>(string entryKey) {
-            if (!_cacheSettings.MemoryCacheEnabled) return default;
+        protected T GetMemoryCacheEntry<T>(string entryKey = null) {
+            if (!_cacheSettings.MemoryCacheEnabled) return default(T);
+
+            if (Helpers.IsProperString(entryKey))
+                return _memoryCache.GetCacheEntryFor<T>(entryKey);
             
             var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-            return _memoryCache.GetCacheEntryFor<T>($"{ entryKey }_{ accountId }");
+            entryKey = $"{ nameof(T) }_{ accountId }";
+
+            return _memoryCache.GetCacheEntryFor<T>(entryKey);
         }
     }
 }

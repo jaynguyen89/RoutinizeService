@@ -5,7 +5,7 @@ using AssistantLibrary.Models;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoLibrary.Interfaces;
-using RoutinizeCore.Services;
+using RoutinizeCore.Attributes;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
 using RoutinizeCore.ViewModels.Account;
@@ -17,6 +17,8 @@ namespace RoutinizeCore.Controllers {
         private readonly IRoutinizeAccountLogService _accountLogService;
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
+        private readonly IChallengeService _challengeService;
+        
         private readonly IAssistantService _assistantService;
         private readonly IEmailSenderService _emailSenderService;
 
@@ -24,17 +26,20 @@ namespace RoutinizeCore.Controllers {
             IRoutinizeAccountLogService accountLogService,
             IAccountService accountService,
             IUserService userService,
+            IChallengeService challengeService,
             IAssistantService assistantService,
             IEmailSenderService emailSenderService
         ) {
             _accountLogService = accountLogService;
             _accountService = accountService;
             _userService = userService;
+            _challengeService = challengeService;
             _assistantService = assistantService;
             _emailSenderService = emailSenderService;
         }
 
         [HttpPost("change-account-email")]
+        [RoutinizeActionFilter]
         public async Task<JsonResult> ChangeAccountEmail(EmailUpdateVM emailUpdateData) {
             var newEmailValidation = emailUpdateData.VerifyNewEmail();
             if (newEmailValidation.Count != 0) {
@@ -42,7 +47,7 @@ namespace RoutinizeCore.Controllers {
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errorMessages, Error = SharedEnums.HttpStatusCodes.Conflict });
             }
 
-            var userAccount = await _accountService.GetAccountById(emailUpdateData.AccountId);
+            var userAccount = await _accountService.GetUserAccountById(emailUpdateData.AccountId);
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Failed to find your account." });
 
             if (!_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, emailUpdateData.Password))
@@ -90,12 +95,19 @@ namespace RoutinizeCore.Controllers {
                 ReceiverAddress = userAccount.Email
             };
 
+            fileReader.Close();
             if (!await _emailSenderService.SendEmailSingle(emailUpdateEmail))
                 return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Partial, Message = "Failed to send the activation email."});
             
             return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success });
         }
-        
-        
+
+        [HttpGet("get-challenge-question-for-proof/{accountId}")]
+        public async Task<JsonResult> GetChallengeQuestionForProof(int accountId) {
+            var challengeQuestion = await _challengeService.GetRandomChallengeQuestionForAccount(accountId);
+            return challengeQuestion == null
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeQuestion });
+        }
     }
 }

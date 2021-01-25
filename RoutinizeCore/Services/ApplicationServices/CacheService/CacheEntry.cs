@@ -3,8 +3,8 @@
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
     public sealed class CacheEntry {
-        
-        public string EntryKey { get; set; }
+
+        public string EntryKey { get; set; } = string.Empty;
         
         public object Data { get; set; }
 

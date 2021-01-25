@@ -1,6 +1,6 @@
 ﻿namespace RoutinizeCore.ViewModels.Account {
 
-    public class EmailUpdateLog {
+    public sealed class EmailUpdateLog {
         
         public int AccountId { get; set; }
         

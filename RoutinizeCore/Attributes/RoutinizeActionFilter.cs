@@ -8,7 +8,7 @@ using RoutinizeCore.Controllers;
 
 namespace RoutinizeCore.Attributes {
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public sealed class RoutinizeActionFilter : ActionFilterAttribute {
 
         public RoutinizeActionFilter() { }

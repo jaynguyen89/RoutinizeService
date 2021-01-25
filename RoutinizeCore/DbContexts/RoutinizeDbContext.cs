@@ -203,7 +203,7 @@ namespace RoutinizeCore.DbContexts
                     .HasForeignKey(d => d.AccountId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
 
-                entity.HasOne(d => d.Question)
+                entity.HasOne(d => d.ChallengeQuestion)
                     .WithMany(p => p.ChallengeRecords)
                     .HasForeignKey(d => d.QuestionId)
                     .OnDelete(DeleteBehavior.ClientSetNull);

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
+using RoutinizeCore.ViewModels.AccountRecovery;
 using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Controllers {
@@ -22,6 +23,7 @@ namespace RoutinizeCore.Controllers {
         private readonly IAuthenticationService _authenticationService;
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
+        private readonly IChallengeService _challengeService;
 
         private readonly IAssistantService _assistantService;
         private readonly IGoogleRecaptchaService _googleRecaptchaService;
@@ -31,6 +33,7 @@ namespace RoutinizeCore.Controllers {
             IAuthenticationService authenticationService,
             IAccountService accountService,
             IUserService userService,
+            IChallengeService challengeService,
             IAssistantService assistantService,
             IGoogleRecaptchaService googleRecaptchaService,
             IEmailSenderService emailSenderService
@@ -38,6 +41,7 @@ namespace RoutinizeCore.Controllers {
             _authenticationService = authenticationService;
             _accountService = accountService;
             _userService = userService;
+            _challengeService = challengeService;
             _assistantService = assistantService;
             _googleRecaptchaService = googleRecaptchaService;
             _emailSenderService = emailSenderService;
@@ -159,7 +163,7 @@ namespace RoutinizeCore.Controllers {
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationConfirmationEmail.html");
             var accountActivationConfirmationEmailTemplate = await fileReader.ReadToEndAsync();
 
-            var userAccount = await _accountService.GetUnactivatedUserAccountByEmail(activator.Email);
+            var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
             var accountActivationConfirmationEmailContent = accountActivationConfirmationEmailTemplate.Replace(
                 "[USER_NAME]", userAccount != null ? userAccount.Username : activator.Email
             );
@@ -184,7 +188,7 @@ namespace RoutinizeCore.Controllers {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
             if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
 
-            var userAccount = await _accountService.GetUnactivatedUserAccountByEmail(activator.Email);
+            var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
             if (userAccount == null) return new JsonResult(new JsonResponse {
                 Result = SharedEnums.RequestResults.Failed,
                 Message = "No account matched the requested email in our record.",
@@ -329,9 +333,122 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
-        [HttpPost("recover-password")]
-        public async Task<JsonResult> RecoverPassword() {
-            throw new NotImplementedException();
+        [HttpPost("forgot-password")]
+        public async Task<JsonResult> ForgotPassword(ForgotPasswordVM forgotPasswordData) {
+            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(forgotPasswordData.RecaptchaToken);
+            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+
+            var error = forgotPasswordData.VerifyForgotPasswordData();
+            if (error != null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = error });
+
+            var userAccount = await _accountService.GetUserAccountByEmail(forgotPasswordData.Email);
+            if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
+
+            userAccount.EmailConfirmed = false;
+            userAccount.RecoveryToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.TokenSetOn = DateTime.UtcNow;
+
+            if (!await _accountService.UpdateUserAccount(userAccount))
+                return new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "An issue happened while attempting to recover your account.",
+                    Error = SharedEnums.HttpStatusCodes.InternalServerError
+                });
+            
+            var emailSendingResult = await SendPasswordResetEmail(userAccount.Username, userAccount.Email, userAccount.Id, userAccount.RecoveryToken);
+            return emailSendingResult
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
+        }
+
+        [HttpGet("request-new-password-reset-email")]
+        public async Task<JsonResult> SendNewPasswordResetEmail(ForgotPasswordVM forgotPasswordData) {
+            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(forgotPasswordData.RecaptchaToken);
+            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+
+            var error = forgotPasswordData.VerifyForgotPasswordData();
+            if (error != null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = error });
+            
+            var userAccount = await _accountService.GetUserAccountById(forgotPasswordData.AccountId, false);
+            if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
+            
+            userAccount.RecoveryToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.TokenSetOn = DateTime.UtcNow;
+            
+            if (!await _accountService.UpdateUserAccount(userAccount))
+                return new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "An issue happened while attempting to recover your account.",
+                    Error = SharedEnums.HttpStatusCodes.InternalServerError
+                });
+            
+            var emailSendingResult = await SendPasswordResetEmail(userAccount.Username, userAccount.Email, userAccount.Id, userAccount.RecoveryToken);
+            return emailSendingResult
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<JsonResult> RecoverPassword(PasswordRecoveryVM passwordRecoveryData) {
+            var dataErrors = passwordRecoveryData.VerifyNewPassword();
+            if (dataErrors.Count != 0) {
+                var errorMessages = passwordRecoveryData.GenerateErrorMessages(dataErrors);
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errorMessages });
+            }
+
+            var challengeVerification = await _challengeService.VerifyChallengeProofFor(passwordRecoveryData.AccountId, passwordRecoveryData.ChallengeResponse);
+            if (!challengeVerification.HasValue)
+                return new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "An issue happened while processing your new password.",
+                    Error = SharedEnums.HttpStatusCodes.InternalServerError
+                });
+            
+            if (!challengeVerification.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Challenge response failed." });
+
+            var userAccount = await _accountService.GetUserAccountById(passwordRecoveryData.AccountId, false);
+            if (userAccount == null)
+                return new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "An issue happened while processing your new password.",
+                    Error = SharedEnums.HttpStatusCodes.InternalServerError
+                });
+            
+            var (hashedPassword, salt) = _assistantService.GenerateHashAndSalt(passwordRecoveryData.NewPassword);
+            userAccount.PasswordHash = hashedPassword;
+            userAccount.PasswordSalt = salt;
+            userAccount.EmailConfirmed = true;
+            userAccount.RecoveryToken = null;
+            userAccount.TokenSetOn = null;
+
+            var result = await _accountService.UpdateUserAccount(userAccount);
+            return result
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Failed,
+                    Message = "An issue happened while processing your new password.",
+                    Error = SharedEnums.HttpStatusCodes.InternalServerError
+                });
+        }
+        
+        private async Task<bool> SendPasswordResetEmail(string username, string email, int accountId, string activationToken) {
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }RecoverPasswordEmail.html");
+            var recoverPasswordEmailTemplate = await fileReader.ReadToEndAsync();
+
+            var recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[USER_NAME]", username);
+            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[ACCOUNT_ID]", accountId.ToString());
+            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[ACTIVATION_TOKEN]", activationToken);
+            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+
+            var recoverPasswordEmail = new EmailContent {
+                Subject = "Activate your account",
+                Body = recoverPasswordEmailContent,
+                ReceiverName = username,
+                ReceiverAddress = email
+            };
+
+            fileReader.Close();
+            return await _emailSenderService.SendEmailSingle(recoverPasswordEmail);
         }
     }
 }

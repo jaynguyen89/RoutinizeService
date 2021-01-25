@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
-    public sealed class RoutinizeMemoryCache : IRoutinizeMemoryCache {
+    public sealed class RoutinizeMemoryCache {
         
         private MemoryCache MemoryCache { get; set; }
         

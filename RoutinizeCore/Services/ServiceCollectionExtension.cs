@@ -10,11 +10,12 @@ namespace RoutinizeCore.Services {
         public static IServiceCollection RegisterRoutinizeCoreServices(this IServiceCollection services) {
             //Add all services here
 
-            services.AddSingleton<IRoutinizeMemoryCache, RoutinizeMemoryCache>();
+            services.AddSingleton<RoutinizeMemoryCache>();
             
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IChallengeService, ChallengeService>();
 
             return services;
         }

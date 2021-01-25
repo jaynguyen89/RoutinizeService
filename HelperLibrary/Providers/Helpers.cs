@@ -77,5 +77,13 @@ namespace HelperLibrary {
 
             return wantedDatetime;
         }
+
+        /// <summary>
+        /// Max is inclusive
+        /// </summary>
+        public static int GetRandomNumber(int max, int min = 0) {
+            var random = new Random();
+            return random.Next(min, max + 1);
+        }
     }
 }

@@ -10,7 +10,6 @@ using MongoLibrary.Models;
 using Newtonsoft.Json;
 using RoutinizeCore.DbContexts;
 using RoutinizeCore.Models;
-using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels.Authentication;
 
@@ -56,7 +55,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(InsertNewUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = "Unable to insert new entry into database.",
+                    DetailedInformation = $"Unable to insert new entry into database.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(registrationData) } = { JsonConvert.SerializeObject(registrationData) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -80,7 +79,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(RemoveNewlyInsertedUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = "Failed to remove an instance from database table Accounts.",
+                    DetailedInformation = $"Failed to remove an instance from database table Accounts.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -120,7 +119,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = "Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.",
+                    DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -134,7 +133,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = "Unhandled NULL argument passed to database query while reading data with SingleOrDefault.",
+                    DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with SingleOrDefault.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
@@ -148,7 +147,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = "Error while updating entry to database.",
+                    DetailedInformation = "Error while updating entry to database.\n\n" + e.StackTrace,
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -181,7 +180,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService)}.{nameof(AuthenticateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = "Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.",
+                    DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(authenticationData) } = { JsonConvert.SerializeObject(authenticationData) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -204,7 +203,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService)}.{nameof(InsertAuthenticationRecord) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = "Error while inserting entry into AuthRecords.",
+                    DetailedInformation = $"Error while inserting entry into AuthRecords.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(authRecord) } = { JsonConvert.SerializeObject(authRecord) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -230,7 +229,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(GetLatestAuthRecordForUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = "Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.",
+                    DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(sessionAuth) } = { JsonConvert.SerializeObject(sessionAuth) }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
@@ -244,7 +243,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = "Unhandled NULL argument passed to database query while reading data with SingleOrDefault.",
+                    DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with SingleOrDefault.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(sessionAuth) } = { JsonConvert.SerializeObject(sessionAuth) }",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });

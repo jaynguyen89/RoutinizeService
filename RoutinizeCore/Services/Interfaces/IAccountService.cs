@@ -11,10 +11,12 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<bool> IsAccountUniqueIdAvailable(string accountUniqueId);
 
-        Task<Account> GetUnactivatedUserAccountByEmail(string email);
+        Task<Account> GetUserAccountByEmail(string email, bool activated = false);
         
         Task<bool> UpdateUserAccount(Account userAccount);
 
-        Task<Account> GetAccountById(int accountId);
+        Task<Account> GetUserAccountById(int accountId, bool activated = true);
+
+        Task<Account> GetUserAccountByUsername(string username, bool activated = false);
     }
 }

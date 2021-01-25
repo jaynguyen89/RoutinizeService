@@ -43,6 +43,11 @@ namespace HelperLibrary.Shared {
             [StringValue("dd-MM-yyyy hh:mm tt")]
             COMPACT_T_DMY
         }
+        
+        public enum RedisCacheKeys {
+            [StringValue("Challenge_Questions_List")]
+            ChallengeQuestions
+        }
 
         public enum HttpStatusCodes {
             Continue = 100,

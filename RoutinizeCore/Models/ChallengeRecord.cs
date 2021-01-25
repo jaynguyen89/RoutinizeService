@@ -14,6 +14,6 @@ namespace RoutinizeCore.Models
         public DateTime RecordedOn { get; set; }
 
         public virtual Account Account { get; set; }
-        public virtual ChallengeQuestion Question { get; set; }
+        public virtual ChallengeQuestion ChallengeQuestion { get; set; }
     }
 }
