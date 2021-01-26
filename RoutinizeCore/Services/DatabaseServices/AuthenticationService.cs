@@ -171,14 +171,14 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 );
 
                 return dbAccount == null
-                    ? new KeyValuePair<bool, Account>(false, null)
+                    ? new KeyValuePair<bool, Account>(true, null)
                     : new KeyValuePair<bool, Account>(true, dbAccount);
             }
             catch (InvalidOperationException e) {
                 var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
 
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(AuthenticationService)}.{nameof(AuthenticateUserAccount) }",
+                    Location = $"{ nameof(AuthenticationService) }.{ nameof(AuthenticateUserAccount) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
@@ -201,7 +201,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
 
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(AuthenticationService)}.{nameof(InsertAuthenticationRecord) }",
+                    Location = $"{ nameof(AuthenticationService) }.{ nameof(InsertAuthenticationRecord) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while inserting entry into AuthRecords.\n\n{ e.StackTrace }",

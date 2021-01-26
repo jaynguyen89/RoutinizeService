@@ -8,14 +8,18 @@ namespace RoutinizeCore.Services.Interfaces {
 
     public interface IChallengeService {
 
-        Task<List<ChallengeQuestion>> GetChallengeQuestions();
+        Task<ChallengeQuestion[]> GetChallengeQuestions();
 
-        Task<List<ChallengeRecord>> GetChallengeRecordsForAccount([NotNull] int accountId);
+        Task<ChallengeRecordVM[]> GetChallengeResponsesForAccount([NotNull] int accountId);
 
-        Task<bool?> SaveChallengeRecordsForAccount([NotNull] AccountChallengeVM challengeRecord);
+        Task<bool?> SaveChallengeRecordsForAccount([NotNull] int accountId, [NotNull] ChallengeResponseVM[] challengeResponses);
 
         Task<bool?> VerifyChallengeProofFor([NotNull] int accountId,[NotNull] ChallengeResponseVM challengeResponse);
 
         Task<ChallengeQuestion> GetRandomChallengeQuestionForAccount([NotNull] int accountId);
+
+        Task<bool?> UpdateChallengeRecords([NotNull] ChallengeRecordVM[] newResponses);
+
+        Task<bool?> DeleteChallengeRecords([NotNull] ChallengeRecordVM[] removedChallengeResponses);
     }
 }

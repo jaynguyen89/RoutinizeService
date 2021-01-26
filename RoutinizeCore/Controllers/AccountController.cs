@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Models;
@@ -6,9 +7,11 @@ using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoLibrary.Interfaces;
 using RoutinizeCore.Attributes;
+using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
 using RoutinizeCore.ViewModels.Account;
+using RoutinizeCore.ViewModels.Challenge;
 
 namespace RoutinizeCore.Controllers {
 
@@ -116,6 +119,67 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeQuestion });
         }
 
+        [HttpGet("get-all-challenge-responses/{accountId}")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> GetAllChallengeResponsesByAccount(int accountId) {
+            var challengeResponsesByAccount = await _challengeService.GetChallengeResponsesForAccount(accountId);
+            return challengeResponsesByAccount == null
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeResponsesByAccount });
+        }
+
+        [HttpPost("update-challenge-response")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> UpdateChallengeResponseByAccount(AccountChallengeVM newAccountChallengeData) {
+            var currentChallengeResponses = await _challengeService.GetChallengeResponsesForAccount(newAccountChallengeData.AccountId);
+            if (currentChallengeResponses == null)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var currentRespondedQuestionIds = currentChallengeResponses.Select(challengeResponse => challengeResponse.QuestionId).ToArray();
+            var newChallengeResponses =
+                newAccountChallengeData.ChallengeResponses
+                                       .Where(
+                                           challengeResponse => !currentRespondedQuestionIds.Contains(challengeResponse.QuestionId)
+                                       )
+                                       .ToArray();
+
+            var newRespondedQuestionIds = newAccountChallengeData.ChallengeResponses.Select(challengeResponse => challengeResponse.QuestionId).ToArray();
+            var removedChallengeResponses =
+                currentChallengeResponses
+                    .Where(
+                        challengeResponse => !newRespondedQuestionIds.Contains(challengeResponse.QuestionId)
+                    )
+                    .ToArray();
+
+            var newQuestionResponses = newAccountChallengeData.ChallengeResponses.ToDictionary(
+                response => response.QuestionId,
+                response => response.Response
+            );
+            var updatedResponses =
+                currentChallengeResponses
+                    .Where(
+                        challengeResponse =>
+                            newRespondedQuestionIds.Contains(challengeResponse.QuestionId) &&
+                            !challengeResponse.Response.Equals(newQuestionResponses[challengeResponse.QuestionId])
+                    ).ToArray();
+
+            bool? saveResult = null;
+            bool? removeResult = null;
+            bool? updateResult = null;
+            
+            if (newChallengeResponses.Length != 0)
+                saveResult = await _challengeService.SaveChallengeRecordsForAccount(newAccountChallengeData.AccountId, newChallengeResponses);
+            
+            if (saveResult.HasValue && saveResult.Value && removedChallengeResponses.Length != 0)
+                removeResult = await _challengeService.DeleteChallengeRecords(removedChallengeResponses);
+            
+            if (saveResult.HasValue && saveResult.Value && removeResult.HasValue && removeResult.Value && updatedResponses.Length != 0)
+                updateResult = await _challengeService.UpdateChallengeRecords(updatedResponses);
+
+            if (updateResult.HasValue && updateResult.Value) return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success});
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
+        }
+
         [HttpGet("enable-two-factor/{accountId}")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> EnableTwoFactorAuthentication(int accountId) {
@@ -148,9 +212,30 @@ namespace RoutinizeCore.Controllers {
             userAccount.TwoFaSecretKey = null;
 
             var updateResult = await _accountService.UpdateUserAccount(userAccount);
-            return updateResult
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }TwoFaDisabledNotificationEmail.html");
+            var twoFaDisabledNotificationEmailTemplate = await fileReader.ReadToEndAsync();
+            var twoFaDisabledNotificationEmailContent = twoFaDisabledNotificationEmailTemplate.Replace("[USER_NAME]", userAccount.Username);
+
+            var accountActivationEmail = new EmailContent {
+                Subject = "Activate your account",
+                Body = twoFaDisabledNotificationEmailContent,
+                ReceiverName = userAccount.Username,
+                ReceiverAddress = userAccount.Email
+            };
+
+            fileReader.Close();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpGet("get-all-challenge-questions")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> GetAllChallengeQuestions() {
+            var challengeQuestions = await _challengeService.GetChallengeQuestions();
+            return challengeQuestions == null
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeQuestions });
         }
     }
 }

@@ -54,6 +54,8 @@ namespace RoutinizeCore {
                 options.Configuration = Configuration.GetSection("RedisServer")["Connection"];
                 options.InstanceName = Configuration.GetSection("RedisServer")["RoutinizeCache"];
             });
+
+            services.Configure<ApplicationOptions>(Configuration.GetSection(nameof(ApplicationOptions)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

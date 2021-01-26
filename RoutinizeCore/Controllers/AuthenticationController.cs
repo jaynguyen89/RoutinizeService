@@ -7,6 +7,7 @@ using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
@@ -29,6 +30,13 @@ namespace RoutinizeCore.Controllers {
         private readonly IGoogleRecaptchaService _googleRecaptchaService;
         private readonly IEmailSenderService _emailSenderService;
 
+        private AuthSettings _authSettings = new AuthSettings();
+
+        private sealed class AuthSettings {
+            public int AccessFailedAttempts { get; set; }
+            public int LockoutDuration { get; set; }
+        }
+
         public AuthenticationController(
             IAuthenticationService authenticationService,
             IAccountService accountService,
@@ -36,7 +44,8 @@ namespace RoutinizeCore.Controllers {
             IChallengeService challengeService,
             IAssistantService assistantService,
             IGoogleRecaptchaService googleRecaptchaService,
-            IEmailSenderService emailSenderService
+            IEmailSenderService emailSenderService,
+            IOptions<ApplicationOptions> appOptions
         ) {
             _authenticationService = authenticationService;
             _accountService = accountService;
@@ -45,6 +54,9 @@ namespace RoutinizeCore.Controllers {
             _assistantService = assistantService;
             _googleRecaptchaService = googleRecaptchaService;
             _emailSenderService = emailSenderService;
+
+            _authSettings.AccessFailedAttempts = int.Parse(appOptions.Value.AccessFailedAttempts);
+            _authSettings.LockoutDuration = int.Parse(appOptions.Value.LockoutDuration);
         }
 
         public static JsonResult UnauthenticationResult(SharedEnums.ActionFilterResults actionFilterResults) {
@@ -175,7 +187,7 @@ namespace RoutinizeCore.Controllers {
                 ReceiverAddress = activator.Email
             };
             
-            if (userAccount != null) await _userService.InsertBlankUserOnAccountRegistration(userAccount.Id); //TODO: later on signin, check if user account is created, if not, attempt to create it
+            if (userAccount != null) await _userService.InsertBlankUserOnAccountRegistration(userAccount.Id);
             
             if (await _emailSenderService.SendEmailSingle(accountActivationConfirmationEmail))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
@@ -238,12 +250,35 @@ namespace RoutinizeCore.Controllers {
             }
 
             var (isSuccessful, userAccount) = await _authenticationService.AuthenticateUserAccount(authenticationData);
-            if (!isSuccessful || !_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, authenticationData.Password))
+            if (!isSuccessful || userAccount == null)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            if (userAccount.LockoutEnd.HasValue && userAccount.LockoutEnd >= DateTime.UtcNow)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "Your account is locked." });
+
+            if (!_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, authenticationData.Password)) {
+                userAccount.AccessFailedCount += 1;
+                var loginAttemptsLeft = _authSettings.AccessFailedAttempts - userAccount.AccessFailedCount % _authSettings.AccessFailedAttempts;
+                userAccount.LockoutEnabled = loginAttemptsLeft == _authSettings.AccessFailedAttempts;
+                userAccount.LockoutEnd = userAccount.LockoutEnabled ? DateTime.UtcNow.AddMinutes(_authSettings.LockoutDuration) : null;
+
+                _ = await _accountService.UpdateUserAccount(userAccount);
                 return new JsonResult(new JsonResponse {
                     Result = SharedEnums.RequestResults.Failed,
-                    Message = "No account matches the authentication data.",
-                    Error = SharedEnums.HttpStatusCodes.NotFound
+                    Message = userAccount.LockoutEnabled
+                        ? $"Your account is locked. Please try again in { _authSettings.LockoutDuration } minutes."
+                        : $"Incorrect login credentials. You have { loginAttemptsLeft } { (loginAttemptsLeft > 1 ? "attempts" : "attempt") } left."
                 });
+            }
+
+            if (userAccount.LockoutEnabled) {
+                userAccount.AccessFailedCount = 0;
+                userAccount.LockoutEnabled = false;
+                userAccount.LockoutEnd = null;
+                
+                var updateResult = await _accountService.UpdateUserAccount(userAccount);
+                if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
 
             var authenticationTimestamp = DateTime.UtcNow;
             var tokenSalt = _assistantService.GenerateRandomString();

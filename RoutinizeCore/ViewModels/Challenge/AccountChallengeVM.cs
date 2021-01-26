@@ -6,6 +6,6 @@ namespace RoutinizeCore.ViewModels.Challenge {
         
         public int AccountId { get; set; }
         
-        public List<ChallengeResponseVM> ChallengeResponses { get; set; }
+        public ChallengeResponseVM[] ChallengeResponses { get; set; }
     }
 }
