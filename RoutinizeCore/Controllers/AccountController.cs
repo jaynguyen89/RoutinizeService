@@ -18,6 +18,8 @@ namespace RoutinizeCore.Controllers {
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
         private readonly IChallengeService _challengeService;
+        private readonly ITwoFactorAuthService _tfaService;
+        private readonly IGoogleRecaptchaService _recaptchaService;
         
         private readonly IAssistantService _assistantService;
         private readonly IEmailSenderService _emailSenderService;
@@ -28,7 +30,9 @@ namespace RoutinizeCore.Controllers {
             IUserService userService,
             IChallengeService challengeService,
             IAssistantService assistantService,
-            IEmailSenderService emailSenderService
+            IEmailSenderService emailSenderService,
+            ITwoFactorAuthService tfaService,
+            IGoogleRecaptchaService recaptchaService
         ) {
             _accountLogService = accountLogService;
             _accountService = accountService;
@@ -36,6 +40,8 @@ namespace RoutinizeCore.Controllers {
             _challengeService = challengeService;
             _assistantService = assistantService;
             _emailSenderService = emailSenderService;
+            _tfaService = tfaService;
+            _recaptchaService = recaptchaService;
         }
 
         [HttpPost("change-account-email")]
@@ -108,6 +114,43 @@ namespace RoutinizeCore.Controllers {
             return challengeQuestion == null
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeQuestion });
+        }
+
+        [HttpGet("enable-two-factor/{accountId}")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> EnableTwoFactorAuthentication(int accountId) {
+            var twoFactorSecretKey = _assistantService.GenerateRandomString(SharedConstants.TWO_FA_SECRET_KEY_LENGTH);
+            var userAccount = await _accountService.GetUserAccountById(accountId);
+
+            userAccount.TwoFactorEnabled = true;
+            userAccount.TwoFaSecretKey = twoFactorSecretKey;
+            
+            var updateResult = await _accountService.UpdateUserAccount(userAccount);
+            if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue occurred while updating data." });
+            
+            var authenticator = _tfaService.GetTwoFactorAuthSetup(twoFactorSecretKey, userAccount.Email);
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = authenticator });
+        }
+
+        [HttpPost("disable-two-factor")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> DisableTwoFactorAuthentication(TwoFaUpdateVM tfaUpdateData) {
+            var isRequestedByHuman = await _recaptchaService.IsHumanRegistration(tfaUpdateData.RecaptchaToken);
+            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            
+            var userAccount = await _accountService.GetUserAccountById(tfaUpdateData.AccountId);
+            if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            if (!_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, tfaUpdateData.Password))
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Password is incorrect.", Error = SharedEnums.HttpStatusCodes.Forbidden });
+
+            userAccount.TwoFactorEnabled = false;
+            userAccount.TwoFaSecretKey = null;
+
+            var updateResult = await _accountService.UpdateUserAccount(userAccount);
+            return updateResult
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
         }
     }
 }

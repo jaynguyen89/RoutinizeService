@@ -12,6 +12,7 @@ namespace AssistantLibrary {
             services.AddScoped<IAssistantService, AssistantService>();
             services.AddScoped<IEmailSenderService, EmailSenderService>();
             services.AddScoped<IGoogleRecaptchaService, GoogleRecaptchaService>();
+            services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
 
             return services;
         }

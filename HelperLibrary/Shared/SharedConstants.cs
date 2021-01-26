@@ -6,6 +6,11 @@ namespace HelperLibrary.Shared {
     public static class SharedConstants {
 
         public const int CACHE_ABSOLUTE_EXPIRATION = 3600; //seconds
+        
+        public const int TWO_FA_SECRET_KEY_LENGTH = 32;
+        public const string PROJECT_NAME = "RoutinizeCore_JQBTM";
+        public const int TWO_FA_QR_IMAGE_SIZE = 300;
+        public const int TWO_FA_TOLERANCE = 3; //minutes
 
         public const int ACCOUNT_UNIQUE_ID_LENGTH = 16;
         public const char ACCOUNT_UNIQUE_ID_DELIMITER = '-';
