@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -11,7 +12,7 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class UserService : CacheServiceBase, IUserService {
+    public sealed class UserService : IUserService {
         
         private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly RoutinizeDbContext _dbContext;
@@ -24,7 +25,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             _dbContext = dbContext;
         }
 
-        public async Task<int?> InsertBlankUserOnAccountRegistration(int accountId) {
+        public async Task<int?> InsertBlankUserOnAccountRegistration([NotNull] int accountId) {
             try {
                 var dbUser = new User { AccountId = accountId };
                 await _dbContext.AddAsync(dbUser);

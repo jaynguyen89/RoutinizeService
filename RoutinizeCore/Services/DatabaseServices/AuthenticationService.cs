@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -15,7 +16,7 @@ using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class AuthenticationService : CacheServiceBase, IAuthenticationService {
+    public sealed class AuthenticationService : IAuthenticationService {
         
         private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly RoutinizeDbContext _dbContext;
@@ -29,7 +30,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
         }
 
         public async Task<int> InsertNewUserAccount(
-            RegisterAccountVM registrationData, string uniqueId, string activationToken
+            [NotNull] RegisterAccountVM registrationData,[NotNull] string uniqueId,[NotNull] string activationToken
         ) {
             var newDbAccount = new Account {
                 Email = registrationData.Email,
@@ -64,7 +65,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool> RemoveNewlyInsertedUserAccount(int accountId) {
+        public async Task<bool> RemoveNewlyInsertedUserAccount([NotNull] int accountId) {
             try {
                 var dbAccountToRemove = await _dbContext.Accounts.FindAsync(accountId);
                 _dbContext.Accounts.Remove(dbAccountToRemove);
@@ -88,7 +89,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<KeyValuePair<bool, bool?>> ActivateUserAccount(AccountActivationVM activator) {
+        public async Task<KeyValuePair<bool, bool?>> ActivateUserAccount([NotNull] AccountActivationVM activator) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(
                     account => account.Email.ToLower().Equals(activator.Email.Trim().ToLower()) &&
@@ -156,7 +157,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<KeyValuePair<bool, Account>> AuthenticateUserAccount(AuthenticationVM authenticationData) {
+        public async Task<KeyValuePair<bool, Account>> AuthenticateUserAccount([NotNull] AuthenticationVM authenticationData) {
             try {
                 Account dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(
                     account => (
@@ -189,7 +190,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool?> InsertAuthenticationRecord(AuthRecord authRecord) {
+        public async Task<bool?> InsertAuthenticationRecord([NotNull] AuthRecord authRecord) {
             try {
                 await _dbContext.AuthRecords.AddAsync(authRecord);
                 var result = await _dbContext.SaveChangesAsync();
@@ -212,7 +213,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<AuthRecord> GetLatestAuthRecordForUserAccount(SessionAuthVM sessionAuth) {
+        public async Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] SessionAuthVM sessionAuth) {
             try {
                 var authRecord = await _dbContext.AuthRecords.SingleOrDefaultAsync(
                     record => record.AccountId == sessionAuth.AccountId &&
@@ -252,7 +253,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<Account> GetAccountById(int accountId) {
+        public async Task<Account> GetAccountById([NotNull] int accountId) {
             return await _dbContext.Accounts.FindAsync(accountId);
         }
     }

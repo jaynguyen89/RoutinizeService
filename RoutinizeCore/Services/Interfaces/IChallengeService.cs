@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using RoutinizeCore.Models;
 using RoutinizeCore.ViewModels.Challenge;
@@ -9,12 +10,12 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<List<ChallengeQuestion>> GetChallengeQuestions();
 
-        Task<List<ChallengeRecord>> GetChallengeRecordsForAccount(int accountId);
+        Task<List<ChallengeRecord>> GetChallengeRecordsForAccount([NotNull] int accountId);
 
-        Task<bool?> SaveChallengeRecordsForAccount(AccountChallengeVM challengeRecord);
+        Task<bool?> SaveChallengeRecordsForAccount([NotNull] AccountChallengeVM challengeRecord);
 
-        Task<bool?> VerifyChallengeProofFor(int accountId, ChallengeResponseVM challengeResponse);
+        Task<bool?> VerifyChallengeProofFor([NotNull] int accountId,[NotNull] ChallengeResponseVM challengeResponse);
 
-        Task<ChallengeQuestion> GetRandomChallengeQuestionForAccount(int accountId);
+        Task<ChallengeQuestion> GetRandomChallengeQuestionForAccount([NotNull] int accountId);
     }
 }

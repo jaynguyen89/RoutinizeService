@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using RoutinizeCore.Models;
 using RoutinizeCore.ViewModels.Authentication;
@@ -7,18 +8,18 @@ namespace RoutinizeCore.Services.Interfaces {
 
     public interface IAuthenticationService {
 
-        Task<int> InsertNewUserAccount(RegisterAccountVM registrationData, string uniqueId, string activationToken);
+        Task<int> InsertNewUserAccount([NotNull] RegisterAccountVM registrationData,[NotNull] string uniqueId,[NotNull] string activationToken);
 
-        Task<bool> RemoveNewlyInsertedUserAccount(int accountId);
+        Task<bool> RemoveNewlyInsertedUserAccount([NotNull] int accountId);
 
-        Task<KeyValuePair<bool, bool?>> ActivateUserAccount(AccountActivationVM activator);
+        Task<KeyValuePair<bool, bool?>> ActivateUserAccount([NotNull] AccountActivationVM activator);
 
-        Task<KeyValuePair<bool, Account>> AuthenticateUserAccount(AuthenticationVM authenticationData);
+        Task<KeyValuePair<bool, Account>> AuthenticateUserAccount([NotNull] AuthenticationVM authenticationData);
 
-        Task<bool?> InsertAuthenticationRecord(AuthRecord authRecord);
+        Task<bool?> InsertAuthenticationRecord([NotNull] AuthRecord authRecord);
 
-        Task<AuthRecord> GetLatestAuthRecordForUserAccount(SessionAuthVM sessionAuth);
+        Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] SessionAuthVM sessionAuth);
 
-        Task<Account> GetAccountById(int accountId);
+        Task<Account> GetAccountById([NotNull] int accountId);
     }
 }

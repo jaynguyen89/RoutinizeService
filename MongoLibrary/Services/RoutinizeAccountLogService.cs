@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,7 +24,7 @@ namespace MongoLibrary.Services {
             _context.SetRoutinizeDataLogCollection(options.Value.AccountLogCollection);
         }
 
-        public async Task<bool> InsertRoutinizeAccountLog<T>(T data) {
+        public async Task<bool> InsertRoutinizeAccountLog<T>([NotNull] T data) {
             _logger.LogInformation("RoutinizeAccountLogService.InsertRoutinizeAccountLog - Service starts");
 
             try {
@@ -41,7 +42,7 @@ namespace MongoLibrary.Services {
             }
         }
 
-        public async Task<List<object>> GetRoutinizeAccountLogInRange(int start, int end) {
+        public async Task<List<object>> GetRoutinizeAccountLogInRange([NotNull] int start,[NotNull] int end) {
             _logger.LogInformation("RoutinizeAccountLogService.GetRoutinizeAccountLogInRange - Service starts");
 
             try {
@@ -58,7 +59,7 @@ namespace MongoLibrary.Services {
             }
         }
 
-        public async Task<T> GetRoutinizeAccountLogByAccountIdFor<T>(int id, string activity, bool completed) {
+        public async Task<T> GetRoutinizeAccountLogByAccountIdFor<T>([NotNull] int id,[NotNull] string activity,[NotNull] bool completed) {
             _logger.LogInformation("RoutinizeAccountLogService.GetRoutinizeAccountLogByAccountIdFor - Service starts for " + nameof(T));
 
             try {
@@ -77,7 +78,7 @@ namespace MongoLibrary.Services {
             }
         }
 
-        public async Task<bool> RemoveAccountLogEntry<T>(T entry) {
+        public async Task<bool> RemoveAccountLogEntry<T>([NotNull] T entry) {
             _logger.LogInformation("RoutinizeAccountLogService.RemoveAccountLogEntry - Service starts for " + nameof(T));
 
             try {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace AssistantLibrary.Services {
             _senderName = options.Value.MailSenderName;
         }
 
-        public async Task<bool> SendEmailSingle(EmailContent emailContent) {
+        public async Task<bool> SendEmailSingle([NotNull] EmailContent emailContent) {
             try {
                 ComposeEmail(emailContent);
                 await _smtpClient.SendMailAsync(_message);
@@ -47,7 +48,7 @@ namespace AssistantLibrary.Services {
             }
         }
 
-        public async Task<KeyValuePair<bool, List<EmailContent>>> SendEmailsMultiple(List<EmailContent> emailContents) {
+        public async Task<KeyValuePair<bool, List<EmailContent>>> SendEmailsMultiple([NotNull] IEnumerable<EmailContent> emailContents) {
             var emailsFailedToSend = new List<EmailContent>();
             
             foreach (var emailContent in emailContents) {
@@ -65,7 +66,7 @@ namespace AssistantLibrary.Services {
                 : new KeyValuePair<bool, List<EmailContent>>(false, emailsFailedToSend);
         }
         
-        private void ComposeEmail(EmailContent message) {
+        private void ComposeEmail([NotNull] EmailContent message) {
             _message = new MailMessage {
                 From = new MailAddress(
                     string.IsNullOrEmpty(message.SenderAddress) ? _senderAddress : message.SenderAddress,

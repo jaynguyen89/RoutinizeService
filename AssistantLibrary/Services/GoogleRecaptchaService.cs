@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace AssistantLibrary.Services {
             GoogleRecaptchaRequest.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<GoogleRecaptchaResponse> IsHumanRegistration(string recaptchaToken = null) {
+        public async Task<GoogleRecaptchaResponse> IsHumanRegistration([AllowNull] string recaptchaToken = null) {
             if (recaptchaToken == null) return new GoogleRecaptchaResponse { Result = false };
 
             var response = await GoogleRecaptchaRequest.PostAsJsonAsync(

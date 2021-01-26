@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using AssistantLibrary.Interfaces;
 using BCrypt;
 using Microsoft.AspNetCore.Http;
@@ -14,11 +15,11 @@ namespace AssistantLibrary.Services {
             return new KeyValuePair<string, string>(hash, salt);
         }
 
-        public string GenerateRandomString(int length = 8) {
+        public string GenerateRandomString([NotNull] int length = 8) {
             return BCryptHelper.GenerateSalt(length);
         }
 
-        public bool IsHashMatchesPlainText(string hash, string plainText) {
+        public bool IsHashMatchesPlainText([NotNull] string hash,[NotNull] string plainText) {
             return BCryptHelper.CheckPassword(hash, plainText);
         }
     }

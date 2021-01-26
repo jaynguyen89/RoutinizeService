@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,7 +25,7 @@ namespace MongoLibrary.Services {
             _context.SetRoutinizeCoreLogCollection(options.Value.CoreLogCollection);
         }
 
-        public async Task InsertRoutinizeCoreLog(RoutinizeCoreLog log) {
+        public async Task InsertRoutinizeCoreLog([NotNull] RoutinizeCoreLog log) {
             _logger.LogInformation("RoutinizeCoreLogService.InsertRoutinizeCoreLog - Service starts: Add log entry for RoutinizeCore");
             log.RecordedOn = DateTime.UtcNow;
             
@@ -37,7 +38,7 @@ namespace MongoLibrary.Services {
             }
         }
 
-        public async Task<List<RoutinizeCoreLog>> GetRoutinizeCoreLogInRange(int start = 0, int end = 100) {
+        public async Task<List<RoutinizeCoreLog>> GetRoutinizeCoreLogInRange([NotNull] int start = 0,[NotNull] int end = 100) {
             _logger.LogInformation("RoutinizeCoreLogService.GetRoutinizeCoreLogInRange - Service starts");
 
             List<RoutinizeCoreLog> logs;

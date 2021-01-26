@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HelperLibrary;
@@ -17,20 +18,23 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class AccountService : CacheServiceBase, IAccountService {
+    public sealed class AccountService : IAccountService {
 
         private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly RoutinizeDbContext _dbContext;
+        private readonly IRoutinizeMemoryCache _memoryCache;
 
         public AccountService(
             IRoutinizeCoreLogService coreLogService,
-            RoutinizeDbContext dbContext
+            RoutinizeDbContext dbContext,
+            IRoutinizeMemoryCache memoryCache
         ) {
             _coreLogService = coreLogService;
             _dbContext = dbContext;
+            _memoryCache = memoryCache;
         }
 
-        public async Task<bool> IsRegistrationEmailAvailable(string email) {
+        public async Task<bool> IsRegistrationEmailAvailable([NotNull] string email) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account => account.Email.ToLower().Equals(email));
                 return dbAccount == null;
@@ -51,7 +55,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool> IsUsernameAvailable(string username) {
+        public async Task<bool> IsUsernameAvailable([NotNull] string username) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account => account.Username.ToLower().Equals(username));
                 return dbAccount == null;
@@ -72,7 +76,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool> IsAccountUniqueIdAvailable(string accountUniqueId) {
+        public async Task<bool> IsAccountUniqueIdAvailable([NotNull] string accountUniqueId) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account =>
                     Helpers.RemoveCharactersFromString(
@@ -99,7 +103,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<Account> GetUserAccountByEmail(string email, bool activated = false) {
+        public async Task<Account> GetUserAccountByEmail([NotNull] string email, bool activated = false) {
             try {
                 return await _dbContext.Accounts
                                        .SingleOrDefaultAsync(
@@ -123,7 +127,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool> UpdateUserAccount(Account userAccount) {
+        public async Task<bool> UpdateUserAccount([NotNull] Account userAccount) {
             try {
                 _dbContext.Accounts.Update(userAccount);
                 var result = await _dbContext.SaveChangesAsync();
@@ -146,8 +150,8 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<Account> GetUserAccountById(int accountId, bool activated = true) {
-            var cachedAccount = GetMemoryCacheEntry<Account>();
+        public async Task<Account> GetUserAccountById([NotNull] int accountId, bool activated = true) {
+            var cachedAccount = _memoryCache.GetCacheEntryFor<Account>();
             if (cachedAccount != null) return cachedAccount;
 
             Account dbAccount = null;
@@ -173,7 +177,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
 
             if (dbAccount != null)
-                InsertMemoryCacheEntry<Account>(new CacheEntry {
+                _memoryCache.SetCacheEntry<Account>(new CacheEntry {
                     Data = dbAccount,
                     Priority = CacheItemPriority.High,
                     Size = dbAccount.GetType().GetProperties().Length,
@@ -183,7 +187,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             return dbAccount;
         }
 
-        public async Task<Account> GetUserAccountByUsername(string username, bool activated = false) {
+        public async Task<Account> GetUserAccountByUsername([NotNull] string username, bool activated = false) {
             try {
                 return await _dbContext.Accounts.Where(account =>
                     account.Username.ToLower().Equals(username) &&

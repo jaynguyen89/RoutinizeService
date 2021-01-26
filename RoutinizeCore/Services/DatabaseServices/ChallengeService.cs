@@ -18,27 +18,31 @@ using RoutinizeCore.ViewModels.Challenge;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class ChallengeService : CacheServiceBase, IChallengeService {
+    public sealed class ChallengeService : IChallengeService {
 
         private readonly IRoutinizeCoreLogService _coreLogService;
         private readonly RoutinizeDbContext _dbContext;
+        private readonly IRoutinizeRedisCache _redisCache;
+        
 
         public ChallengeService(
             IRoutinizeCoreLogService coreLogService,
-            RoutinizeDbContext dbContext
+            RoutinizeDbContext dbContext,
+            IRoutinizeRedisCache redisCache
         ) {
             _coreLogService = coreLogService;
             _dbContext = dbContext;
+            _redisCache = redisCache;
         }
 
         public async Task<List<ChallengeQuestion>> GetChallengeQuestions() {
-            var challengeQuestions = await GetRedisCacheEntry<List<ChallengeQuestion>>(SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue());
+            var challengeQuestions = await _redisCache.GetRedisCacheEntry<List<ChallengeQuestion>>(SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue());
             if (challengeQuestions != null) return challengeQuestions;
 
             try {
                 challengeQuestions = await _dbContext.ChallengeQuestions.ToListAsync();
                 if (challengeQuestions != null)
-                    await InsertRedisCacheEntry<ChallengeQuestion>(new CacheEntry {
+                    await _redisCache.InsertRedisCacheEntry<ChallengeQuestion>(new CacheEntry {
                         Data = challengeQuestions,
                         EntryKey = SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue()
                     });
@@ -60,7 +64,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<List<ChallengeRecord>> GetChallengeRecordsForAccount(int accountId) {
+        public async Task<List<ChallengeRecord>> GetChallengeRecordsForAccount([NotNull] int accountId) {
             try {
                 var challengeRecords = await _dbContext.ChallengeRecords.Where(record => record.AccountId == accountId).ToListAsync();
                 return challengeRecords ?? new List<ChallengeRecord>();
@@ -81,7 +85,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool?> SaveChallengeRecordsForAccount(AccountChallengeVM challengeRecord) {
+        public async Task<bool?> SaveChallengeRecordsForAccount([NotNull] AccountChallengeVM challengeRecord) {
             try {
                 challengeRecord.ChallengeResponses.ForEach(async response => {
                     var record = new ChallengeRecord {

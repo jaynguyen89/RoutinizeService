@@ -1,22 +1,23 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using RoutinizeCore.Models;
 
 namespace RoutinizeCore.Services.Interfaces {
 
     public interface IAccountService {
         
-        Task<bool> IsRegistrationEmailAvailable(string email);
+        Task<bool> IsRegistrationEmailAvailable([NotNull] string email);
 
-        Task<bool> IsUsernameAvailable(string username);
+        Task<bool> IsUsernameAvailable([NotNull] string username);
 
-        Task<bool> IsAccountUniqueIdAvailable(string accountUniqueId);
+        Task<bool> IsAccountUniqueIdAvailable([NotNull] string accountUniqueId);
 
-        Task<Account> GetUserAccountByEmail(string email, bool activated = false);
+        Task<Account> GetUserAccountByEmail([NotNull] string email, bool activated = false);
         
-        Task<bool> UpdateUserAccount(Account userAccount);
+        Task<bool> UpdateUserAccount([NotNull] Account userAccount);
 
-        Task<Account> GetUserAccountById(int accountId, bool activated = true);
+        Task<Account> GetUserAccountById([NotNull] int accountId, bool activated = true);
 
-        Task<Account> GetUserAccountByUsername(string username, bool activated = false);
+        Task<Account> GetUserAccountByUsername([NotNull] string username, bool activated = false);
     }
 }
