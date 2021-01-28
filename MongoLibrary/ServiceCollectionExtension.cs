@@ -8,6 +8,7 @@ namespace MongoLibrary {
 
         public static IServiceCollection RegisterMongoLibraryServices(this IServiceCollection services) {
             //Add all services here
+            services.AddScoped<MongoDbContext>();
 
             services.AddScoped<IRoutinizeCoreLogService, RoutinizeCoreLogService>();
             services.AddScoped<IRoutinizeAccountLogService, RoutinizeAccountLogService>();

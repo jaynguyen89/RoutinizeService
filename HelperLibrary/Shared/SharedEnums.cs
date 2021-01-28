@@ -16,8 +16,8 @@ namespace HelperLibrary.Shared {
         }
 
         public enum RequestResults {
-            Success,
             Failed,
+            Success,
             Denied,
             Partial
         }

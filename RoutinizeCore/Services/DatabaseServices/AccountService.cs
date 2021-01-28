@@ -79,26 +79,16 @@ namespace RoutinizeCore.Services.DatabaseServices {
         public async Task<bool> IsAccountUniqueIdAvailable([NotNull] string accountUniqueId) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account =>
-                    Helpers.RemoveCharactersFromString(
-                        account.UniqueId,
-                        new List<char> {SharedConstants.ACCOUNT_UNIQUE_ID_DELIMITER}
-                    ).ToUpper().Equals(accountUniqueId.ToUpper())
+                        account.UniqueId.Equals(accountUniqueId.ToUpper())
+                    // Helpers.RemoveCharactersFromString(
+                    //     account.UniqueId,
+                    //     new List<char> { SharedConstants.ACCOUNT_UNIQUE_ID_DELIMITER }
+                    // ).ToUpper().Equals(accountUniqueId.ToUpper())
                 );
 
                 return dbAccount == null;
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(AccountService) }.{ nameof(IsAccountUniqueIdAvailable) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
-                    BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = $"Search an entry with SingleOrDefaultAsync, detect 2 entries matching the predicate.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(accountUniqueId) } = { accountUniqueId }",
-                    Severity = SharedEnums.LogSeverity.Fatal.GetEnumValue()
-                });
-
                 return false;
             }
         }

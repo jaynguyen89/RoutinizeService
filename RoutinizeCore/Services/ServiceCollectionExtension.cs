@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using RoutinizeCore.DbContexts;
 using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.DatabaseServices;
 using RoutinizeCore.Services.Interfaces;
@@ -9,14 +11,17 @@ namespace RoutinizeCore.Services {
 
         public static IServiceCollection RegisterRoutinizeCoreServices(this IServiceCollection services) {
             //Add all services here
+            services.AddScoped<RoutinizeDbContext>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddSingleton<IRoutinizeMemoryCache, RoutinizeMemoryCache>();
-            services.AddSingleton<IRoutinizeRedisCache, RoutinizeRedisCache>();
+            services.AddScoped<IRoutinizeMemoryCache, RoutinizeMemoryCache>();
+            services.AddScoped<IRoutinizeRedisCache, RoutinizeRedisCache>();
             
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IChallengeService, ChallengeService>();
+            services.AddScoped<IAddressService, AddressService>();
 
             return services;
         }

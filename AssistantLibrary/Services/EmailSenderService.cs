@@ -43,7 +43,7 @@ namespace AssistantLibrary.Services {
 
                 return true;
             }
-            catch (ArgumentNullException e) {
+            catch (ArgumentNullException) {
                 return false;
             }
         }
@@ -56,7 +56,7 @@ namespace AssistantLibrary.Services {
                     ComposeEmail(emailContent);
                     await _smtpClient.SendMailAsync(_message);
                 }
-                catch (ArgumentNullException e) {
+                catch (ArgumentNullException) {
                     emailsFailedToSend.Add(emailContent);
                 }
             }

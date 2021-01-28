@@ -30,7 +30,7 @@ namespace RoutinizeCore {
 
             services.AddMvc(options => options.EnableEndpointRouting = false)
                     .AddSessionStateTempDataProvider()
-                    .SetCompatibilityVersion(CompatibilityVersion.Latest);
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             services.AddSession(options => {
                 options.IdleTimeout = TimeSpan.FromMinutes(int.Parse(Configuration.GetSection("Session")["IdleTimeout"]));

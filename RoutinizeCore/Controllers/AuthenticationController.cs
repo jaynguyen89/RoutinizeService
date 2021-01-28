@@ -78,7 +78,7 @@ namespace RoutinizeCore.Controllers {
             email = email.Trim().ToLower();
             var emailAvailable = await _accountService.IsRegistrationEmailAvailable(email);
             
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = emailAvailable });
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = new { emailAvailable } });
         }
 
         [HttpGet("check-username-availability/{username}")]
@@ -89,13 +89,13 @@ namespace RoutinizeCore.Controllers {
             username = username.Trim().ToLower();
             var usernameAvailable = await _accountService.IsUsernameAvailable(username);
             
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = usernameAvailable });
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = new { usernameAvailable } });
         }
 
         [HttpPost("register-account")]
         public async Task<JsonResult> RegisterAccount(RegisterAccountVM registrationData) {
-            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(registrationData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            //var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(registrationData.RecaptchaToken);
+            //if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var userInputsVerification = VerifyRegistrationData(registrationData);
             if (userInputsVerification.Count != 0) {
@@ -121,14 +121,14 @@ namespace RoutinizeCore.Controllers {
             var isAccountUniqueIdValid = false;
             var accountUniqueId = string.Empty;
             while (!isAccountUniqueIdValid) {
-                accountUniqueId = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_UNIQUE_ID_LENGTH);
+                accountUniqueId = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_UNIQUE_ID_LENGTH);
                 isAccountUniqueIdValid = await _accountService.IsAccountUniqueIdAvailable(accountUniqueId);
 
-                // if (isAccountUniqueIdValid)
-                //     accountUniqueId = Helpers.AppendCharacterToString(accountUniqueId);
+                if (isAccountUniqueIdValid)
+                    accountUniqueId = accountUniqueId.ToUpper(); //Helpers.AppendCharacterToString(accountUniqueId);
             }
 
-            var activationToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            var activationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             var newAccountId = await _authenticationService.InsertNewUserAccount(registrationData, accountUniqueId, activationToken);
 
             if (newAccountId < 1) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
@@ -151,7 +151,7 @@ namespace RoutinizeCore.Controllers {
         [HttpPost("activate-account")]
         public async Task<JsonResult> ActivateAccount(AccountActivationVM activator) {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var (activationResult, isPositiveResult) = await _authenticationService.ActivateUserAccount(activator);
             if (!activationResult) return new JsonResult(new JsonResponse {
@@ -198,7 +198,7 @@ namespace RoutinizeCore.Controllers {
         [HttpPost("request-new-account-activation-email")]
         public async Task<JsonResult> SendNewAccountActivationEmail(AccountActivationVM activator) {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
             if (userAccount == null) return new JsonResult(new JsonResponse {
@@ -207,7 +207,7 @@ namespace RoutinizeCore.Controllers {
                 Error = SharedEnums.HttpStatusCodes.NotFound
             });
             
-            userAccount.RecoveryToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
             if (await _accountService.UpdateUserAccount(userAccount) &&
@@ -241,7 +241,7 @@ namespace RoutinizeCore.Controllers {
         [HttpPost("authenticate")]
         public async Task<JsonResult> Authenticate(AuthenticationVM authenticationData) {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(authenticationData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var authenticationDataVerification = authenticationData.VerifyAuthenticationData();
             if (authenticationDataVerification.Count != 0) {
@@ -281,7 +281,7 @@ namespace RoutinizeCore.Controllers {
             }
 
             var authenticationTimestamp = DateTime.UtcNow;
-            var tokenSalt = _assistantService.GenerateRandomString();
+            var tokenSalt = _assistantService.GenerateSaltForHash();
             var authenticationToken = Helpers.GenerateSha512Hash(
                 $"{ userAccount.Id }{ userAccount.Email }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
             );
@@ -334,7 +334,7 @@ namespace RoutinizeCore.Controllers {
             Account userAccount, bool trustedAuth, string deviceInformation
         ) {
             var authenticationTimestamp = DateTime.UtcNow;
-            var tokenSalt = _assistantService.GenerateRandomString();
+            var tokenSalt = _assistantService.GenerateSaltForHash();
             var authenticationToken = Helpers.GenerateSha512Hash(
                 $"{ userAccount.Id }{ userAccount.Email }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
             );
@@ -371,7 +371,7 @@ namespace RoutinizeCore.Controllers {
         [HttpPost("forgot-password")]
         public async Task<JsonResult> ForgotPassword(ForgotPasswordVM forgotPasswordData) {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(forgotPasswordData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var error = forgotPasswordData.VerifyForgotPasswordData();
             if (error != null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = error });
@@ -380,7 +380,7 @@ namespace RoutinizeCore.Controllers {
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
 
             userAccount.EmailConfirmed = false;
-            userAccount.RecoveryToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
             if (!await _accountService.UpdateUserAccount(userAccount))
@@ -399,7 +399,7 @@ namespace RoutinizeCore.Controllers {
         [HttpGet("request-new-password-reset-email")]
         public async Task<JsonResult> SendNewPasswordResetEmail(ForgotPasswordVM forgotPasswordData) {
             var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(forgotPasswordData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var error = forgotPasswordData.VerifyForgotPasswordData();
             if (error != null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = error });
@@ -407,7 +407,7 @@ namespace RoutinizeCore.Controllers {
             var userAccount = await _accountService.GetUserAccountById(forgotPasswordData.AccountId, false);
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
             
-            userAccount.RecoveryToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
             
             if (!await _accountService.UpdateUserAccount(userAccount))

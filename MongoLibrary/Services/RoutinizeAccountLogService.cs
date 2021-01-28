@@ -18,9 +18,11 @@ namespace MongoLibrary.Services {
 
         public RoutinizeAccountLogService(
             ILogger<RoutinizeAccountLogService> logger,
+            MongoDbContext context,
             IOptions<MongoDbOptions> options
         ) {
             _logger = logger;
+            _context = context;
             _context.SetRoutinizeDataLogCollection(options.Value.AccountLogCollection);
         }
 

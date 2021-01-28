@@ -3,11 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AssistantLibrary.Interfaces;
 using AssistantLibrary.Models;
+using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoLibrary.Interfaces;
 using RoutinizeCore.Attributes;
-using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
 using RoutinizeCore.ViewModels.Account;
@@ -74,7 +74,7 @@ namespace RoutinizeCore.Controllers {
             userAccount.Email = emailUpdateData.NewEmail;
             userAccount.EmailConfirmed = false;
 
-            var confirmationToken = _assistantService.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            var confirmationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.RecoveryToken = confirmationToken;
             userAccount.TokenSetOn = DateTime.UtcNow;
             
@@ -183,7 +183,7 @@ namespace RoutinizeCore.Controllers {
         [HttpGet("enable-two-factor/{accountId}")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> EnableTwoFactorAuthentication(int accountId) {
-            var twoFactorSecretKey = _assistantService.GenerateRandomString(SharedConstants.TWO_FA_SECRET_KEY_LENGTH);
+            var twoFactorSecretKey = Helpers.GenerateRandomString(SharedConstants.TWO_FA_SECRET_KEY_LENGTH);
             var userAccount = await _accountService.GetUserAccountById(accountId);
 
             userAccount.TwoFactorEnabled = true;
@@ -200,7 +200,7 @@ namespace RoutinizeCore.Controllers {
         [RoutinizeActionFilter]
         public async Task<JsonResult> DisableTwoFactorAuthentication(TwoFaUpdateVM tfaUpdateData) {
             var isRequestedByHuman = await _recaptchaService.IsHumanRegistration(tfaUpdateData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(isRequestedByHuman);
+            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
             
             var userAccount = await _accountService.GetUserAccountById(tfaUpdateData.AccountId);
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });

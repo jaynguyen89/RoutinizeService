@@ -18,10 +18,6 @@ namespace RoutinizeCore.ViewModels.Authentication {
         
         public string RecaptchaToken { get; set; }
         
-        public string TempPassword { get; set; }
-        
-        public string RecoveryToken { get; set; }
-        
         public List<int> VerifyEmail() {
             Email = Email.Trim().ToLower();
 

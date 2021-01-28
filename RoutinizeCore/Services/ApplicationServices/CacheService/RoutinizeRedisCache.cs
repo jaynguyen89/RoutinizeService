@@ -23,10 +23,10 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
         public RoutinizeRedisCache(
             IDistributedCache redisCache,
-            HttpContext httpContext,
+            IHttpContextAccessor httpContextAccessor,
             IConfiguration configuration
         ) {
-            _httpContext = httpContext;
+            _httpContext = httpContextAccessor.HttpContext;
             _redisCache = redisCache;
 
             _cacheSettings.RedisCacheEnabled = bool.Parse(configuration.GetSection("CacheSettings")["RedisCacheEnabled"]);

@@ -40,7 +40,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Location = $"{ nameof(UserService)}.{nameof(InsertBlankUserOnAccountRegistration) }",
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = "Error while inserting entry into AuthRecords.",
+                    DetailedInformation = $"Error while inserting entry into AuthRecords.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });

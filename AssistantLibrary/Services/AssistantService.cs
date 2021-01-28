@@ -9,13 +9,13 @@ namespace AssistantLibrary.Services {
     public sealed class AssistantService : IAssistantService {
 
         public KeyValuePair<string, string> GenerateHashAndSalt(string plainText) {
-            var salt = BCryptHelper.GenerateSalt();
+            var salt = GenerateSaltForHash();
             var hash = BCryptHelper.HashPassword(plainText, salt);
 
             return new KeyValuePair<string, string>(hash, salt);
         }
 
-        public string GenerateRandomString([NotNull] int length = 8) {
+        public string GenerateSaltForHash([NotNull] int length = 8) {
             return BCryptHelper.GenerateSalt(length);
         }
 

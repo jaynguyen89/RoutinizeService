@@ -86,5 +86,18 @@ namespace HelperLibrary {
             var random = new Random();
             return random.Next(min, max + 1);
         }
+        
+        public static string GenerateRandomString(int length, bool includeSpecialChars = false) {
+            const string SCHARS = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnmn1234567890!@#$%^&*_+.";
+            const string NCHARS = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnmn1234567890";
+            
+            var randomString = new string(
+                Enumerable.Repeat(includeSpecialChars ? SCHARS : NCHARS, length)
+                          .Select(p => p[(new Random()).Next(p.Length)])
+                          .ToArray()
+            );
+
+            return randomString;
+        }
     }
 }

@@ -20,9 +20,9 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
         public RoutinizeMemoryCache(
             IConfiguration configuration,
-            HttpContext httpContext
+            IHttpContextAccessor httpContextAccessor
         ) {
-            _httpContext = httpContext;
+            _httpContext = httpContextAccessor.HttpContext;
             
             MemoryCache = new MemoryCache(new MemoryCacheOptions {
                 SizeLimit = int.Parse(configuration.GetSection("CacheSettings")["Size"]),
