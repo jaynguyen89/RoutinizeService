@@ -51,7 +51,7 @@ namespace HelperLibrary {
             using var sha512 = new SHA512Managed();
             var hashedBytes = sha512.ComputeHash(EncodeDataUtf8(plainText));
 
-            return DecodeUtf8<string>(hashedBytes);
+            return Convert.ToBase64String(hashedBytes);
         }
 
         public static string FormatDateTimeString([NotNull] DateTime dateTime) {

@@ -18,8 +18,10 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<bool?> InsertAuthenticationRecord([NotNull] AuthRecord authRecord);
 
-        Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] SessionAuthVM sessionAuth);
+        Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] int accountId);
 
         Task<Account> GetAccountById([NotNull] int accountId);
+
+        Task RevokeAuthRecord(int accountId);
     }
 }

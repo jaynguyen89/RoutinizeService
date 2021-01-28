@@ -169,7 +169,6 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.DeviceInformation).HasMaxLength(250);
 
                 entity.Property(e => e.SessionId)
-                    .IsRequired()
                     .HasMaxLength(250);
 
                 entity.HasOne(d => d.Account)

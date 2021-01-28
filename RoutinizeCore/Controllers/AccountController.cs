@@ -15,6 +15,8 @@ using RoutinizeCore.ViewModels.Challenge;
 
 namespace RoutinizeCore.Controllers {
 
+    [ApiController]
+    [Route("account")]
     public sealed class AccountController : ControllerBase {
 
         private readonly IRoutinizeAccountLogService _accountLogService;
@@ -90,12 +92,12 @@ namespace RoutinizeCore.Controllers {
             }
 
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }EmailUpdateNotificationEmail.html");
-            var emailUpdateNotificationTemplate = await fileReader.ReadToEndAsync();
+            var emailUpdateNotificationContent = await fileReader.ReadToEndAsync();
 
-            var emailUpdateNotificationContent = emailUpdateNotificationTemplate.Replace("[USER_NAME]", userAccount.Username);
-            emailUpdateNotificationContent = emailUpdateNotificationTemplate.Replace("[ACTIVATION_TOKEN]", confirmationToken);
-            emailUpdateNotificationContent = emailUpdateNotificationTemplate.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
-            emailUpdateNotificationContent = emailUpdateNotificationTemplate.Replace("[USER_EMAIL]", userAccount.Email);
+            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[USER_NAME]", userAccount.Username);
+            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[ACTIVATION_TOKEN]", confirmationToken);
+            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[USER_EMAIL]", userAccount.Email);
             
             var emailUpdateEmail = new EmailContent {
                 Subject = "Activate your account",

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
@@ -25,7 +23,7 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
             _httpContext = httpContextAccessor.HttpContext;
             
             MemoryCache = new MemoryCache(new MemoryCacheOptions {
-                SizeLimit = int.Parse(configuration.GetSection("CacheSettings")["Size"]),
+                SizeLimit = long.MaxValue, //int.Parse(configuration.GetSection("CacheSettings")["Size"]),
                 CompactionPercentage = double.Parse(configuration.GetSection("CacheSettings")["Compaction"]),
                 ExpirationScanFrequency = TimeSpan.FromSeconds(int.Parse(configuration.GetSection("CacheSettings")["ScanFrequency"]))
             });
@@ -37,34 +35,34 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
         public void SetCacheEntry<T>([NotNull] CacheEntry entry) {
             if (!MemoryCacheEnabled) return;
             EntryOptions.SetPriority(entry.Priority).SetSize(entry.Size);
-            
-            if (!Helpers.IsProperString(entry.EntryKey)) {
-                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-                entry.EntryKey = $"{ nameof(T) }_{ accountId }";
-            }
 
-            try {
-                EntryOptions.SetAbsoluteExpiration(
-                    entry.AbsoluteExpiration > 0 ? TimeSpan.FromSeconds(entry.AbsoluteExpiration) : EntryOptions.SlidingExpiration.Value
-                );
-            }
-            catch (InvalidOperationException) {
-                EntryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(SharedConstants.CACHE_ABSOLUTE_EXPIRATION));
-            }
+            if (!nameof(T).Equals(nameof(AuthenticatedUser)))
+                try {
+                    EntryOptions.SetAbsoluteExpiration(
+                            entry.AbsoluteExpiration > 0 ? TimeSpan.FromSeconds(entry.AbsoluteExpiration) : EntryOptions.SlidingExpiration.Value
+                        );
+                }
+                catch (InvalidOperationException) {
+                    EntryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(SharedConstants.CACHE_ABSOLUTE_EXPIRATION));
+                }
 
             MemoryCache.Set(entry.EntryKey, entry.Data, EntryOptions);
         }
 
-        public T GetCacheEntryFor<T>([AllowNull] string cacheKey = null) {
+        public T GetCacheEntryFor<T>([NotNull] string cacheKey) {
             if (!MemoryCacheEnabled) return default(T);
-            
-            if (Helpers.IsProperString(cacheKey))
-                return MemoryCache.Get<T>(cacheKey);
-            
-            var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-            cacheKey = $"{ nameof(T) }_{ accountId }";
-            
-            return MemoryCache.Get<T>(cacheKey);
+
+            try {
+                var cachedItem = MemoryCache.Get<CacheEntry>(cacheKey);
+                return (T) cachedItem.Data;
+            }
+            catch (Exception) {
+                return default;
+            }
+        }
+
+        public void RemoveCacheEntry([NotNull] string entryKey) {
+            MemoryCache.Remove(entryKey);
         }
     }
 }

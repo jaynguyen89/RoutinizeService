@@ -6,6 +6,8 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
         void SetCacheEntry<T>([NotNull] CacheEntry entry);
 
-        T GetCacheEntryFor<T>([AllowNull] string cacheKey = null);
+        T GetCacheEntryFor<T>([AllowNull] string cacheKey);
+
+        void RemoveCacheEntry([NotNull] string entryKey);
     }
 }

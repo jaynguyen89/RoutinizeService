@@ -12,6 +12,7 @@ namespace HelperLibrary.Shared {
         }
 
         public enum ActionFilterResults {
+            RequestProcessingError,
             UnauthenticatedRequest
         }
 

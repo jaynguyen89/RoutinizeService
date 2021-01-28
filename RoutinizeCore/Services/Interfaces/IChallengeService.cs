@@ -8,7 +8,7 @@ namespace RoutinizeCore.Services.Interfaces {
 
     public interface IChallengeService {
 
-        Task<ChallengeQuestion[]> GetChallengeQuestions();
+        Task<ChallengeQuestionVM[]> GetChallengeQuestions();
 
         Task<ChallengeRecordVM[]> GetChallengeResponsesForAccount([NotNull] int accountId);
 

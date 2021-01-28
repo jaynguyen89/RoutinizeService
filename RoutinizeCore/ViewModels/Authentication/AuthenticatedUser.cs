@@ -2,10 +2,6 @@
 
     public class AuthenticatedUser {
         
-        public string SessionId { get; set; }
-        
-        public int? UserId { get; set; }
-        
         public int AccountId { get; set; }
         
         public string AuthToken { get; set; }

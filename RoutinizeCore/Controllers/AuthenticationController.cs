@@ -5,11 +5,12 @@ using AssistantLibrary.Interfaces;
 using AssistantLibrary.Models;
 using HelperLibrary;
 using HelperLibrary.Shared;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using RoutinizeCore.Attributes;
 using RoutinizeCore.Models;
+using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
 using RoutinizeCore.ViewModels.AccountRecovery;
@@ -64,6 +65,11 @@ namespace RoutinizeCore.Controllers {
                 SharedEnums.ActionFilterResults.UnauthenticatedRequest => new JsonResult(new JsonResponse {
                     Result = SharedEnums.RequestResults.Denied,
                     Message = "Error: Your access to resource is denied.",
+                    Error = SharedEnums.HttpStatusCodes.Forbidden
+                }),
+                SharedEnums.ActionFilterResults.RequestProcessingError => new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Denied,
+                    Message = "Error: Improper request format.",
                     Error = SharedEnums.HttpStatusCodes.Forbidden
                 }),
                 _ => throw new ArgumentOutOfRangeException(nameof(actionFilterResults), actionFilterResults, null)
@@ -150,8 +156,8 @@ namespace RoutinizeCore.Controllers {
 
         [HttpPost("activate-account")]
         public async Task<JsonResult> ActivateAccount(AccountActivationVM activator) {
-            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
+            //var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
+            //if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var (activationResult, isPositiveResult) = await _authenticationService.ActivateUserAccount(activator);
             if (!activationResult) return new JsonResult(new JsonResponse {
@@ -197,8 +203,8 @@ namespace RoutinizeCore.Controllers {
 
         [HttpPost("request-new-account-activation-email")]
         public async Task<JsonResult> SendNewAccountActivationEmail(AccountActivationVM activator) {
-            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
+            //var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
+            //if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
             if (userAccount == null) return new JsonResult(new JsonResponse {
@@ -220,12 +226,12 @@ namespace RoutinizeCore.Controllers {
 
         private async Task<bool> SendAccountActivationEmail(string username, string email, string activationToken) {
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationEmail.html");
-            var accountActivationEmailTemplate = await fileReader.ReadToEndAsync();
+            var accountActivationEmailContent = await fileReader.ReadToEndAsync();
 
-            var accountActivationEmailContent = accountActivationEmailTemplate.Replace("[USER_NAME]", username);
-            accountActivationEmailContent = accountActivationEmailTemplate.Replace("[USER_EMAIL]", email);
-            accountActivationEmailContent = accountActivationEmailTemplate.Replace("[ACTIVATION_TOKEN]", activationToken);
-            accountActivationEmailContent = accountActivationEmailTemplate.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            accountActivationEmailContent = accountActivationEmailContent.Replace("[USER_NAME]", username);
+            accountActivationEmailContent = accountActivationEmailContent.Replace("[USER_EMAIL]", email);
+            accountActivationEmailContent = accountActivationEmailContent.Replace("[ACTIVATION_TOKEN]", activationToken);
+            accountActivationEmailContent = accountActivationEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
 
             var accountActivationEmail = new EmailContent {
                 Subject = "Activate your account",
@@ -240,8 +246,8 @@ namespace RoutinizeCore.Controllers {
 
         [HttpPost("authenticate")]
         public async Task<JsonResult> Authenticate(AuthenticationVM authenticationData) {
-            var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(authenticationData.RecaptchaToken);
-            if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
+            //var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(authenticationData.RecaptchaToken);
+            //if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
             var authenticationDataVerification = authenticationData.VerifyAuthenticationData();
             if (authenticationDataVerification.Count != 0) {
@@ -251,7 +257,7 @@ namespace RoutinizeCore.Controllers {
 
             var (isSuccessful, userAccount) = await _authenticationService.AuthenticateUserAccount(authenticationData);
             if (!isSuccessful || userAccount == null)
-                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "That credentials is not a match." });
 
             if (userAccount.LockoutEnd.HasValue && userAccount.LockoutEnd >= DateTime.UtcNow)
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "Your account is locked." });
@@ -283,7 +289,7 @@ namespace RoutinizeCore.Controllers {
             var authenticationTimestamp = DateTime.UtcNow;
             var tokenSalt = _assistantService.GenerateSaltForHash();
             var authenticationToken = Helpers.GenerateSha512Hash(
-                $"{ userAccount.Id }{ userAccount.Email }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
+                $"{ userAccount.Id }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
             );
 
             var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(userAccount, authenticationData.TrustedAuth, authenticationData.DeviceInformation);
@@ -292,13 +298,12 @@ namespace RoutinizeCore.Controllers {
             if (authSavingResult.HasValue && authSavingResult.Value)
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = authenticatedUser });
             
-            HttpContext.Session.Clear();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "We encountered an issue while establishing your session." });
         }
 
         [HttpPost("authenticate-session")]
         public async Task<JsonResult> AuthenticateSession(SessionAuthVM sessionAuthData) {
-            var authRecord = await _authenticationService.GetLatestAuthRecordForUserAccount(sessionAuthData);
+            var authRecord = await _authenticationService.GetLatestAuthRecordForUserAccount(sessionAuthData.AccountId);
             if (authRecord == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
 
             var dbAccount = await _authenticationService.GetAccountById(authRecord.AccountId);
@@ -313,21 +318,19 @@ namespace RoutinizeCore.Controllers {
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
             
             var reliableAuthToken = Helpers.GenerateSha512Hash(
-                $"{ authRecord.AccountId }{ dbAccount.Email }{ authRecord.AuthTimestamp }{ authRecord.AuthTokenSalt }"
+                $"{ authRecord.AccountId }{ authRecord.AuthTimestamp }{ authRecord.AuthTokenSalt }"
             );
 
-            if (reliableAuthToken.Equals(sessionAuthData.AuthToken)) {
-                var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(dbAccount, sessionAuthData.GetTrustedAuth(), sessionAuthData.DeviceInformation);
+            if (!reliableAuthToken.Equals(sessionAuthData.AuthToken))
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
+            
+            var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(dbAccount, sessionAuthData.GetTrustedAuth(), sessionAuthData.DeviceInformation);
 
-                var authSavingResult = await _authenticationService.InsertAuthenticationRecord(authenticationRecord);
-                if (authSavingResult.HasValue && authSavingResult.Value)
-                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = authenticatedUser });
+            var authSavingResult = await _authenticationService.InsertAuthenticationRecord(authenticationRecord);
+            if (authSavingResult.HasValue && authSavingResult.Value)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = authenticatedUser });
                 
-                HttpContext.Session.Clear();
-                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "We encountered an issue while establishing your session." });
-            }
-
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "We encountered an issue while establishing your session." });
         }
 
         private KeyValuePair<AuthenticatedUser, AuthRecord> CreateAuthenticatedUserAndRecord(
@@ -336,7 +339,7 @@ namespace RoutinizeCore.Controllers {
             var authenticationTimestamp = DateTime.UtcNow;
             var tokenSalt = _assistantService.GenerateSaltForHash();
             var authenticationToken = Helpers.GenerateSha512Hash(
-                $"{ userAccount.Id }{ userAccount.Email }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
+                $"{ userAccount.Id }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
             );
             
             var authenticatedUser = new AuthenticatedUser {
@@ -345,14 +348,15 @@ namespace RoutinizeCore.Controllers {
             };
             authenticatedUser.SetTrustedAuth(trustedAuth);
             
-            HttpContext.Session.SetString(SharedEnums.SessionKeys.IsUserAuthenticated.GetEnumValue(), "True");
-            HttpContext.Session.SetString(SharedEnums.SessionKeys.AuthenticatedUser.GetEnumValue(), JsonConvert.SerializeObject(authenticatedUser));
-            HttpContext.Session.SetInt32(nameof(AuthenticatedUser.AccountId), authenticatedUser.AccountId);
-            authenticatedUser.SessionId = HttpContext.Session.Id;
+            // _memoryCache.SetCacheEntry<AuthenticatedUser>(new CacheEntry {
+            //     EntryKey = $"{ nameof(AuthenticatedUser) }_{ userAccount.Id }",
+            //     Priority = CacheItemPriority.High,
+            //     Size = authenticatedUser.GetType().GetProperties().Length,
+            //     Data = authenticatedUser
+            // });
             
             var authenticationRecord = new AuthRecord {
                 AccountId = userAccount.Id,
-                SessionId = HttpContext.Session.Id,
                 AuthTokenSalt = tokenSalt,
                 AuthTimestamp = Helpers.ConvertToUnixTimestamp(authenticationTimestamp),
                 DeviceInformation = deviceInformation,
@@ -362,9 +366,10 @@ namespace RoutinizeCore.Controllers {
             return new KeyValuePair<AuthenticatedUser, AuthRecord>(authenticatedUser, authenticationRecord);
         }
 
-        [HttpGet("sign-out")]
-        public JsonResult Unauthenticate() {
-            HttpContext.Session.Clear();
+        [HttpGet("sign-out/{accountId}")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> Unauthenticate(int accountId) {
+            await _authenticationService.RevokeAuthRecord(accountId);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
@@ -468,12 +473,12 @@ namespace RoutinizeCore.Controllers {
         
         private async Task<bool> SendPasswordResetEmail(string username, string email, int accountId, string activationToken) {
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }RecoverPasswordEmail.html");
-            var recoverPasswordEmailTemplate = await fileReader.ReadToEndAsync();
+            var recoverPasswordEmailContent = await fileReader.ReadToEndAsync();
 
-            var recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[USER_NAME]", username);
-            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[ACCOUNT_ID]", accountId.ToString());
-            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[ACTIVATION_TOKEN]", activationToken);
-            recoverPasswordEmailContent = recoverPasswordEmailTemplate.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[USER_NAME]", username);
+            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[ACCOUNT_ID]", accountId.ToString());
+            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[ACTIVATION_TOKEN]", activationToken);
+            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
 
             var recoverPasswordEmail = new EmailContent {
                 Subject = "Activate your account",

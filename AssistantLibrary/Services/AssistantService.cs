@@ -20,7 +20,12 @@ namespace AssistantLibrary.Services {
         }
 
         public bool IsHashMatchesPlainText([NotNull] string hash,[NotNull] string plainText) {
-            return BCryptHelper.CheckPassword(hash, plainText);
+            try {
+                return BCryptHelper.CheckPassword(plainText, hash);
+            }
+            catch (BCrypt.SaltParseException) {
+                return BCryptHelper.CheckPassword(hash, plainText);
+            }
         }
     }
 }

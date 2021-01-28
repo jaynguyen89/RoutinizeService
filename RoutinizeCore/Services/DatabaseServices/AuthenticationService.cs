@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -163,7 +164,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     account => (
                                    Helpers.IsProperString(authenticationData.Email)
                                        ? account.Email.ToLower().Equals(authenticationData.Email.ToLower())
-                                       : account.Username.ToLower().Equals(authenticationData.Username)
+                                       : account.Username.ToLower().Equals(authenticationData.Username.ToLower())
                                ) &&
                                account.EmailConfirmed == true &&
                                account.RecoveryToken == null &&
@@ -205,7 +206,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while inserting entry into AuthRecords.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(authRecord) } = { JsonConvert.SerializeObject(authRecord) }",
+                    ParamData = $"{ nameof(authRecord.AccountId) } = { authRecord.AccountId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
 
@@ -213,13 +214,12 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] SessionAuthVM sessionAuth) {
+        public async Task<AuthRecord> GetLatestAuthRecordForUserAccount([NotNull] int accountId) {
             try {
-                var authRecord = await _dbContext.AuthRecords.SingleOrDefaultAsync(
-                    record => record.AccountId == sessionAuth.AccountId &&
-                              record.SessionId.Equals(sessionAuth.SessionId) &&
-                              record.TrustedAuth == sessionAuth.GetTrustedAuth()
-                );
+                var authRecord = await _dbContext.AuthRecords
+                                                 .Where(record => record.AccountId == accountId)
+                                                 .OrderByDescending(record => record.AuthTimestamp)
+                                                 .FirstOrDefaultAsync();
 
                 return authRecord;
             }
@@ -231,7 +231,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(sessionAuth) } = { JsonConvert.SerializeObject(sessionAuth) }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });
 
@@ -245,7 +245,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with SingleOrDefault.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(sessionAuth) } = { JsonConvert.SerializeObject(sessionAuth) }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
@@ -255,6 +255,42 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
         public async Task<Account> GetAccountById([NotNull] int accountId) {
             return await _dbContext.Accounts.FindAsync(accountId);
+        }
+
+        public async Task RevokeAuthRecord(int accountId) {
+            try {
+                var authRecord = await _dbContext.AuthRecords
+                                                 .Where(record => record.AccountId == accountId)
+                                                 .OrderByDescending(record => record.AuthTimestamp)
+                                                 .FirstOrDefaultAsync();
+
+                _dbContext.AuthRecords.Remove(authRecord);
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (ArgumentNullException e) {
+                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
+
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(AuthenticationService) }.{ nameof(RevokeAuthRecord) }",
+                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with FirstOrDefault.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+            }
+            catch (DbUpdateException e) {
+                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
+
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(AuthenticationService) }.{ nameof(RevokeAuthRecord) }",
+                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"Error while removing entry from AuthRecords.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+            }
         }
     }
 }

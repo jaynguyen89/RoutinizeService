@@ -12,7 +12,7 @@
         }
 
         .email-body {
-            background-color: white;
+            background-color: #e0f5ff;
             width: 80%;
             height: 100%;
             padding: 20px;
@@ -29,18 +29,15 @@
 
 <body>
 <div class="email-body">
-    <h5>[EMAIL_TITLE]</h5>
     <p><b>Dear [USER_NAME],</b></p>
     <p>
         Your Routinize account has been created successfully.<br />
         Please click <a href="http://localhost:3000/activate-account?email=[USER_EMAIL]&token=[ACTIVATION_TOKEN]">HERE</a> and follow the instructions to activate your account.
     </p>
 
-    <br />
-    <p style="color: orangered;">**Please note: this email only stays valid for [VALIDITY_DURATION] hours. If this email expired, you will need to request another Account 
+    <p style="color: orangered;">**Please note: this email only stays valid for [VALIDITY_DURATION] hours. If this email expired, you will need to request another Account
         Activation email.</p>
 
-    <br />
     <p>To request another Account Activation email, please click <a href="http://localhost:3000/request-activation-email?email=[USER_EMAIL]">HERE</a>.</p>
 
     <br />

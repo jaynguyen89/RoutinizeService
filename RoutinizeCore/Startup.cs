@@ -25,18 +25,12 @@ namespace RoutinizeCore {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
-            //services.AddCors();
+            services.AddCors();
             services.AddControllers();
-
+            
             services.AddMvc(options => options.EnableEndpointRouting = false)
                     .AddSessionStateTempDataProvider()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-
-            services.AddSession(options => {
-                options.IdleTimeout = TimeSpan.FromMinutes(int.Parse(Configuration.GetSection("Session")["IdleTimeout"]));
-                options.Cookie.IsEssential = bool.Parse(Configuration.GetSection("Session")["RequireCookie"]);
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            });
 
             services.AddHttpContextAccessor();
 
@@ -64,9 +58,13 @@ namespace RoutinizeCore {
 
             app.UseHttpsRedirection();
             app.UseRouting();
-            //app.UseAuthorization();
-            app.UseSession();
-            app.UseCookiePolicy();
+
+            app.UseCors(builder => builder
+                                   .AllowAnyHeader()
+                                   .AllowAnyMethod()
+                                   //.AllowCredentials().WithOrigin("")
+                                   .AllowAnyOrigin()
+            );
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

@@ -2,10 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HelperLibrary;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
@@ -17,16 +15,13 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
             public int RedisAbsoluteExpiration { get; set; }
         }
         
-        private readonly HttpContext _httpContext;
         private readonly IDistributedCache _redisCache;
-        private readonly CacheSettings _cacheSettings = new CacheSettings();
+        private readonly CacheSettings _cacheSettings = new();
 
         public RoutinizeRedisCache(
             IDistributedCache redisCache,
-            IHttpContextAccessor httpContextAccessor,
             IConfiguration configuration
         ) {
-            _httpContext = httpContextAccessor.HttpContext;
             _redisCache = redisCache;
 
             _cacheSettings.RedisCacheEnabled = bool.Parse(configuration.GetSection("CacheSettings")["RedisCacheEnabled"]);
@@ -34,13 +29,8 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
             _cacheSettings.RedisAbsoluteExpiration = int.Parse(configuration.GetSection("CacheSettings")["RedisAbsoluteExpiration"]);
         }
 
-        public async Task InsertRedisCacheEntry<T>([NotNull] CacheEntry entry) {
+        public async Task InsertRedisCacheEntry([NotNull] CacheEntry entry) {
             if (!_cacheSettings.RedisCacheEnabled) return;
-
-            if (!Helpers.IsProperString(entry.EntryKey)) {
-                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-                entry.EntryKey = $"{ nameof(T) }_{ accountId }";
-            }
 
             await _redisCache.SetAsync(
                 $"{ entry.EntryKey }",
@@ -52,16 +42,16 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
             );
         }
 
-        public async Task<T> GetRedisCacheEntry<T>([AllowNull] string entryKey = null) {
-            if (!_cacheSettings.RedisCacheEnabled) return default(T);
+        public async Task<T> GetRedisCacheEntry<T>([NotNull] string entryKey) {
+            if (!_cacheSettings.RedisCacheEnabled) return default;
 
-            if (!Helpers.IsProperString(entryKey)) {
-                var accountId = _httpContext.Session.GetInt32(nameof(AuthenticatedUser.AccountId));
-                entryKey = $"{ nameof(T) }_{ accountId }";
+            try {
+                var cachedData = await _redisCache.GetAsync(entryKey);
+                return cachedData.Length == 0 ? default : Helpers.DecodeUtf8<T>(cachedData);
             }
-
-            var cachedData = await _redisCache.GetAsync(entryKey);
-            return cachedData.Length == 0 ? default(T) : Helpers.DecodeUtf8<T>(cachedData);
+            catch (Exception) {
+                return default;
+            }
         }
     }
 }

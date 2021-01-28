@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -88,7 +87,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
                 return dbAccount == null;
             }
-            catch (InvalidOperationException e) {
+            catch (InvalidOperationException) {
                 return false;
             }
         }
@@ -141,7 +140,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
         }
 
         public async Task<Account> GetUserAccountById([NotNull] int accountId, bool activated = true) {
-            var cachedAccount = _memoryCache.GetCacheEntryFor<Account>();
+            var cachedAccount = _memoryCache.GetCacheEntryFor<Account>($"{ nameof(Account) }_{ accountId }");
             if (cachedAccount != null) return cachedAccount;
 
             Account dbAccount = null;
@@ -168,10 +167,10 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
             if (dbAccount != null)
                 _memoryCache.SetCacheEntry<Account>(new CacheEntry {
+                    EntryKey = $"{ nameof(Account) }_{ accountId }",
                     Data = dbAccount,
-                    Priority = CacheItemPriority.High,
-                    Size = dbAccount.GetType().GetProperties().Length,
-                    AbsoluteExpiration = SharedConstants.CACHE_ABSOLUTE_EXPIRATION
+                    Priority = CacheItemPriority.Normal,
+                    Size = dbAccount.GetType().GetProperties().Length
                 });
 
             return dbAccount;

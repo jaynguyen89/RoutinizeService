@@ -34,14 +34,21 @@ namespace RoutinizeCore.Services.DatabaseServices {
             _redisCache = redisCache;
         }
 
-        public async Task<ChallengeQuestion[]> GetChallengeQuestions() {
-            var challengeQuestions = await _redisCache.GetRedisCacheEntry<ChallengeQuestion[]>(SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue());
+        public async Task<ChallengeQuestionVM[]> GetChallengeQuestions() {
+            var challengeQuestions = await _redisCache.GetRedisCacheEntry<ChallengeQuestionVM[]>(SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue());
             if (challengeQuestions != null) return challengeQuestions;
 
             try {
-                challengeQuestions = await _dbContext.ChallengeQuestions.ToArrayAsync();
+                challengeQuestions = await _dbContext.ChallengeQuestions
+                                                     .Select(question => new ChallengeQuestionVM {
+                                                         Id = question.Id,
+                                                         Question = question.Question,
+                                                         AddedOn = question.AddedOn
+                                                     })
+                                                     .ToArrayAsync();
+                
                 if (challengeQuestions != null)
-                    await _redisCache.InsertRedisCacheEntry<ChallengeQuestion[]>(new CacheEntry {
+                    await _redisCache.InsertRedisCacheEntry(new CacheEntry {
                         Data = challengeQuestions,
                         EntryKey = SharedEnums.RedisCacheKeys.ChallengeQuestions.GetEnumValue()
                     });

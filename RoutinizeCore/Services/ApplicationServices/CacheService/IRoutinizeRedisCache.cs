@@ -5,8 +5,8 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
 
     public interface IRoutinizeRedisCache {
 
-        Task InsertRedisCacheEntry<T>([NotNull] CacheEntry entry);
+        Task InsertRedisCacheEntry([NotNull] CacheEntry entry);
 
-        Task<T> GetRedisCacheEntry<T>([AllowNull] string entryKey = null);
+        Task<T> GetRedisCacheEntry<T>([NotNull] string entryKey);
     }
 }
