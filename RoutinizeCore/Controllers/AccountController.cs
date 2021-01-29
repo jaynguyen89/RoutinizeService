@@ -49,7 +49,7 @@ namespace RoutinizeCore.Controllers {
             _recaptchaService = recaptchaService;
         }
 
-        [HttpPost("change-account-email")]
+        [HttpPut("change-account-email")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> ChangeAccountEmail(EmailUpdateVM emailUpdateData) {
             var newEmailValidation = emailUpdateData.VerifyNewEmail();
@@ -130,7 +130,7 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeResponsesByAccount });
         }
 
-        [HttpPost("update-challenge-response")]
+        [HttpPut("update-challenge-response")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> UpdateChallengeResponseByAccount(AccountChallengeVM newAccountChallengeData) {
             var currentChallengeResponses = await _challengeService.GetChallengeResponsesForAccount(newAccountChallengeData.AccountId);
@@ -198,7 +198,7 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = authenticator });
         }
 
-        [HttpPost("disable-two-factor")]
+        [HttpPut("disable-two-factor")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> DisableTwoFactorAuthentication(TwoFaUpdateVM tfaUpdateData) {
             var isRequestedByHuman = await _recaptchaService.IsHumanRegistration(tfaUpdateData.RecaptchaToken);

@@ -24,10 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="PartialModels" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\AssistantLibrary\AssistantLibrary.csproj" />
     <ProjectReference Include="..\HelperLibrary\HelperLibrary.csproj" />
     <ProjectReference Include="..\MongoLibrary\MongoLibrary.csproj" />

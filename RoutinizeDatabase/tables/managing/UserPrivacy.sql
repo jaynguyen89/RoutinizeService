@@ -5,7 +5,7 @@
 	AddressPolicy TINYINT NOT NULL DEFAULT 0,
 	NamePolicy TINYINT NOT NULL DEFAULT 2,
 	PhonePolicy TINYINT NOT NULL DEFAULT 0,
-	UernamePolicy TINYINT NOT NULL DEFAULT 1,
+	UsernamePolicy TINYINT NOT NULL DEFAULT 1,
 	CONSTRAINT [PK_UserPrivacy_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_UserPrivacy_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id])
 )

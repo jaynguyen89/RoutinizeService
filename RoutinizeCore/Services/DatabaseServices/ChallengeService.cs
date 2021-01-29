@@ -23,7 +23,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
         private readonly RoutinizeDbContext _dbContext;
         private readonly IRoutinizeRedisCache _redisCache;
         
-
         public ChallengeService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext,
@@ -56,11 +55,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return challengeQuestions;
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(GetChallengeQuestions) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unable to get all ChallengeQuestions.\n\n{ e.StackTrace }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
@@ -97,11 +94,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return challengeRecords;
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(GetChallengeResponsesForAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unable to get challenge records.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -131,11 +126,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result != 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(SaveChallengeRecordsForAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while saving challenge records for account.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -156,11 +149,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return challengeRecordByAccount?.Response.Equals(challengeResponse.Response.Trim());
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(VerifyChallengeProofFor) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while getting ChallengeRecord caused by null argument.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -170,11 +161,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(VerifyChallengeProofFor) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while getting ChallengeRecords as >1 entry matches predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -198,11 +187,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return challengeQuestionsRespondedByAccount[Helpers.GetRandomNumber(challengeQuestionsRespondedByAccount.Length - 1)];
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(GetRandomChallengeQuestionForAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unable to get random challenge record.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -229,11 +216,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return !error;
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(UpdateChallengeRecords) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while updating challenge records.\n\n{ e.StackTrace }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
@@ -257,11 +242,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result != 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(UpdateChallengeRecordSingle) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while saving challenge records.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(newResponse) }.RecordId = { newResponse.RecordId }",
@@ -293,11 +276,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return await _dbContext.SaveChangesAsync() != 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(DeleteChallengeRecords) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while saving db changes.\n\n{ e.StackTrace }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
@@ -306,11 +287,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(ChallengeService) }.{ nameof(DeleteChallengeRecords) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while iterating null array.\n\n{ e.StackTrace }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()

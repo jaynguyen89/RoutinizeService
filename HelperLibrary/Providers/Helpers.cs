@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using HelperLibrary.Shared;
 using Newtonsoft.Json;
 
@@ -98,6 +99,15 @@ namespace HelperLibrary {
             );
 
             return randomString;
+        }
+        
+        public static string CapitalizeFirstLetterOfEachWord(string sentence) {
+            var newSentence = sentence
+                              .Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE)
+                              .ToLower();
+
+            newSentence = Regex.Replace(newSentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
+            return newSentence;
         }
     }
 }

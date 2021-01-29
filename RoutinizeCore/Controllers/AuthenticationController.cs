@@ -6,11 +6,9 @@ using AssistantLibrary.Models;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using RoutinizeCore.Attributes;
 using RoutinizeCore.Models;
-using RoutinizeCore.Services.ApplicationServices.CacheService;
 using RoutinizeCore.Services.Interfaces;
 using RoutinizeCore.ViewModels;
 using RoutinizeCore.ViewModels.AccountRecovery;
@@ -31,7 +29,7 @@ namespace RoutinizeCore.Controllers {
         private readonly IGoogleRecaptchaService _googleRecaptchaService;
         private readonly IEmailSenderService _emailSenderService;
 
-        private AuthSettings _authSettings = new AuthSettings();
+        private AuthSettings _authSettings = new();
 
         private sealed class AuthSettings {
             public int AccessFailedAttempts { get; set; }
@@ -193,7 +191,7 @@ namespace RoutinizeCore.Controllers {
                 ReceiverAddress = activator.Email
             };
             
-            if (userAccount != null) await _userService.InsertBlankUserOnAccountRegistration(userAccount.Id);
+            if (userAccount != null) await _userService.InsertBlankUserWithPrivacyAndAppSetting(userAccount.Id);
             
             if (await _emailSenderService.SendEmailSingle(accountActivationConfirmationEmail))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
@@ -348,13 +346,6 @@ namespace RoutinizeCore.Controllers {
             };
             authenticatedUser.SetTrustedAuth(trustedAuth);
             
-            // _memoryCache.SetCacheEntry<AuthenticatedUser>(new CacheEntry {
-            //     EntryKey = $"{ nameof(AuthenticatedUser) }_{ userAccount.Id }",
-            //     Priority = CacheItemPriority.High,
-            //     Size = authenticatedUser.GetType().GetProperties().Length,
-            //     Data = authenticatedUser
-            // });
-            
             var authenticationRecord = new AuthRecord {
                 AccountId = userAccount.Id,
                 AuthTokenSalt = tokenSalt,
@@ -428,7 +419,7 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
         }
 
-        [HttpPost("reset-password")]
+        [HttpPut("reset-password")]
         public async Task<JsonResult> RecoverPassword(PasswordRecoveryVM passwordRecoveryData) {
             var dataErrors = passwordRecoveryData.VerifyNewPassword();
             if (dataErrors.Count != 0) {

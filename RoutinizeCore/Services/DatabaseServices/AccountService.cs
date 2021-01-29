@@ -39,11 +39,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return dbAccount == null;
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(IsRegistrationEmailAvailable) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Search an entry with SingleOrDefaultAsync, detect 2 entries matching the predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(email) } = { email }",
@@ -60,11 +58,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return dbAccount == null;
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(IsUsernameAvailable) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Search an entry with SingleOrDefaultAsync, detect 2 entries matching the predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(username) } = { username }",
@@ -78,11 +74,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
         public async Task<bool> IsAccountUniqueIdAvailable([NotNull] string accountUniqueId) {
             try {
                 var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account =>
-                        account.UniqueId.Equals(accountUniqueId.ToUpper())
-                    // Helpers.RemoveCharactersFromString(
-                    //     account.UniqueId,
-                    //     new List<char> { SharedConstants.ACCOUNT_UNIQUE_ID_DELIMITER }
-                    // ).ToUpper().Equals(accountUniqueId.ToUpper())
+                    account.UniqueId.Equals(accountUniqueId.ToUpper())
                 );
 
                 return dbAccount == null;
@@ -101,11 +93,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                                         );
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(GetUserAccountByEmail) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Search an entry with SingleOrDefaultAsync, detect 2 entries matching the predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(email) } = { email }",
@@ -124,11 +114,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result != 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(UpdateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"An error occurred while updating entry to database, either concurrency or integrity conflict.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(userAccount) } = { JsonConvert.SerializeObject(userAccount) }",
@@ -151,11 +139,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 ).FirstOrDefaultAsync();
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(GetUserAccountById) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"An error occurred while getting account by Id.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }, { nameof(activated) } = { activated }",
@@ -184,11 +170,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 ).FirstOrDefaultAsync();
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AccountService) }.{ nameof(GetUserAccountByUsername) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"An error occurred while getting account by username.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(username) } = { username }, { nameof(activated) } = { activated }",

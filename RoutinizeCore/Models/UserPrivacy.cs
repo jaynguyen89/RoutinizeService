@@ -12,7 +12,7 @@ namespace RoutinizeCore.Models
         public byte AddressPolicy { get; set; }
         public byte NamePolicy { get; set; }
         public byte PhonePolicy { get; set; }
-        public byte UernamePolicy { get; set; }
+        public byte UsernamePolicy { get; set; }
 
         public virtual User User { get; set; }
     }

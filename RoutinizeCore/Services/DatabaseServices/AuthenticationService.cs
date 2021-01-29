@@ -51,11 +51,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result < 1 ? 0 : newDbAccount.Id;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(InsertNewUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Unable to insert new entry into database.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(registrationData) } = { JsonConvert.SerializeObject(registrationData) }",
@@ -75,11 +73,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result > 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-                
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(RemoveNewlyInsertedUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Failed to remove an instance from database table Accounts.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -115,11 +111,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return new KeyValuePair<bool, bool?>(true, result != 0);
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
@@ -129,11 +123,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return new KeyValuePair<bool, bool?>(false, null);
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with SingleOrDefault.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
@@ -143,11 +135,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return new KeyValuePair<bool, bool?>(false, false);
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = "Error while updating entry to database.\n\n" + e.StackTrace,
                     ParamData = $"{ nameof(activator) } = { JsonConvert.SerializeObject(activator) }",
@@ -176,11 +166,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     : new KeyValuePair<bool, Account>(true, dbAccount);
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(AuthenticateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(authenticationData) } = { JsonConvert.SerializeObject(authenticationData) }",
@@ -199,11 +187,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return result != 0;
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(InsertAuthenticationRecord) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while inserting entry into AuthRecords.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(authRecord.AccountId) } = { authRecord.AccountId }",
@@ -224,11 +210,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return authRecord;
             }
             catch (InvalidOperationException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(GetLatestAuthRecordForUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while retrieving an entry with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -238,11 +222,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(ActivateUserAccount) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with SingleOrDefault.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -268,11 +250,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 await _dbContext.SaveChangesAsync();
             }
             catch (ArgumentNullException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(RevokeAuthRecord) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Unhandled NULL argument passed to database query while reading data with FirstOrDefault.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",
@@ -280,11 +260,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
             }
             catch (DbUpdateException e) {
-                var callerMethod = new StackTrace().GetFrame(1)?.GetMethod();
-
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
                     Location = $"{ nameof(AuthenticationService) }.{ nameof(RevokeAuthRecord) }",
-                    Caller = $"{ callerMethod?.Name }.{ callerMethod?.ReflectedType?.Name }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while removing entry from AuthRecords.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(accountId) } = { accountId }",

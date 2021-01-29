@@ -568,7 +568,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.NamePolicy).HasDefaultValueSql("((2))");
 
-                entity.Property(e => e.UernamePolicy).HasDefaultValueSql("((1))");
+                entity.Property(e => e.UsernamePolicy).HasDefaultValueSql("((1))");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.UserPrivacies)

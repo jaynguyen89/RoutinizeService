@@ -42,5 +42,13 @@ namespace HelperLibrary.Shared {
         public static readonly List<string> INVALID_EMAIL_TOKENS = new List<string> {
             "--", "_@", "-@", ".-", "-.", "._", "_.", " ", "@_", "@-", "__", "..", "_-", "-_"
         };
+
+        public const int IMAGE_FILE_MAX_SIZE = 2000000; //2MB
+        public static readonly List<string> IMAGE_TYPES = new List<string> {
+            "image/gif", "image/png", "image/jpg", "image/jpeg"
+        };
+
+        public const string DOUBLE_SPACE = "  ";
+        public const string MONO_SPACE = " ";
     }
 }
