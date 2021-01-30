@@ -24,5 +24,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<KeyValuePair<bool, UserPrivacy>> GetUserPrivacy([NotNull] int accountId);
 
         Task<KeyValuePair<bool, AppSetting>> GetAppSettings([NotNull] int accountId);
+
+        Task<bool?> CheckIfUserProfileInitialized([NotNull] int accountId);
     }
 }

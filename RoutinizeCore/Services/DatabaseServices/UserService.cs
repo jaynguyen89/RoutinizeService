@@ -37,8 +37,8 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 var saveUserResult = await _dbContext.SaveChangesAsync();
                 if (saveUserResult == 0) return -1;
 
-                await _dbContext.UserPrivacies.AddAsync(new UserPrivacy { UserId = saveUserResult });
-                await _dbContext.AppSettings.AddAsync(new AppSetting { UserId = saveUserResult });
+                await _dbContext.UserPrivacies.AddAsync(new UserPrivacy { UserId = dbUser.Id });
+                await _dbContext.AppSettings.AddAsync(new AppSetting { UserId = dbUser.Id });
 
                 var saveResult = await _dbContext.SaveChangesAsync();
                 return saveResult == 0 ? -1 : dbUser.Id;
@@ -274,6 +274,24 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
 
                 return new KeyValuePair<bool, AppSetting>(false, null);
+            }
+        }
+
+        public async Task<bool?> CheckIfUserProfileInitialized(int accountId) {
+            try {
+                return await _dbContext.Users.AnyAsync(user => user.AccountId == accountId);
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(CheckIfUserProfileInitialized) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while checking entry existed in Users with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
             }
         }
 

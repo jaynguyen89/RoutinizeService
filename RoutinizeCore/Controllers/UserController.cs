@@ -25,6 +25,23 @@ namespace RoutinizeCore.Controllers {
             _addressService = addressService;
         }
 
+        [HttpGet("is-user-profile-initialized")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> IsUserProfileInitialized([FromHeader] int accountId) {
+            var result = await _userService.CheckIfUserProfileInitialized(accountId);
+            return !result.HasValue ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                                    : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = result.Value });
+        }
+
+        [HttpGet("initialize-user-profile")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> InitializeUserProfile([FromHeader] int accountId) {
+            var result = await _userService.InsertBlankUserWithPrivacyAndAppSetting(accountId);
+            return !result.HasValue || result.Value < 1
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = result.Value });
+        }
+
         [HttpGet("profile/{accountId}")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> GetUserProfile(int accountId) {
