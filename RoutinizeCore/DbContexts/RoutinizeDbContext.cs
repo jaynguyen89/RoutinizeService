@@ -43,6 +43,7 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<TeamRequest> TeamRequests { get; set; }
         public virtual DbSet<TeamTask> TeamTasks { get; set; }
         public virtual DbSet<Todo> Todos { get; set; }
+        public virtual DbSet<TodoGroup> TodoGroups { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<UserPrivacy> UserPrivacies { get; set; }
 
@@ -212,6 +213,8 @@ namespace RoutinizeCore.DbContexts
                 entity.ToTable("Collaboration");
 
                 entity.Property(e => e.InvitedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Message).HasMaxLength(150);
 
                 entity.HasOne(d => d.Collaborator)
                     .WithMany(p => p.CollaborationCollaborators)
@@ -533,9 +536,31 @@ namespace RoutinizeCore.DbContexts
                     .WithMany(p => p.TodoDoneBies)
                     .HasForeignKey(d => d.DoneById);
 
+                entity.HasOne(d => d.Group)
+                    .WithMany(p => p.Todos)
+                    .HasForeignKey(d => d.GroupId);
+
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.TodoUsers)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<TodoGroup>(entity =>
+            {
+                entity.ToTable("TodoGroup");
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(150);
+
+                entity.Property(e => e.GroupName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany(p => p.TodoGroups)
+                    .HasForeignKey(d => d.CreatedById)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 

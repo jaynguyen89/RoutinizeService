@@ -18,7 +18,7 @@ namespace RoutinizeCore.Controllers {
 
     [ApiController]
     [Route("authentication")]
-    public sealed class AuthenticationController : ControllerBase  {
+    public sealed class AuthenticationController  {
         
         private readonly IAuthenticationService _authenticationService;
         private readonly IAccountService _accountService;
@@ -29,7 +29,7 @@ namespace RoutinizeCore.Controllers {
         private readonly IGoogleRecaptchaService _googleRecaptchaService;
         private readonly IEmailSenderService _emailSenderService;
 
-        private AuthSettings _authSettings = new();
+        private readonly AuthSettings _authSettings = new();
 
         private sealed class AuthSettings {
             public int AccessFailedAttempts { get; set; }
@@ -284,11 +284,11 @@ namespace RoutinizeCore.Controllers {
                 if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
             }
 
-            var authenticationTimestamp = DateTime.UtcNow;
-            var tokenSalt = _assistantService.GenerateSaltForHash();
-            var authenticationToken = Helpers.GenerateSha512Hash(
-                $"{ userAccount.Id }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
-            );
+            // var authenticationTimestamp = DateTime.UtcNow;
+            // var tokenSalt = _assistantService.GenerateSaltForHash();
+            // var authenticationToken = Helpers.GenerateSha512Hash(
+            //     $"{ userAccount.Id }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
+            // );
 
             var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(userAccount, authenticationData.TrustedAuth, authenticationData.DeviceInformation);
 

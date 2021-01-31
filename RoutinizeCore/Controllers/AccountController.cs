@@ -21,7 +21,6 @@ namespace RoutinizeCore.Controllers {
 
         private readonly IRoutinizeAccountLogService _accountLogService;
         private readonly IAccountService _accountService;
-        private readonly IUserService _userService;
         private readonly IChallengeService _challengeService;
         private readonly ITwoFactorAuthService _tfaService;
         private readonly IGoogleRecaptchaService _recaptchaService;
@@ -32,7 +31,6 @@ namespace RoutinizeCore.Controllers {
         public AccountController(
             IRoutinizeAccountLogService accountLogService,
             IAccountService accountService,
-            IUserService userService,
             IChallengeService challengeService,
             IAssistantService assistantService,
             IEmailSenderService emailSenderService,
@@ -41,7 +39,6 @@ namespace RoutinizeCore.Controllers {
         ) {
             _accountLogService = accountLogService;
             _accountService = accountService;
-            _userService = userService;
             _challengeService = challengeService;
             _assistantService = assistantService;
             _emailSenderService = emailSenderService;
@@ -217,8 +214,8 @@ namespace RoutinizeCore.Controllers {
             if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
             
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }TwoFaDisabledNotificationEmail.html");
-            var twoFaDisabledNotificationEmailTemplate = await fileReader.ReadToEndAsync();
-            var twoFaDisabledNotificationEmailContent = twoFaDisabledNotificationEmailTemplate.Replace("[USER_NAME]", userAccount.Username);
+            var twoFaDisabledNotificationEmailContent = await fileReader.ReadToEndAsync();
+            twoFaDisabledNotificationEmailContent = twoFaDisabledNotificationEmailContent.Replace("[USER_NAME]", userAccount.Username);
 
             var accountActivationEmail = new EmailContent {
                 Subject = "Activate your account",
@@ -228,6 +225,7 @@ namespace RoutinizeCore.Controllers {
             };
 
             fileReader.Close();
+            await _emailSenderService.SendEmailSingle(accountActivationEmail);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 

@@ -1,0 +1,10 @@
+﻿CREATE TABLE [dbo].[TodoGroup]
+(
+	Id INT IDENTITY(1, 1) NOT NULL,
+	GroupName NVARCHAR(50) NOT NULL,
+	[Description] NVARCHAR(150) DEFAULT NULL,
+	CreatedById INT NOT NULL,
+	CreatedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
+	CONSTRAINT [PK_TodoGroup_Id] PRIMARY KEY ([Id] ASC),
+	CONSTRAINT [FK_TodoGroup_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [dbo].[User] ([Id])
+)

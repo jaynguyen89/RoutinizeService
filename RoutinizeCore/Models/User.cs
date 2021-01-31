@@ -23,6 +23,7 @@ namespace RoutinizeCore.Models
             TeamRequests = new HashSet<TeamRequest>();
             Teams = new HashSet<Team>();
             TodoDoneBies = new HashSet<Todo>();
+            TodoGroups = new HashSet<TodoGroup>();
             TodoUsers = new HashSet<Todo>();
             UserPrivacies = new HashSet<UserPrivacy>();
         }
@@ -52,6 +53,7 @@ namespace RoutinizeCore.Models
         public virtual ICollection<TeamRequest> TeamRequests { get; set; }
         public virtual ICollection<Team> Teams { get; set; }
         public virtual ICollection<Todo> TodoDoneBies { get; set; }
+        public virtual ICollection<TodoGroup> TodoGroups { get; set; }
         public virtual ICollection<Todo> TodoUsers { get; set; }
         public virtual ICollection<UserPrivacy> UserPrivacies { get; set; }
     }

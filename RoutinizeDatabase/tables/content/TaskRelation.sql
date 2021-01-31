@@ -2,7 +2,7 @@
 (
 	Id INT IDENTITY(1, 1) NOT NULL,
 	TaskId INTEGER NOT NULL,
-	TaskType NVARCHAR(30) NOT NULL, --References to Todo, Note or Note Segment
+	TaskType NVARCHAR(30) NOT NULL, --References to Todo, TodoGroup, Note or Note Segment
 	RelatedToId INT NOT NULL,
 	RelatedToType NVARCHAR(30) NOT NULL,
 	Relationship TINYINT NOT NULL DEFAULT 0,

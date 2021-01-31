@@ -23,6 +23,8 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IChallengeService, ChallengeService>();
             services.AddScoped<IAddressService, AddressService>();
 
+            services.AddScoped<ITodoService, TodoService>();
+
             return services;
         }
     }

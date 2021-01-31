@@ -9,6 +9,7 @@ namespace RoutinizeCore.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
+        public int? GroupId { get; set; }
         public bool IsShared { get; set; }
         public bool Emphasized { get; set; }
         public string CoverImage { get; set; }
@@ -21,6 +22,7 @@ namespace RoutinizeCore.Models
         public string DeletedOn { get; set; }
 
         public virtual User DoneBy { get; set; }
+        public virtual TodoGroup Group { get; set; }
         public virtual User User { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 ﻿-- CommenterReferenceType == 'TeamMember', CommenterId references a TeamMember and CommentOnId references one of TeamTask, IterationTask, ProjectIteration
--- CommenterReferenceType == 'Collaboration', CommenterId references a Collaboration and CommentOnId references a CollaboratorTask
+-- CommenterReferenceType == 'Collaboration' (collaborator), CommenterId references a Collaboration (collaborator) and CommentOnId references a CollaboratorTask
 
 -- More work:
 -- # Adjust this table to support mentioning @Member, or @Collaborator, or @TaskName, or @Note, or @Project, or @Iteration

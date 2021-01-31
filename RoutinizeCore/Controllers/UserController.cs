@@ -12,7 +12,7 @@ namespace RoutinizeCore.Controllers {
 
     [ApiController]
     [Route("user")]
-    public sealed class UserController : ControllerBase {
+    public sealed class UserController {
 
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;

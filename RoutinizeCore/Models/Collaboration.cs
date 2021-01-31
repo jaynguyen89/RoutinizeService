@@ -15,6 +15,7 @@ namespace RoutinizeCore.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public int CollaboratorId { get; set; }
+        public string Message { get; set; }
         public DateTime InvitedOn { get; set; }
         public bool IsAccepted { get; set; }
         public DateTime AcceptedOn { get; set; }

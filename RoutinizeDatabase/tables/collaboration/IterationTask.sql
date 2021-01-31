@@ -2,7 +2,7 @@
 (
 	Id INT IDENTITY(1, 1) NOT NULL,
 	IterationId INT NOT NULL,
-	TaskId INT NOT NULL, --References to Todo, Note or Note Segment
+	TaskId INT NOT NULL, --References to Todo, TodoGroup, Note or Note Segment
 	TaskType NVARCHAR(30) NOT NULL,
 	AssignedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
 	CONSTRAINT [PK_IterationTask_Id] PRIMARY KEY ([Id] ASC),

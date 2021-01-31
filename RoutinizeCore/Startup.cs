@@ -1,4 +1,3 @@
-using System;
 using HelperLibrary;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AssistantLibrary;
 using AssistantLibrary.Models;
-using Microsoft.AspNetCore.Http;
 using MongoLibrary;
 using RoutinizeCore.Services;
 using RoutinizeCore.ViewModels;
@@ -36,7 +34,7 @@ namespace RoutinizeCore {
 
             services.Configure<GoogleRecaptchaOptions>(Configuration.GetSection("RoutinizeSettings"));
             services.Configure<MailServerOptions>(Configuration.GetSection("RoutinizeSettings"));
-            
+
             services.RegisterHelperServices();
             services.RegisterAssistantLibraryServices();
             services.RegisterRoutinizeCoreServices();
