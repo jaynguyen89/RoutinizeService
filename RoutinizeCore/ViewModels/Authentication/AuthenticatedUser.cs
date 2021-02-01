@@ -4,6 +4,8 @@
         
         public int AccountId { get; set; }
         
+        public int UserId { get; set; }
+        
         public string AuthToken { get; set; }
 
         private bool TrustedAuth;

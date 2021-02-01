@@ -32,6 +32,7 @@ namespace RoutinizeCore.Models
         public DateTime? DeactivatedOn { get; set; }
         public string RecoveryToken { get; set; }
         public DateTime? TokenSetOn { get; set; }
+        public string FcmToken { get; set; }
 
         public virtual ICollection<AuthRecord> AuthRecords { get; set; }
         public virtual ICollection<ChallengeRecord> ChallengeRecords { get; set; }

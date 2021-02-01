@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AssistantLibrary;
 using AssistantLibrary.Models;
+using MediaLibrary;
 using MongoLibrary;
 using RoutinizeCore.Services;
 using RoutinizeCore.ViewModels;
@@ -41,6 +42,7 @@ namespace RoutinizeCore {
 
             services.Configure<MongoDbOptions>(Configuration.GetSection(nameof(MongoDbOptions)));
             services.RegisterMongoLibraryServices();
+            services.RegisterMediaApiServices();
 
             services.AddStackExchangeRedisCache(options => {
                 options.Configuration = Configuration.GetSection("RedisServer")["Connection"];

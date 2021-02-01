@@ -284,13 +284,9 @@ namespace RoutinizeCore.Controllers {
                 if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
             }
 
-            // var authenticationTimestamp = DateTime.UtcNow;
-            // var tokenSalt = _assistantService.GenerateSaltForHash();
-            // var authenticationToken = Helpers.GenerateSha512Hash(
-            //     $"{ userAccount.Id }{ Helpers.ConvertToUnixTimestamp(authenticationTimestamp) }{ tokenSalt }"
-            // );
-
-            var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(userAccount, authenticationData.TrustedAuth, authenticationData.DeviceInformation);
+            var (authenticatedUser, authenticationRecord) = await CreateAuthenticatedUserAndRecord(
+                userAccount, authenticationData.TrustedAuth, authenticationData.DeviceInformation
+            );
 
             var authSavingResult = await _authenticationService.InsertAuthenticationRecord(authenticationRecord);
             if (authSavingResult.HasValue && authSavingResult.Value)
@@ -322,7 +318,7 @@ namespace RoutinizeCore.Controllers {
             if (!reliableAuthToken.Equals(sessionAuthData.AuthToken))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
             
-            var (authenticatedUser, authenticationRecord) = CreateAuthenticatedUserAndRecord(dbAccount, sessionAuthData.GetTrustedAuth(), sessionAuthData.DeviceInformation);
+            var (authenticatedUser, authenticationRecord) = await CreateAuthenticatedUserAndRecord(dbAccount, sessionAuthData.GetTrustedAuth(), sessionAuthData.DeviceInformation);
 
             var authSavingResult = await _authenticationService.InsertAuthenticationRecord(authenticationRecord);
             if (authSavingResult.HasValue && authSavingResult.Value)
@@ -331,7 +327,7 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "We encountered an issue while establishing your session." });
         }
 
-        private KeyValuePair<AuthenticatedUser, AuthRecord> CreateAuthenticatedUserAndRecord(
+        private async Task<KeyValuePair<AuthenticatedUser, AuthRecord>> CreateAuthenticatedUserAndRecord(
             Account userAccount, bool trustedAuth, string deviceInformation
         ) {
             var authenticationTimestamp = DateTime.UtcNow;
@@ -344,6 +340,9 @@ namespace RoutinizeCore.Controllers {
                 AccountId = userAccount.Id,
                 AuthToken = authenticationToken
             };
+
+            var (error, user) = await _userService.GetUserProfileByAccountId(userAccount.Id);
+            authenticatedUser.UserId = (error || user == null) ? -1 : user.Id;
             authenticatedUser.SetTrustedAuth(trustedAuth);
             
             var authenticationRecord = new AuthRecord {

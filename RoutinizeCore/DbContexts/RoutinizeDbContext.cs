@@ -61,6 +61,8 @@ namespace RoutinizeCore.DbContexts
                     .IsRequired()
                     .HasMaxLength(50);
 
+                entity.Property(e => e.FcmToken).HasMaxLength(200);
+
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasMaxLength(150);
@@ -204,8 +206,9 @@ namespace RoutinizeCore.DbContexts
 
                 entity.HasOne(d => d.ChallengeQuestion)
                     .WithMany(p => p.ChallengeRecords)
-                    .HasForeignKey(d => d.QuestionId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(d => d.ChallengeQuestionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ChallengeRecord_ChallengeQuestion_QuestionId");
             });
 
             modelBuilder.Entity<Collaboration>(entity =>

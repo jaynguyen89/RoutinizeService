@@ -74,7 +74,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                                     .Where(record => record.AccountId == accountId)
                                     .Join(
                                         _dbContext.ChallengeQuestions,
-                                        challengeRecord => challengeRecord.QuestionId,
+                                        challengeRecord => challengeRecord.ChallengeQuestionId,
                                         challengeQuestion => challengeQuestion.Id, 
                                         (challengeRecord, challengeQuestion) => new { challengeRecord, challengeQuestion }
                                     )
@@ -114,7 +114,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     async response => {
                     var record = new ChallengeRecord {
                         AccountId = accountId,
-                        QuestionId = response.QuestionId,
+                        ChallengeQuestionId = response.QuestionId,
                         Response = response.Response,
                         RecordedOn = DateTime.UtcNow
                     };
@@ -142,7 +142,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
         public async Task<bool?> VerifyChallengeProofFor([NotNull] int accountId, [NotNull] ChallengeResponseVM challengeResponse) {
             try {
                 var challengeRecordByAccount = await _dbContext.ChallengeRecords.SingleOrDefaultAsync(
-                    record => record.QuestionId == challengeResponse.QuestionId &&
+                    record => record.ChallengeQuestionId == challengeResponse.QuestionId &&
                               record.AccountId == accountId
                 );
 

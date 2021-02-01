@@ -19,5 +19,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<Account> GetUserAccountById([NotNull] int accountId, bool activated = true);
 
         Task<Account> GetUserAccountByUsername([NotNull] string username, bool activated = false);
+
+        Task<bool?> SaveFcmToken([NotNull] int accountId, [NotNull] string fcmToken);
     }
 }

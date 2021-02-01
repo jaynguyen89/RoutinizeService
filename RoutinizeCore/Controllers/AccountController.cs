@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using AssistantLibrary.Interfaces;
@@ -236,6 +237,15 @@ namespace RoutinizeCore.Controllers {
             return challengeQuestions == null
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = challengeQuestions });
+        }
+
+        [HttpPost("add-fcm-token")]
+        [RoutinizeActionFilter]
+        public async Task<JsonResult> AddFcmToken([NotNull] int accountId, [FromHeader] string fcmToken) {
+            var result = await _accountService.SaveFcmToken(accountId, fcmToken);
+            return !result.HasValue || !result.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
     }
 }

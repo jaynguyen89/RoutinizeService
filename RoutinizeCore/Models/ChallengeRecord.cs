@@ -8,7 +8,7 @@ namespace RoutinizeCore.Models
     public partial class ChallengeRecord
     {
         public int Id { get; set; }
-        public int QuestionId { get; set; }
+        public int ChallengeQuestionId { get; set; }
         public int AccountId { get; set; }
         public string Response { get; set; }
         public DateTime RecordedOn { get; set; }

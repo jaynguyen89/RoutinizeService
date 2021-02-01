@@ -3,7 +3,7 @@
 
 ###### Introduction
 
-RoutinizeService contain **RoutinizeCore**, which is the main API that communicates with client.
+RoutinizeService contains **RoutinizeCore**, which is the main API that communicates with client.
 **RoutinizeCore** makes use of other *services* and *libraries* to separate the logics into smaller manageable sub-services.
 
 ###### AssistantLibrary
@@ -36,7 +36,7 @@ This library provides services that implement ***SignalR*** framework for group 
 
 ###### MongoLibrary
 
-This library maintains a connection to MongoDB server for the following services:
+This library maintains a connection to ***MongoDB*** server for the following services:
 
 - Add logs for the API to facilitate debugging activities
 - Add audits and history logs on pending changes in user data that may be reverted
@@ -45,9 +45,7 @@ This library maintains a connection to MongoDB server for the following services
 
 ###### MediaLibrary
 
-This library is planned to be added in later development.
-
-It will be developed using a combination of *CakePHP* and .NET frameworks, therefore, it will consist of 2 smaller projects.
+This library is developed using a combination of ***CakePHP*** and .NET frameworks, therefore, it will consist of 2 smaller projects.
 
 - CakePHP project: runs in Apache server; provides services to process photos, videos and audios; saves them to local server storage and update data to MySQL server.
 - .NET project: uses MySQL connector to access MySQL server; provides services to RoutinizeCore; communicates with the CakePHP project.

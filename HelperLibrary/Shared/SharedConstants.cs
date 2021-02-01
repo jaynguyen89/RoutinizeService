@@ -48,6 +48,7 @@ namespace HelperLibrary.Shared {
             "image/gif", "image/png", "image/jpg", "image/jpeg"
         };
 
+        public const string ALL_SPACES = @"\s+";
         public const string DOUBLE_SPACE = "  ";
         public const string MONO_SPACE = " ";
     }

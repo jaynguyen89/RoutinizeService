@@ -182,5 +182,28 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
         }
+
+        public async Task<bool?> SaveFcmToken([NotNull] int accountId,[NotNull] string fcmToken) {
+            try {
+                var dbAccount = await _dbContext.Accounts.FindAsync(accountId);
+                dbAccount.FcmToken = fcmToken;
+
+                _dbContext.Accounts.Update(dbAccount);
+                var result = await _dbContext.SaveChangesAsync();
+                return result != 0;
+            }
+            catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(AccountService) }.{ nameof(SaveFcmToken) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"An error occurred while updating entry to database, either concurrency or integrity conflict.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(accountId) } = { accountId }",
+                    Severity = SharedEnums.LogSeverity.Fatal.GetEnumValue()
+                });
+
+                return false;
+            }
+        }
     }
 }
