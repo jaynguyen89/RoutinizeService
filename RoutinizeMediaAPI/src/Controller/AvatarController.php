@@ -10,14 +10,14 @@ class AvatarController extends AppController {
     public function saveAvatar() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
+
         $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
@@ -32,9 +32,9 @@ class AvatarController extends AppController {
             return $response;
         }
 
-        $hidrogenianId = array_key_exists('hidrogenianId', $_REQUEST) ? $_REQUEST['hidrogenianId'] : null;
+        $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
 
-        if (!empty($image) && $hidrogenianId != null) {
+        if (!empty($image) && $accountId != null) {
             $message = $this->saveImageToDisk($image);
             if (!empty($message) && array_key_exists('error', $message)) {
                 $response = $response->withStringBody(json_encode($message));
@@ -45,7 +45,7 @@ class AvatarController extends AppController {
             if ($image['type'] != 'image/gif')
                 $this->reduceImageSize(WWW_ROOT . 'files' . DS . 'avatars' . DS . $avatar_newName);
 
-            $this->persistImageData($avatar_newName, $hidrogenianId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
+            $this->persistImageData($avatar_newName, $accountId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
             $message = [
                 'error' => false,
                 'errorMessage' => null,
@@ -71,23 +71,22 @@ class AvatarController extends AppController {
     public function replaceAvatar() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
+
         $result = $this->verifyApiKey();
-        $message = array();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
         $currentAvatar = array_key_exists('current', $_REQUEST) ? $_REQUEST['current'] : null;
-        $hidrogenianId = array_key_exists('hidrogenianId', $_REQUEST) ? $_REQUEST['hidrogenianId'] : null;
+        $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
         $newAvatar = array_key_exists('replaceBy', $_FILES) ? $_FILES['replaceBy'] : null;
 
-        if ($currentAvatar != null && $newAvatar != null && $hidrogenianId != null) {
+        if ($currentAvatar != null && $newAvatar != null && $accountId != null) {
             $message = $this->removeImageData($currentAvatar, true);
             if (!empty($message)) {
                 $response = $response->withStringBody(json_encode($message));
@@ -110,13 +109,13 @@ class AvatarController extends AppController {
             if ($newAvatar['type'] != 'image/gif')
                 $this->reduceImageSize(WWW_ROOT.'files'.DS.'avatars'.DS.$avatar_newName);
 
-            $this->persistImageData($avatar_newName, $hidrogenianId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
+            $this->persistImageData($avatar_newName, $accountId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
             $message = [
                 'error' => false,
                 'errorMessage' => null,
                 'result' => [
                     'name' => $avatar_newName,
-                    'location' => WWW_ROOT.'files'.DS.'avatars'.DS    
+                    'location' => WWW_ROOT.'files'.DS.'avatars'.DS
                 ]
             ];
         }
@@ -136,18 +135,17 @@ class AvatarController extends AppController {
     public function removeAvatar() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
-        $message = array();
+
         $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
-        
+
         $imageName = array_key_exists('image', $_REQUEST) ? $_REQUEST['image'] : null;
 
         if ($imageName != null) {

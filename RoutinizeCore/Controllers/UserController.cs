@@ -1,7 +1,10 @@
 ﻿using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using MediaLibrary.Interfaces;
+using MediaLibrary.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using RoutinizeCore.Attributes;
 using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
@@ -12,21 +15,24 @@ namespace RoutinizeCore.Controllers {
 
     [ApiController]
     [Route("user")]
+    [RoutinizeActionFilter]
     public sealed class UserController {
 
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;
+        private readonly IAvatarService _avatarService;
 
         public UserController(
             IUserService userService,
-            IAddressService addressService
+            IAddressService addressService,
+            IAvatarService avatarService
         ) {
             _userService = userService;
             _addressService = addressService;
+            _avatarService = avatarService;
         }
 
         [HttpGet("is-user-profile-initialized")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> IsUserProfileInitialized([FromHeader] int accountId) {
             var result = await _userService.CheckIfUserProfileInitialized(accountId);
             return !result.HasValue ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
@@ -34,7 +40,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpGet("initialize-user-profile")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> InitializeUserProfile([FromHeader] int accountId) {
             var result = await _userService.InsertBlankUserWithPrivacyAndAppSetting(accountId);
             return !result.HasValue || result.Value < 1
@@ -43,7 +48,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpGet("profile/{accountId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> GetUserProfile(int accountId) {
             var (error, userProfile) = await _userService.GetUserProfileByAccountId(accountId);
             if (error) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -53,7 +57,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpPost("set-profile-avatar")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> SetProfileAvatar(ProfileAvatarVM avatarData) {
             var errors = avatarData.CheckAvatar();
             if (errors.Count != 0) {
@@ -64,33 +67,116 @@ namespace RoutinizeCore.Controllers {
             var (error, userProfile) = await _userService.GetUserProfileByAccountId(avatarData.AccountId);
             if (error) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
-            bool? result;
+            bool result;
             if (Helpers.IsProperString(avatarData.AvatarName)) {
-                if (userProfile == null) {
-                    userProfile = new User {
-                        AccountId = avatarData.AccountId,
-                        AvatarName = avatarData.AvatarName
-                    };
+                result = await SaveUserProfileData(userProfile, avatarData.AccountId, avatarData.AvatarName);
+                return result
+                    ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                    : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
 
-                    var saveResult = await _userService.SaveNewUserProfile(userProfile);
-                    result = saveResult > 0;
-                }
-                else {
-                    userProfile.AvatarName = avatarData.AvatarName;
-                    result = await _userService.UpdateUserProfile(userProfile);
-                }
+            if (avatarData.AvatarFile == null)
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.NoContent});
+            
+            var httpResult = await _avatarService.SendSaveAvatarRequestToRoutinizeStorageApi(
+                new AvatarUploadVM {
+                    AccountId = avatarData.AccountId,
+                    TokenId = avatarData.TokenId,
+                    UploadedFile = avatarData.AvatarFile
+                });
 
-                return !result.HasValue || !result.Value
+            if (httpResult.Error) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+                
+            result = await SaveUserProfileData(userProfile, avatarData.AccountId, httpResult.Result.Name, httpResult.Result.Location);
+            return result
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpPut("update-profile-avatar")]
+        public async Task<JsonResult> UpdateProfileAvatar(ProfileAvatarVM avatarData) {
+            var errors = avatarData.CheckAvatar();
+            if (errors.Count != 0) {
+                var errorMessages = avatarData.GenerateErrorMessages(errors);
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errorMessages });
+            }
+            
+            var (error, userProfile) = await _userService.GetUserProfileByAccountId(avatarData.AccountId);
+            if (error || userProfile == null)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            bool result;
+            if (Helpers.IsProperString(avatarData.AvatarName)) {
+                result = await SaveUserProfileData(userProfile, avatarData.AccountId, avatarData.AvatarName);
+                return result
                     ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
                     : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
             }
             
-            //TODO: Need to implement uploading AvatarFile later
-            return null;
+            if (avatarData.AvatarFile == null)
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.NoContent});
+            
+            var httpResult = await _avatarService.SendReplaceAvatarRequestToRoutinizeStorageApi(
+                new AvatarReplaceVM {
+                    AccountId = avatarData.AccountId,
+                    CurrentAvatar = JsonConvert.DeserializeObject<AvatarVM>(userProfile.AvatarName).Name,
+                    TokenId = avatarData.TokenId,
+                    FileToSave = avatarData.AvatarFile
+                });
+            
+            if (httpResult.Error) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            
+            result = await SaveUserProfileData(userProfile, avatarData.AccountId, httpResult.Result.Name, httpResult.Result.Location);
+            return result
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        [HttpDelete("remove-profile-avatar/{tokenId}")]
+        public async Task<JsonResult> RemoveProfileAvatar([FromHeader] int accountId,[FromRoute] int tokenId) {
+            var (error, userProfile) = await _userService.GetUserProfileByAccountId(accountId);
+            if (error || userProfile == null)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var avatarName = userProfile.AvatarName;
+            userProfile.AvatarName = null;
+            var result = await _userService.UpdateUserProfile(userProfile);
+            if (!result.HasValue || !result.Value)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+
+            if (!avatarName.Contains("/files/")) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            var httpResult = await _avatarService.SendDeleteAvatarRequestToRoutinizeStorageApi(
+                tokenId, accountId,
+                JsonConvert.DeserializeObject<AvatarVM>(avatarName).Name
+            );
+            
+            return httpResult.Error
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            
+        }
+
+        private async Task<bool> SaveUserProfileData(User profile, int accountId, string avatarName, string avatarLocation = null) {
+            bool? result;
+            
+            if (profile == null) {
+                profile = new User {
+                    AccountId = accountId,
+                    AvatarName = avatarName
+                };
+
+                var saveResult = await _userService.SaveNewUserProfile(profile);
+                result = saveResult > 0;
+            }
+            else {
+                profile.AvatarName = JsonConvert.SerializeObject(new AvatarVM { Location = avatarLocation, Name = avatarName });
+                result = await _userService.UpdateUserProfile(profile);
+            }
+
+            return result.HasValue && result.Value;
         }
 
         [HttpPost("update-profile")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> UpdateUserProfile(User profile) {
             var errors = profile.VerifyProfileData();
             if (errors.Count != 0) {
@@ -121,7 +207,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpPost("save-user-address")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> SaveUserAddress([FromRoute] int accountId, [FromBody] Address address) {
             var errors = address.VerifyAddressData();
             if (errors.Count != 0) {
@@ -153,7 +238,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpPut("update-user-address")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> UpdateUserAddress(Address address) {
             var errors = address.VerifyAddressData();
             if (errors.Count != 0) {
@@ -168,7 +252,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpDelete("remove-address/{addressId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> RemoveAddress(int addressId) {
             var result = await _addressService.RemoveAddress(addressId);
             return result.HasValue && result.Value
@@ -177,7 +260,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpPut("update-user-privacy/{accountId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> UpdateUserPrivacy([FromRoute] int accountId,[FromBody] UserPrivacy userPrivacy) {
             if (userPrivacy.UserId < 1) {
                 var saveProfileResult = await _userService.InsertBlankUserWithPrivacyAndAppSetting(accountId);
@@ -194,7 +276,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpPut("update-app-settings/{accountId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> UpdateAppSettings([FromRoute] int accountId,[FromBody] AppSetting appSetting) {
             if (appSetting.UserId < 1) {
                 var saveProfileResult = await _userService.InsertBlankUserWithPrivacyAndAppSetting(accountId);
@@ -211,7 +292,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpGet("get-user-privacy/{accountId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> GetUserPrivacy(int accountId) {
             var profileExisted = await _userService.IsUserProfileCreated(accountId);
             if (!profileExisted.HasValue || !profileExisted.Value)
@@ -225,7 +305,6 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpGet("get-app-settings/{accountId}")]
-        [RoutinizeActionFilter]
         public async Task<JsonResult> GetUserAppSettings(int accountId) {
             var profileExisted = await _userService.IsUserProfileCreated(accountId);
             if (!profileExisted.HasValue || !profileExisted.Value)

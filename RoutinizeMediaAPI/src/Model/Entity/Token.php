@@ -30,5 +30,6 @@ class Token extends Entity
         'TimeStamp' => true,
         'Life' => true,
         'Target' => true,
+        'AccountId' => true
     ];
 }

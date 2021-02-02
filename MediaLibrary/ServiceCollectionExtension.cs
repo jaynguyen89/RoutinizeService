@@ -13,6 +13,7 @@ namespace MediaLibrary {
             //Register all services here
             services.AddScoped<MediaDbContext>();
 
+            services.AddScoped<IApiAccessService, ApiAccessService>();
             services.AddScoped<IAvatarService, AvatarService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IPhotoService, PhotoService>();

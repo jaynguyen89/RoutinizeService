@@ -17,6 +17,8 @@ namespace RoutinizeCore.ViewModels.User {
 
         public IFormFile AvatarFile { get; set; } = null;
         
+        public int TokenId { get; set; } //Only comes together with AvatarFile != null
+        
         public List<int> CheckAvatar() {
             var errors = new List<int>();
 

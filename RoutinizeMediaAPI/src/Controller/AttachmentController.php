@@ -13,25 +13,24 @@ class AttachmentController extends AppController {
     public function saveAttachments() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
-        $response = $this->response;
-        $message = array();
+
+        $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
-        $hidrogenianId = array_key_exists('hidrogenianId', $_REQUEST) ? $_REQUEST['hidrogenianId'] : null;
+        $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
         $container = array_key_exists('container', $_REQUEST) ? $_REQUEST['container'] : null;
         $attachments = array_key_exists('attachments', $_FILES) ? $_FILES['attachments'] : null;
 
-        if ($attachments != null && $hidrogenianId != null && $container != null) {
+        if ($attachments != null && $accountId != null && $container != null) {
             $attachments = $this->reprocessMultipleImagesTempData($attachments);
-            $atmPath = $this->createContainerForAtms($hidrogenianId, $container);
+            $atmPath = $this->createContainerForAtms($accountId, $container);
 
             $dbAtmNames = array();
             $oversizedAtms = array();
@@ -50,14 +49,14 @@ class AttachmentController extends AppController {
                     continue;
                 }
 
-                $photo_newName = $message['imageName'];
-                if ($atm['type'] != 'image/gif')
-                    $this->reduceImageSize($atmPath.$photo_newName);
+                $atm_newName = $message['imageName'];
+                if (strpos($atm['type'], 'image') && $atm['type'] != 'image/gif')
+                    $this->reduceImageSize($atmPath.$atm_newName);
 
-                $this->persistImageData($photo_newName, $hidrogenianId, $atmPath);
+                $this->persistImageData($atm_newName, $accountId, $atmPath);
                 array_push($dbAtmNames, [
-                    'name' => $photo_newName,
-                    'location' => $atmPath    
+                    'name' => $atm_newName,
+                    'location' => $atmPath
                 ]);
             }
 
@@ -87,19 +86,18 @@ class AttachmentController extends AppController {
     public function removeAttachments() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
-        $response = $this->response;
-        $message = array();
+
+        $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
-        $hidrogenianId = array_key_exists('hidrogenianId', $_REQUEST) ? $_REQUEST['hidrogenianId'] : null;
+        $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
         $container = array_key_exists('container', $_REQUEST) ? $_REQUEST['container'] : null;
         $removals = array_key_exists('removals', $_REQUEST) ? $_REQUEST['removals'] : null;
 
@@ -107,18 +105,18 @@ class AttachmentController extends AppController {
         $failedRemovals = array();
         $unknownRemovals = array();
 
-        if ($hidrogenianId != null && $removals != null) {
+        if ($accountId != null && $removals != null) {
             $dbConnection = ConnectionManager::get('default');
-            $container = $this->resembleAlbumPath($hidrogenianId, $container);
+            $container = $this->resembleAlbumPath($accountId, $container);
 
             foreach ($removals as $removal) {
                 $counter = $dbConnection->execute('
                 SELECT COUNT(*) AS PCount
                 FROM Photos AS p, Userphotos AS u
                 WHERE p.Id == u.PhotoId
-                    AND u.HidrogenianId == ?
+                    AND u.accountId == ?
                     AND p.PhotoName == ?
-                ', [$hidrogenianId, $removal])->fetch('assoc');
+                ', [$accountId, $removal])->fetch('assoc');
 
                 if ($counter['PCount'] == 1) {
                     $message = $this->removeImageData($removal, false, $container);
@@ -147,8 +145,8 @@ class AttachmentController extends AppController {
         //$this->set(compact('removals', 'message'));
     }
 
-    private function createContainerForAtms($hidrogenianId, $container) {
-        $userDir = md5($hidrogenianId).'_'.time();
+    private function createContainerForAtms($accountId, $container) {
+        $userDir = md5($accountId).'_'.time();
         $atmDir = md5($container).'_'.time();
 
         $this->createFolderIfNeeded(DS.'attachments'.DS.$userDir);

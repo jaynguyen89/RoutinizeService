@@ -29,58 +29,67 @@ class AppController extends Controller {
         parent::beforeFilter($event);
         Configure::write('debug', false);
     }
-    
+
     public function verifyApiKey() {
         $result = '';
 
         $apiKey = array_key_exists('apikey', $_REQUEST) ? $_REQUEST['apikey'] : null;
         if ($apiKey == null) $result = 'NO_KEY';
-        
+
+        $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
+        if ($accountId == null) $result = 'NO_ACC';
+
         $dbKey = TableRegistry::getTableLocator()->get('Tokens')
-            ->find()->where(['TokenString' => $apiKey == null ? '' : $apiKey])->first();
+            ->find()->where(['TokenString' => $apiKey, 'AccountId' => $accountId])->first();
 
         if ($dbKey == null) $result = 'NOT_FOUND';
-        elseif ($dbKey->TimeStamp->modify('+' . $dbKey->Life . ' minutes') < new DateTime())
+        elseif ($dbKey->TimeStamp->modify('+' . $dbKey->Life . ' seconds') < new DateTime())
             $result = 'EXPIRED';
         else {
             $queryCtrlr = $this->request->getParam('controller');
             $queryAction = $this->request->getParam('action');
-    
+
             $tokens = explode('/', $dbKey->Target);
             if (strtolower($queryCtrlr) != strtolower($tokens[0]) || strtolower($queryAction) != strtolower($tokens[1]))
                 $result = 'RETARGET';
         }
-        
+
         return $result;
     }
-    
+
     public function filterResult($result) {
         $message = array();
-        
+
         if ($result == 'NO_KEY')
             $message = [
                 'error' => true,
                 'errorMessage' => 'Unable to read the API Key from request. Please reload page and try again.'
             ];
-                
+
+        if ($result == 'NO_ACC')
+            $message = [
+                'error' => true,
+                'errorMessage' => 'Unable to read the AccountId from request. Please reload page and try again.'
+            ];
+
         if ($result == 'NOT_FOUND')
             $message = [
                 'error' => true,
                 'errorMessage' => 'The API key from request matches nothing in our records. Please check again.'
             ];
-                
+
         if ($result == 'EXPIRED')
             $message = [
                 'error' => true,
                 'errorMessage' => 'The API Key from your request seems to be expired. Please reload page and try again.'
             ];
-                
+
         if ($result == 'RETARGET')
             $message = [
                 'error' => true,
                 'errorMessage' => 'Your request falls outside our scope. Please reload page and try again.'
             ];
-                
+
         return $message;
     }
 
@@ -193,12 +202,12 @@ class AppController extends Controller {
     /**
      * Insert database entries for Photos and Userphotos tables
      * @param $imageName
-     * @param $userId
+     * @param $accountId
      * @param $location
      * @param bool $isAvatar
      * @param bool $isCover
      */
-    public function persistImageData($imageName, $userId, $location, $isAvatar = false, $isCover = false) {
+    public function persistImageData($imageName, $accountId, $location, $isAvatar = false, $isCover = false) {
         $dbPhoto = TableRegistry::getTableLocator()->get('Photos')->newEmptyEntity();
         $dbPhoto->PhotoName = $imageName;
         $dbPhoto->Location = $location;
@@ -206,7 +215,7 @@ class AppController extends Controller {
 
         $dbUserPhoto = TableRegistry::getTableLocator()->get('Userphotos')->newEmptyEntity();
         $dbUserPhoto->PhotoId = $dbPhoto->Id;
-        $dbUserPhoto->HidrogenianId = intval($userId);
+        $dbUserPhoto->AccountId = intval($accountId);
         $dbUserPhoto->IsAvatar = $isAvatar;
         $dbUserPhoto->IsCover = $isCover;
         TableRegistry::getTableLocator()->get('Userphotos')->save($dbUserPhoto);
@@ -227,7 +236,9 @@ class AppController extends Controller {
 
             unlink(
                 $album != null ? $album.$imageName
-                : WWW_ROOT.'files'.DS.'avatars'.DS.$imageName
+                : (
+                    $isAvatar ? WWW_ROOT.'files'.DS.'avatars'.DS.$imageName : $currentDbImage->Location.$imageName
+                )
             );
         } catch (Exception $e) {
             $message = [
@@ -274,8 +285,8 @@ class AppController extends Controller {
         rmdir($albumPath);
     }
 
-    public function resembleAlbumPath($hidrogenianId, $album) {
-        $userDir = md5($hidrogenianId).'_'.time();
+    public function resembleAlbumPath($accountId, $album) {
+        $userDir = md5($accountId).'_'.time();
         $albumDir = md5($album).'_'.time();
 
         return WWW_ROOT.'files'.DS.'gallery'.DS.$userDir.DS.$albumDir.DS;

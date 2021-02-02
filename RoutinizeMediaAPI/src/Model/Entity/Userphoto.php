@@ -10,7 +10,7 @@ use Cake\ORM\Entity;
  *
  * @property int $Id
  * @property int|null $PhotoId
- * @property int|null $HidrogenianId
+ * @property int|null $AccountId
  * @property bool|null $IsAvatar
  * @property bool|null $IsCover
  */
@@ -27,7 +27,7 @@ class Userphoto extends Entity
      */
     protected $_accessible = [
         'PhotoId' => true,
-        'HidrogenianId' => true,
+        'AccountId' => true,
         'IsAvatar' => true,
         'IsCover' => true,
     ];

@@ -11,15 +11,14 @@ class DirectoryController extends AppController {
     public function cleanEmptyDirectories() {
         $this->autoRender = false;
         $this->request->allowMethod(['delete']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
-        $response = $this->response;
-        $message = array();
+
+        $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
@@ -36,20 +35,18 @@ class DirectoryController extends AppController {
     public function deleteUserDirectoriesAndFilesUnsafe() {
         $this->autoRender = false;
         $this->request->allowMethod(['delete']);
-        
+
         $response = $this->response;
         $response = $response->withType('application/json');
-        
-        $response = $this->response;
-        $message = array();
+
+        $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
         $hidrogenianId = array_key_exists('hidrogenianId', $_REQUEST) ? $_REQUEST['hidrogenianId'] : null;
-
         $this->deleteAvatarUnsafe($hidrogenianId);
 
         $userFolderPrefix = md5($hidrogenianId);
@@ -85,12 +82,13 @@ class DirectoryController extends AppController {
     public function safeDeleteAlbum() {
         $this->autoRender = false;
         $this->request->allowMethod(['delete']);
-        
+
         $response = $this->response;
-        $message = array();
+
+        $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
-            $response->withStringBody(json_encode($message));
+            $response = $response->withStringBody(json_encode($message));
             return $response;
         }
 
@@ -107,9 +105,9 @@ class DirectoryController extends AppController {
                     $albumPrefix = md5($album);
 
                     $albumFolders = glob($folder.'*', GLOB_MARK);
-                    foreach ($albumFolders as $al) {
-                        if (strpos(al, $albumPrefix))
-                            $this->deleteAlbum($al);
+                    foreach ($albumFolders as $alb) {
+                        if (strpos($alb, $albumPrefix))
+                            $this->deleteAlbum($alb);
 
                         break;
                     }
@@ -131,7 +129,7 @@ class DirectoryController extends AppController {
 
     private function deleteAvatarUnsafe($hidrogenianId) {
         $userPhoto = TableRegistry::getTableLocator()->get('Userphotos')
-            ->where(['HidrogenianId' => $hidrogenianId, 'IsAvatar' => true])->first();
+            ->find()->where(['HidrogenianId' => $hidrogenianId, 'IsAvatar' => true])->first();
 
         $avatar = TableRegistry::getTableLocator()->get('Photos')
             ->get(['Id' => $userPhoto->PhotoId]);

@@ -1,5 +1,7 @@
-﻿using MediaLibrary.Models;
+﻿using System;
+using MediaLibrary.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
@@ -39,9 +41,11 @@ namespace MediaLibrary.DbContexts
 
                 entity.Property(e => e.TokenId).HasColumnType("int(11)");
 
+                entity.Property(e => e.AccountId).HasColumnType("int(11)");
+
                 entity.Property(e => e.Life)
-                    .HasColumnType("tinyint(4)")
-                    .HasDefaultValueSql("'5'");
+                    .HasColumnType("int(11)")
+                    .HasDefaultValueSql("'300'");
 
                 entity.Property(e => e.Target).HasMaxLength(70);
 

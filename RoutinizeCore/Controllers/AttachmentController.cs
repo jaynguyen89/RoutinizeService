@@ -22,10 +22,10 @@ namespace RoutinizeCore.Controllers {
         }
     }
     
-    // [HttpPost("")]
-    // public async Task<JsonResult> AddAttachments() { }
-    //
-    // public async Task<JsonResult> SetAttachmentPermissions() { }
-    //     
-    // public async Task<JsonResult> RemoveAttachments() { }
+    [HttpPost("")]
+    public async Task<JsonResult> AddAttachments() { }
+    
+    public async Task<JsonResult> SetAttachmentPermissions() { }
+        
+    public async Task<JsonResult> RemoveAttachments() { }
 }

@@ -39,17 +39,23 @@ namespace HelperLibrary.Shared {
         public const int TICKS_PER_SECOND = 100;
         public const int MILLIS_PER_SECOND = 1000;
 
-        public static readonly List<string> INVALID_EMAIL_TOKENS = new List<string> {
+        public static readonly List<string> INVALID_EMAIL_TOKENS = new() {
             "--", "_@", "-@", ".-", "-.", "._", "_.", " ", "@_", "@-", "__", "..", "_-", "-_"
         };
 
         public const int IMAGE_FILE_MAX_SIZE = 2000000; //2MB
-        public static readonly List<string> IMAGE_TYPES = new List<string> {
+        public static readonly List<string> IMAGE_TYPES = new() {
             "image/gif", "image/png", "image/jpg", "image/jpeg"
         };
 
         public const string ALL_SPACES = @"\s+";
         public const string DOUBLE_SPACE = "  ";
         public const string MONO_SPACE = " ";
+        
+        public static Dictionary<string, string> API_TOKEN_TARGETS = new() {
+            { "save_avatar", "Avatar/saveAvatar" },
+            { "replace_avatar", "Avatar/replaceAvatar" },
+            { "remove_avatar", "Avatar/removeAvatar" }
+        };
     }
 }

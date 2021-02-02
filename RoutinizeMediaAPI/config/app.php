@@ -117,27 +117,10 @@ return [
             'quoteIdentifiers' => false,
             'host' => '69.90.66.140',
             'port' => 3306,
-            'username' => 'jayde421_uwater',
+            'username' => 'jayde421_routinizer',
             'password' => 'ThanhPhuc311211!',
-            'database' => 'jayde421_water'
-        ],
-        'test' => [
-            'className' => Connection::class,
-            'driver' => Mysql::class,
-            'persistent' => false,
-            'timezone' => 'UTC',
-            //'encoding' => 'utf8mb4',
-            'flags' => [],
-            'cacheMetadata' => true,
-            'quoteIdentifiers' => false,
-            'log' => false,
-            //'init' => ['SET GLOBAL innodb_stats_on_metadata = 0'],
-            'host' => '69.90.66.140',
-            'port' => 3306,
-            'username' => 'jayde421_uwater',
-            'password' => 'ThanhPhuc311211!',
-            'database' => 'jayde421_water'
-        ],
+            'database' => 'jayde421_routinizedb'
+        ]
     ],
     'Log' => [
         'debug' => [

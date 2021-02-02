@@ -77,22 +77,24 @@ namespace RoutinizeCore.Controllers {
         /// <summary>
         /// Add new PERSONAL item with attachments.
         /// </summary>
-        // public async Task<JsonResult> AddNewTodoWithAttachments() { }
-        //
-        // public async Task<JsonResult> ShareTodoWithCollaborator() { }
-        //
-        // public async Task<JsonResult> ShareTodoGroupWithCollaborator() { }
-        //
-        // public async Task<JsonResult> UnshareTodo() { }
-        //
-        // public async Task<JsonResult> UnshareTodoGroup() { }
-        //
-        // public async Task<JsonResult> DeleteTodo() { }
-        //
-        // public async Task<JsonResult> DeleteTodoGroup() { }
-        //
-        // public async Task<JsonResult> MarkTodoAsDone() { }
-        //
-        // public async Task<JsonResult> MarkTodoAsUndone() { }
+        public async Task<JsonResult> AddNewTodoWithAttachments() {
+            
+        }
+        
+        public async Task<JsonResult> ShareTodoWithCollaborator() { }
+        
+        public async Task<JsonResult> ShareTodoGroupWithCollaborator() { }
+        
+        public async Task<JsonResult> UnshareTodo() { }
+        
+        public async Task<JsonResult> UnshareTodoGroup() { }
+        
+        public async Task<JsonResult> DeleteTodo() { }
+        
+        public async Task<JsonResult> DeleteTodoGroup() { }
+        
+        public async Task<JsonResult> MarkTodoAsDone() { }
+        
+        public async Task<JsonResult> MarkTodoAsUndone() { }
     }
 }

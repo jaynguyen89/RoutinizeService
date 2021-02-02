@@ -9,7 +9,8 @@ namespace MediaLibrary.Models
     {
         public int TokenId { get; set; }
         public string TokenString { get; set; }
-        public byte? Life { get; set; }
+        public int Life { get; set; }
         public string Target { get; set; }
+        public int AccountId { get; set; }
     }
 }
