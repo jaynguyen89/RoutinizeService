@@ -13,7 +13,8 @@ namespace RoutinizeCore.Models
             Attachments = new HashSet<Attachment>();
             CollaborationCollaborators = new HashSet<Collaboration>();
             CollaborationUsers = new HashSet<Collaboration>();
-            CollaboratorTasks = new HashSet<CollaboratorTask>();
+            ContentGroups = new HashSet<ContentGroup>();
+            GroupShares = new HashSet<GroupShare>();
             Notes = new HashSet<Note>();
             Projects = new HashSet<Project>();
             RandomIdeas = new HashSet<RandomIdea>();
@@ -23,7 +24,6 @@ namespace RoutinizeCore.Models
             TeamRequests = new HashSet<TeamRequest>();
             Teams = new HashSet<Team>();
             TodoDoneBies = new HashSet<Todo>();
-            TodoGroups = new HashSet<TodoGroup>();
             TodoUsers = new HashSet<Todo>();
             UserPrivacies = new HashSet<UserPrivacy>();
         }
@@ -43,7 +43,8 @@ namespace RoutinizeCore.Models
         public virtual ICollection<Attachment> Attachments { get; set; }
         public virtual ICollection<Collaboration> CollaborationCollaborators { get; set; }
         public virtual ICollection<Collaboration> CollaborationUsers { get; set; }
-        public virtual ICollection<CollaboratorTask> CollaboratorTasks { get; set; }
+        public virtual ICollection<ContentGroup> ContentGroups { get; set; }
+        public virtual ICollection<GroupShare> GroupShares { get; set; }
         public virtual ICollection<Note> Notes { get; set; }
         public virtual ICollection<Project> Projects { get; set; }
         public virtual ICollection<RandomIdea> RandomIdeas { get; set; }
@@ -53,7 +54,6 @@ namespace RoutinizeCore.Models
         public virtual ICollection<TeamRequest> TeamRequests { get; set; }
         public virtual ICollection<Team> Teams { get; set; }
         public virtual ICollection<Todo> TodoDoneBies { get; set; }
-        public virtual ICollection<TodoGroup> TodoGroups { get; set; }
         public virtual ICollection<Todo> TodoUsers { get; set; }
         public virtual ICollection<UserPrivacy> UserPrivacies { get; set; }
     }

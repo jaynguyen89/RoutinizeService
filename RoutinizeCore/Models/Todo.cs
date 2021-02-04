@@ -19,10 +19,11 @@ namespace RoutinizeCore.Models
         public DateTime CreatedOn { get; set; }
         public DateTime? DueDate { get; set; }
         public int? DoneById { get; set; }
-        public string DeletedOn { get; set; }
+        public DateTime? ActuallyDoneOn { get; set; }
+        public DateTime? DeletedOn { get; set; }
 
         public virtual User DoneBy { get; set; }
-        public virtual TodoGroup Group { get; set; }
+        public virtual ContentGroup Group { get; set; }
         public virtual User User { get; set; }
     }
 }

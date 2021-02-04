@@ -295,6 +295,24 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
+        public async Task<bool?> DoesUserHasPremiumOrTodoUnlocked(int userId) {
+            try {
+                return await _dbContext.AppSettings.AnyAsync(settings => settings.UserId == userId && (settings.IsPremium || settings.TodoUnlocked));
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(DoesUserHasPremiumOrTodoUnlocked) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while checking entry existed in Users with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
         private async Task<int?> GetUserPrivacyOrAppSettingIdByUserId([NotNull] int userId, string assetType = nameof(UserPrivacy)) {
             try {
                 return assetType.Equals(nameof(UserPrivacy))

@@ -50,6 +50,12 @@ namespace HelperLibrary.Shared {
             ChallengeQuestions
         }
 
+        public enum Permissions {
+            Read,
+            Edit,
+            Delete
+        }
+
         public enum HttpStatusCodes {
             Continue = 100,
             SwitchingProtocol = 101,

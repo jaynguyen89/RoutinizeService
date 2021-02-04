@@ -5,9 +5,9 @@ using HelperLibrary;
 
 namespace RoutinizeCore.Models {
 
-    public partial class TodoGroup {
+    public partial class ContentGroup {
 
-        public List<string> VerifyTodoGroupData([NotNull] bool isUpdating = false) {
+        public List<string> VerifyContentGroupData([NotNull] bool isUpdating = false) {
             var errorMessages = new List<string>();
 
             GroupName = GroupName?.Trim();

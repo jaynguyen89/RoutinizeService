@@ -12,6 +12,7 @@ namespace RoutinizeCore.Models
         public int TaskId { get; set; }
         public string TaskType { get; set; }
         public DateTime AssignedOn { get; set; }
+        public string Message { get; set; }
 
         public virtual ProjectIteration Iteration { get; set; }
     }

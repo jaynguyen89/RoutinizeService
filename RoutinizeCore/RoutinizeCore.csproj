@@ -29,6 +29,7 @@
     <ProjectReference Include="..\HelperLibrary\HelperLibrary.csproj" />
     <ProjectReference Include="..\MediaLibrary\MediaLibrary.csproj" />
     <ProjectReference Include="..\MongoLibrary\MongoLibrary.csproj" />
+    <ProjectReference Include="..\NotifierLibrary\NotifierLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>

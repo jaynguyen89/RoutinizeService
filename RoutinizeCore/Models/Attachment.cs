@@ -14,6 +14,7 @@ namespace RoutinizeCore.Models
         }
 
         public int Id { get; set; }
+        public int? AddressId { get; set; }
         public int ItemId { get; set; }
         public string ItemType { get; set; }
         public int? PermissionId { get; set; }
@@ -23,6 +24,7 @@ namespace RoutinizeCore.Models
         public string AttachmentUrl { get; set; }
         public DateTime AttachedOn { get; set; }
 
+        public virtual Address Address { get; set; }
         public virtual AttachmentPermission Permission { get; set; }
         public virtual User UploadedBy { get; set; }
         public virtual ICollection<Project> Projects { get; set; }

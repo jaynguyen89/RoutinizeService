@@ -26,5 +26,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<KeyValuePair<bool, AppSetting>> GetAppSettings([NotNull] int accountId);
 
         Task<bool?> CheckIfUserProfileInitialized([NotNull] int accountId);
+
+        Task<bool?> DoesUserHasPremiumOrTodoUnlocked([NotNull] int userId);
     }
 }
