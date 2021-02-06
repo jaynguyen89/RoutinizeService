@@ -2,7 +2,7 @@
 
 namespace MediaLibrary.ViewModels {
 
-    public class AvatarReplaceVM {
+    public class ImgReplaceVM {
         
         public int TokenId { get; set; }
         
@@ -10,6 +10,6 @@ namespace MediaLibrary.ViewModels {
         
         public IFormFile FileToSave { get; set; }
         
-        public string CurrentAvatar { get; set; }
+        public string CurrentImage { get; set; }
     }
 }

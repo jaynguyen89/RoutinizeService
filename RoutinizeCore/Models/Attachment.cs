@@ -22,6 +22,7 @@ namespace RoutinizeCore.Models
         public byte AttachmentType { get; set; }
         public string AttachmentName { get; set; }
         public string AttachmentUrl { get; set; }
+        public bool IsHttp { get; set; }
         public DateTime AttachedOn { get; set; }
 
         public virtual Address Address { get; set; }

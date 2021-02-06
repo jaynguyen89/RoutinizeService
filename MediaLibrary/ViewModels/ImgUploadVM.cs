@@ -2,7 +2,7 @@
 
 namespace MediaLibrary.ViewModels {
 
-    public sealed class AvatarUploadVM {
+    public sealed class ImgUploadVM {
         
         public int TokenId { get; set; }
         

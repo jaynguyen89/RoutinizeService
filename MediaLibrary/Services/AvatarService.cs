@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using HelperLibrary.Shared;
 using MediaLibrary.DbContexts;
 using MediaLibrary.Interfaces;
 using MediaLibrary.ViewModels;
@@ -17,15 +17,6 @@ namespace MediaLibrary.Services {
         private readonly MediaDbContext _dbContext;
         private readonly HttpClient _httpClient = new();
 
-        private static Dictionary<string, string> CONTENT_TYPES = new() {
-            { "json", "application/json" },
-            { "form", "multipart/form-data" },
-            { "xml", "application/xml" },
-            { "mixed", "multipart/mixed" },
-            { "alt", "multipart/alternative" },
-            { "base64", "application/base64" }
-        };
-
         public AvatarService(
             ILogger<AvatarService> logger,
             MediaDbContext dbContext
@@ -38,12 +29,12 @@ namespace MediaLibrary.Services {
         }
 
 
-        public async Task<ApiRequestResult> SendSaveAvatarRequestToRoutinizeStorageApi(AvatarUploadVM uploadedData) {
+        public async Task<ImgSaveResult> SendSaveAvatarRequestToRoutinizeStorageApi(ImgUploadVM uploadedData) {
             try {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(uploadedData.TokenId);
                 if (apiAccessToken.AccountId != uploadedData.AccountId) return null;
 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPES["form"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["form"]));
 
                 var formFile = new StreamContent(uploadedData.UploadedFile.OpenReadStream());
                 formFile.Headers.ContentType = MediaTypeHeaderValue.Parse(uploadedData.UploadedFile.ContentType);
@@ -57,7 +48,7 @@ namespace MediaLibrary.Services {
                 var response = await _httpClient.PostAsync("avatar/save-avatar", formData);
                 if (!response.IsSuccessStatusCode) return null;
 
-                var result = JsonConvert.DeserializeObject<ApiRequestResult>(await response.Content.ReadAsStringAsync());
+                var result = JsonConvert.DeserializeObject<ImgSaveResult>(await response.Content.ReadAsStringAsync());
                 return result;
             }
             catch (Exception e) {
@@ -69,22 +60,23 @@ namespace MediaLibrary.Services {
             }
         }
 
-        public async Task<ApiRequestResult> SendDeleteAvatarRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName) {
+        public async Task<ImgSaveResult> SendDeleteAvatarRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName) {
             try {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(tokenId);
                 if (apiAccessToken.AccountId != accountId) return null;
                 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPES["json"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["json"]));
+                var response = await _httpClient.PostAsJsonAsync(
+                    "avatar/remove-avatar",
+                    JsonConvert.SerializeObject(new {
+                        apiKey = apiAccessToken.TokenString,
+                        image = photoName
+                    })
+                );
 
-                var formData = new MultipartFormDataContent {
-                    { new StringContent(apiAccessToken.TokenString), "apikey" },
-                    { new StringContent(photoName), "image" }
-                };
-
-                var response = await _httpClient.PostAsync("avatar/remove-avatar", formData);
                 if (!response.IsSuccessStatusCode) return null;
-
-                var result = JsonConvert.DeserializeObject<ApiRequestResult>(await response.Content.ReadAsStringAsync());
+                var result = JsonConvert.DeserializeObject<ImgSaveResult>(await response.Content.ReadAsStringAsync());
+                
                 return result;
             }
             catch (Exception e) {
@@ -96,19 +88,19 @@ namespace MediaLibrary.Services {
             }
         }
 
-        public async Task<ApiRequestResult> SendReplaceAvatarRequestToRoutinizeStorageApi(AvatarReplaceVM uploadedData) {
+        public async Task<ImgSaveResult> SendReplaceAvatarRequestToRoutinizeStorageApi(ImgReplaceVM uploadedData) {
             try {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(uploadedData.TokenId);
                 if (apiAccessToken.AccountId != uploadedData.AccountId) return null;
                 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPES["form"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["form"]));
                 
                 var formFile = new StreamContent(uploadedData.FileToSave.OpenReadStream());
                 formFile.Headers.ContentType = MediaTypeHeaderValue.Parse(uploadedData.FileToSave.ContentType);
 
                 var formData = new MultipartFormDataContent {
                     { formFile, "replaceBy", uploadedData.FileToSave.Name },
-                    { new StringContent(uploadedData.CurrentAvatar), "current" },
+                    { new StringContent(uploadedData.CurrentImage), "current" },
                     { new StringContent(uploadedData.AccountId.ToString()), "accountId" },
                     { new StringContent(apiAccessToken.TokenString), "apiKey" }
                 };
@@ -116,7 +108,7 @@ namespace MediaLibrary.Services {
                 var response = await _httpClient.PostAsync("avatar/replace-avatar", formData);
                 if (!response.IsSuccessStatusCode) return null;
 
-                var result = JsonConvert.DeserializeObject<ApiRequestResult>(await response.Content.ReadAsStringAsync());
+                var result = JsonConvert.DeserializeObject<ImgSaveResult>(await response.Content.ReadAsStringAsync());
                 return result;
             }
             catch (Exception e) {

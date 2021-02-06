@@ -88,7 +88,7 @@ namespace HelperLibrary {
             return random.Next(min, max + 1);
         }
         
-        public static string GenerateRandomString(int length, bool includeSpecialChars = false) {
+        public static string GenerateRandomString([NotNull] int length,[NotNull] bool includeSpecialChars = false) {
             const string SCHARS = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnmn1234567890!@#$%^&*_+.";
             const string NCHARS = "QWERTYUIOPASDFGHJKKLZXCVBNMqwertyuiopasdfghjklzxcvbnmn1234567890";
             
@@ -101,13 +101,32 @@ namespace HelperLibrary {
             return randomString;
         }
         
-        public static string CapitalizeFirstLetterOfEachWord(string sentence) {
+        public static string CapitalizeFirstLetterOfEachWord([NotNull] string sentence) {
             var newSentence = sentence
                               .Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE)
                               .ToLower();
 
             newSentence = Regex.Replace(newSentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
             return newSentence;
+        }
+
+        public static string ExtractImageNameFromPath([NotNull] string imageName) {
+            var pathTokens = imageName.Split(SharedConstants.FSLASH);
+            return pathTokens[^1];
+        }
+
+        public static byte FindAttachmentType([NotNull] string fileTypeString) {
+            fileTypeString = fileTypeString.ToLower();
+
+            if (fileTypeString.Equals(SharedEnums.AttachmentTypes.Photo.GetEnumValue())) return (byte) SharedEnums.AttachmentTypes.Photo;
+            if (fileTypeString.Equals(SharedEnums.AttachmentTypes.Audio.GetEnumValue())) return (byte) SharedEnums.AttachmentTypes.Audio;
+            if (fileTypeString.Equals(SharedEnums.AttachmentTypes.Video.GetEnumValue())) return (byte) SharedEnums.AttachmentTypes.Video;
+            
+            return (byte) SharedEnums.AttachmentTypes.File;
+        }
+
+        public static bool IsAttachmentAHttpLink([AllowNull] string attachmentFileUrl) {
+            return IsProperString(attachmentFileUrl) && attachmentFileUrl.Contains("http");
         }
     }
 }

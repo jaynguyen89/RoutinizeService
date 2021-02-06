@@ -79,7 +79,7 @@ namespace RoutinizeCore.Controllers {
                 return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.NoContent});
             
             var httpResult = await _avatarService.SendSaveAvatarRequestToRoutinizeStorageApi(
-                new AvatarUploadVM {
+                new ImgUploadVM {
                     AccountId = avatarData.AccountId,
                     TokenId = avatarData.TokenId,
                     UploadedFile = avatarData.AvatarFile
@@ -117,9 +117,9 @@ namespace RoutinizeCore.Controllers {
                 return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.NoContent});
             
             var httpResult = await _avatarService.SendReplaceAvatarRequestToRoutinizeStorageApi(
-                new AvatarReplaceVM {
+                new ImgReplaceVM {
                     AccountId = avatarData.AccountId,
-                    CurrentAvatar = JsonConvert.DeserializeObject<AvatarVM>(userProfile.AvatarName).Name,
+                    CurrentImage = JsonConvert.DeserializeObject<AvatarVM>(userProfile.AvatarName).Name,
                     TokenId = avatarData.TokenId,
                     FileToSave = avatarData.AvatarFile
                 });

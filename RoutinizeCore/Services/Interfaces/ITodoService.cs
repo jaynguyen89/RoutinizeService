@@ -58,6 +58,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<KeyValuePair<int, ContentGroup>[]> GetSharedActiveTodoGroups([NotNull] int userId);
         
         Task<KeyValuePair<int, ContentGroup>[]> GetSharedArchivedTodoGroups([NotNull] int userId);
+        
         Task<Todo[]> GetTodosForContentGroupById([NotNull] int groupId);
     }
 }

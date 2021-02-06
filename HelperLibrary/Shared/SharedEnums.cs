@@ -56,6 +56,19 @@ namespace HelperLibrary.Shared {
             Delete
         }
 
+        public enum AttachmentTypes {
+            [StringValue("image")]
+            Photo = 0,
+            [StringValue("video")]
+            Video = 1,
+            [StringValue("audio")]
+            Audio = 2,
+            [StringValue("file")]
+            File = 11,
+            [StringValue("address")]
+            Address = 12
+        }
+
         public enum HttpStatusCodes {
             Continue = 100,
             SwitchingProtocol = 101,

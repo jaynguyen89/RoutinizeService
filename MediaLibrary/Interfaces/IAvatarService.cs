@@ -9,16 +9,16 @@ namespace MediaLibrary.Interfaces  {
         /// <summary>
         /// Send HttpClient POST request to Routinize Storage API. Returns null on error, otherwise, an instance of ApiRequestResult.
         /// </summary>
-        Task<ApiRequestResult> SendSaveAvatarRequestToRoutinizeStorageApi(AvatarUploadVM uploadedData);
+        Task<ImgSaveResult> SendSaveAvatarRequestToRoutinizeStorageApi(ImgUploadVM uploadedData);
         
         /// <summary>
         /// Send HttpClient DELETE request to Routinize Storage API. Returns null on error, otherwise, an instance of ApiRequestResult.
         /// </summary>
-        Task<ApiRequestResult> SendDeleteAvatarRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName);
+        Task<ImgSaveResult> SendDeleteAvatarRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName);
         
         /// <summary>
         /// Send HttpClient POST request to Routinize Storage API. Returns null on error, otherwise, an instance of ApiRequestResult.
         /// </summary>
-        Task<ApiRequestResult> SendReplaceAvatarRequestToRoutinizeStorageApi(AvatarReplaceVM uploadedData);
+        Task<ImgSaveResult> SendReplaceAvatarRequestToRoutinizeStorageApi(ImgReplaceVM uploadedData);
     }
 }

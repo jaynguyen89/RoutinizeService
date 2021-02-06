@@ -6,6 +6,7 @@ namespace App\Controller;
 class AvatarController extends AppController {
 
     private const IMAGE_SIZE = 3000000; //3MB
+    private const AVATAR_DIR = WWW_ROOT.'files'.DS.'avatars'.DS;
 
     public function saveAvatar() {
         $this->autoRender = false;
@@ -43,15 +44,15 @@ class AvatarController extends AppController {
 
             $avatar_newName = $message['imageName'];
             if ($image['type'] != 'image/gif')
-                $this->reduceImageSize(WWW_ROOT . 'files' . DS . 'avatars' . DS . $avatar_newName);
+                $this->reduceImageSize(self::AVATAR_DIR.$avatar_newName);
 
-            $this->persistImageData($avatar_newName, $accountId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
+            $this->persistImageData($avatar_newName, $accountId, self::AVATAR_DIR, true);
             $message = [
                 'error' => false,
                 'errorMessage' => null,
                 'result' => [
                     'name' => $avatar_newName,
-                    'location' => WWW_ROOT.'files'.DS.'avatars'.DS
+                    'location' => self::AVATAR_DIR
                 ]
             ];
         }
@@ -107,15 +108,15 @@ class AvatarController extends AppController {
 
             $avatar_newName = $message['imageName'];
             if ($newAvatar['type'] != 'image/gif')
-                $this->reduceImageSize(WWW_ROOT.'files'.DS.'avatars'.DS.$avatar_newName);
+                $this->reduceImageSize(self::AVATAR_DIR.$avatar_newName);
 
-            $this->persistImageData($avatar_newName, $accountId, WWW_ROOT.'files'.DS.'avatars'.DS, true);
+            $this->persistImageData($avatar_newName, $accountId, self::AVATAR_DIR, true);
             $message = [
                 'error' => false,
                 'errorMessage' => null,
                 'result' => [
                     'name' => $avatar_newName,
-                    'location' => WWW_ROOT.'files'.DS.'avatars'.DS
+                    'location' => self::AVATAR_DIR
                 ]
             ];
         }

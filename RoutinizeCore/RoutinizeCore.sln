@@ -21,6 +21,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NotifierLibrary", "..\NotifierLibrary\NotifierLibrary.csproj", "{D7EF0059-B9F8-4948-8C20-E3A7D46926DE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaLibrary", "..\MediaLibrary\MediaLibrary.csproj", "{DB437FDD-0F6C-4F51-96D9-05979FECF605}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FC217327-7AD9-4279-8D9B-11D75D07B3FC} = {FC217327-7AD9-4279-8D9B-11D75D07B3FC}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

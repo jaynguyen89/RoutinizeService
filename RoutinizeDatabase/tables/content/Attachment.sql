@@ -9,6 +9,7 @@
 	AttachmentType TINYINT NOT NULL,
 	AttachmentName NVARCHAR(100) DEFAULT NULL,
 	AttachmentUrl NVARCHAR(250) DEFAULT NULL,
+	IsHttp BIT NOT NULL DEFAULT 0,
 	AttachedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
 	CONSTRAINT [PK_Attachment_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_Attachment_Address_AddressId] FOREIGN KEY ([AddressId]) REFERENCES [dbo].[Address] ([Id]),

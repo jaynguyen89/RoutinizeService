@@ -51,11 +51,27 @@ namespace HelperLibrary.Shared {
         public const string ALL_SPACES = @"\s+";
         public const string DOUBLE_SPACE = "  ";
         public const string MONO_SPACE = " ";
+        public const string FSLASH = "/";
+        public const string BSLASH = "\\";
         
         public static Dictionary<string, string> API_TOKEN_TARGETS = new() {
             { "save_avatar", "Avatar/saveAvatar" },
             { "replace_avatar", "Avatar/replaceAvatar" },
-            { "remove_avatar", "Avatar/removeAvatar" }
+            { "remove_avatar", "Avatar/removeAvatar" },
+            { "save-cover", "Photo/saveCover" },
+            { "replace-cover", "Photo/replaceCover" },
+            { "remove-cover", "Photo/removeCover" },
+            { "save-attachments", "Attachment/saveAttachments" },
+            { "remove-attachments", "Attachment/removeAttachments" }
+        };
+
+        public static Dictionary<string, string> CONTENT_TYPES = new() {
+            { "json", "application/json" },
+            { "form", "multipart/form-data" },
+            { "xml", "application/xml" },
+            { "mixed", "multipart/mixed" },
+            { "alt", "multipart/alternative" },
+            { "base64", "application/base64" }
         };
     }
 }

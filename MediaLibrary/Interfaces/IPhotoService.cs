@@ -5,8 +5,10 @@ namespace MediaLibrary.Interfaces {
     
     public interface IPhotoService {
 
-        Task<ApiRequestResult> SendSavePhotosRequestToRoutinizeStorageApi(FilesUploadVM uploadedData);
+        Task<ImgSaveResult> SendSavePhotosRequestToRoutinizeStorageApi(ImgUploadVM uploadedData);
 
-        Task<ApiRequestResult> SendDeletePhotosRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName);
+        Task<ImgSaveResult> SendReplacePhotosRequestToRoutinizeStorageApi(ImgReplaceVM uploadedData);
+
+        Task<ImgSaveResult> SendDeletePhotosRequestToRoutinizeStorageApi(int tokenId, int accountId, string photoName);
     }
 }

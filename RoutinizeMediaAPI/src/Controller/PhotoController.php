@@ -3,14 +3,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Cake\Datasource\ConnectionManager;
-
 class PhotoController extends AppController {
 
-    private const PHOTO_SIZE = 10000000; //10MB
+    private const COVER_SIZE = 3000000; //3MB
+    private const GALLERY_DIR = WWW_ROOT.'files'.DS.'gallery'.DS;
 
-    //Use Article's ID for Album here
-    public function savePhotos() {
+    public function saveCover() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
 
@@ -24,70 +22,60 @@ class PhotoController extends AppController {
             return $response;
         }
 
+        $image = array();
+        if (array_key_exists('image', $_FILES))
+            $image = $_FILES['image'];
+
+        $message = array();
+        if (!empty($image)) $message = $this->checkImageExif($image, self::COVER_SIZE);
+        if (!empty($message)) {
+            $response = $response->withStringBody(json_encode($message));
+            return $response;
+        }
+
         $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
-        $coverImage = array_key_exists('coverImage', $_REQUEST) ? $_REQUEST['coverImage'] : null;
-        $album = array_key_exists('album', $_REQUEST) ? $_REQUEST['album'] : null;
-        $images = array_key_exists('images', $_FILES) ? $_FILES['images'] : null;
 
-        if ($images != null && $accountId != null && $coverImage != null && $album != null) {
-            $images = $this->reprocessMultipleImagesTempData($images);
-            $directoryPath = $this->createArticleFolderForUser($accountId, $album);
-
-            $dbImageNames = array();
-            $oversizedImages = array();
-            $failedImages = array();
-
-            foreach ($images as $image) {
-                $message = $this->checkImageExif($image, self::PHOTO_SIZE);
-                if (!empty($message)) {
-                    array_push($oversizedImages, $image['name']);
-                    continue;
-                }
-
-                $message = $this->saveImageToDisk($image, $directoryPath);
-                if (!empty($message) && array_key_exists('error', $message)) {
-                    array_push($failedImages, $image['name']);
-                    continue;
-                }
-
-                $photo_newName = $message['imageName'];
-                if ($image['type'] != 'image/gif')
-                    $this->reduceImageSize($directoryPath.$photo_newName);
-
-                $this->persistImageData($photo_newName, $accountId, $directoryPath, false, $coverImage == $image['name']);
-                array_push($dbImageNames, [
-                    'name' => $photo_newName,
-                    'location' => $directoryPath
-                ]);
+        if (!empty($image) && $accountId != null) {
+            $message = $this->saveImageToDisk($image, self::GALLERY_DIR);
+            if (!empty($message) && array_key_exists('error', $message)) {
+                $response = $response->withStringBody(json_encode($message));
+                return $response;
             }
 
+            $cover_newName = $message['imageName'];
+            if ($image['type'] != 'image/gif')
+                $this->reduceImageSize(self::GALLERY_DIR.$cover_newName);
+
+            $this->persistImageData($cover_newName, $accountId, self::GALLERY_DIR, true);
             $message = [
-                'error' => !(!empty($dbImageNames) && empty($oversizedImages) && empty($failedImages)),
-                'errorMessage' => !(!empty($dbImageNames) && empty($oversizedImages) && empty($failedImages)) ? null : 'interrupted',
+                'error' => false,
+                'errorMessage' => null,
                 'result' => [
-                    'images' => $dbImageNames,
-                    'fails' => $failedImages,
-                    'oversizes' => $oversizedImages
+                    'name' => $cover_newName,
+                    'location' => self::GALLERY_DIR
                 ]
             ];
         }
         else
             $message = [
                 'error' => true,
-                'errorMessage' => 'Unable to process request due to missing data.',
+                'errorMessage' => 'Unable to process your request due to missing data.',
                 'result' => null
             ];
 
         $response = $response->withStringBody(json_encode($message));
         return $response;
-        //$this->set(compact('images', 'message'));
+        //$this->set(compact('image', 'message'));
     }
 
-    public function removePhotos() {
+
+    public function replaceCover() {
         $this->autoRender = false;
         $this->request->allowMethod(['post']);
 
         $response = $this->response;
+        $response = $response->withType('application/json');
+
         $result = $this->verifyApiKey();
         if (strlen($result) != 0) {
             $message = $this->filterResult($result);
@@ -95,64 +83,90 @@ class PhotoController extends AppController {
             return $response;
         }
 
+        $currentCover = array_key_exists('current', $_REQUEST) ? $_REQUEST['current'] : null;
         $accountId = array_key_exists('accountId', $_REQUEST) ? $_REQUEST['accountId'] : null;
-        $album = array_key_exists('album', $_REQUEST) ? $_REQUEST['album'] : null;
-        $removals = array_key_exists('removals', $_REQUEST) ? $_REQUEST['removals'] : null;
+        $newCover = array_key_exists('replaceBy', $_FILES) ? $_FILES['replaceBy'] : null;
 
-        $message = array();
-        $failedRemovals = array();
-        $unknownRemovals = array();
-
-        if ($accountId != null && $removals != null) {
-            $dbConnection = ConnectionManager::get('default');
-            $albumPath = $this->resembleAlbumPath($accountId, $album);
-
-            foreach ($removals as $removal) {
-                $counter = $dbConnection->execute('
-                SELECT COUNT(p.Id) AS PCount
-                FROM Photos AS p, Userphotos AS u
-                WHERE p.Id == u.PhotoId
-                    AND u.accountId == ?
-                    AND p.PhotoName == ?
-                ', [$accountId, $removal])->fetch('assoc');
-
-                if ($counter['PCount'] == 1) {
-                    $message = $this->removeImageData($removal, false, $albumPath);
-                    if (!empty($message)) array_push($failedRemovals, $removal);
-                }
-                else array_push($unknownRemovals, $removal);
+        if ($currentCover != null && $newCover != null && $accountId != null) {
+            $message = $this->removeImageData($currentCover, true);
+            if (!empty($message)) {
+                $response = $response->withStringBody(json_encode($message));
+                return $response;
             }
 
-            if ($this->isFolderEmpty($albumPath)) $this->deleteAlbum($albumPath);
+            $message = $this->checkImageExif($newCover, self::COVER_SIZE);
+            if (!empty($message)) {
+                $response = $response->withStringBody(json_encode($message));
+                return $response;
+            }
+
+            $message = $this->saveImageToDisk($newCover, self::GALLERY_DIR);
+            if (!empty($message) && array_key_exists('error', $message)) {
+                $response = $response->withStringBody(json_encode($message));
+                return $response;
+            }
+
+            $cover_newName = $message['imageName'];
+            if ($newCover['type'] != 'image/gif')
+                $this->reduceImageSize(self::GALLERY_DIR.$cover_newName);
+
+            $this->persistImageData($cover_newName, $accountId, self::GALLERY_DIR, true);
+            $message = [
+                'error' => false,
+                'errorMessage' => null,
+                'result' => [
+                    'name' => $cover_newName,
+                    'location' => self::GALLERY_DIR
+                ]
+            ];
         }
         else
             $message = [
                 'error' => true,
-                'errorMessage' => 'Unable to process request due to missing data.',
+                'errorMessage' => 'Unable to process your request due to missing data.',
                 'result' => null
             ];
 
-        $message = (!empty($message)) ? $message : [
-            'error' => false,
-            'errorMessage' => null,
-            'result' => [
-                'fails' => $failedRemovals,
-                'unknowns' => $unknownRemovals
-            ]
-        ];
+        $response = $response->withStringBody(json_encode($message));
+        return $response;
+        //$this->set(compact('currentCover', 'newCover', 'message'));
+    }
+
+
+    public function removeCover() {
+        $this->autoRender = false;
+        $this->request->allowMethod(['post']);
+
+        $response = $this->response;
+        $response = $response->withType('application/json');
+
+        $result = $this->verifyApiKey();
+        if (strlen($result) != 0) {
+            $message = $this->filterResult($result);
+            $response = $response->withStringBody(json_encode($message));
+            return $response;
+        }
+
+        $imageName = array_key_exists('image', $_REQUEST) ? $_REQUEST['image'] : null;
+
+        if ($imageName != null) {
+            $message = $this->removeImageData($imageName, false, self::GALLERY_DIR);
+            if (!empty($message)) {
+                $response = $response->withStringBody(json_encode($message));
+                return $response;
+            }
+
+            $message = ['error' => false, 'errorMessage' => null, 'result' => null];
+        }
+        else
+            $message = [
+                'error' => true,
+                'errorMessage' => 'No data to process your request.',
+                'result' => null
+            ];
 
         $response = $response->withStringBody(json_encode($message));
         return $response;
-        //$this->set(compact('removals', 'message'));
-    }
-
-    private function createArticleFolderForUser($accountId, $album) {
-        $userDir = md5($accountId).'_'.time();
-        $albumDir = md5($album).'_'.time();
-
-        $this->createFolderIfNeeded(DS.'gallery'.DS.$userDir);
-        $this->createFolderIfNeeded(DS.'gallery'.DS.$userDir.DS.$albumDir);
-
-        return WWW_ROOT.'files'.DS.'gallery'.DS.$userDir.DS.$albumDir.DS;
+        //$this->set(compact('message', 'imageName'));
     }
 }

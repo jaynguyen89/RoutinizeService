@@ -29,7 +29,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
             _dbContext = dbContext;
         }
 
-
         public async Task<int?> DoesUserHasThisCollaborator([NotNull] int userId,[NotNull] int collaboratorId) {
             try {
                 var collaboration = await _dbContext.Collaborations.SingleOrDefaultAsync(

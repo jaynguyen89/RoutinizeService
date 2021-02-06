@@ -9,6 +9,8 @@ namespace MediaLibrary.ViewModels {
         
         public int TokenId { get; set; }
         
+        public int ItemId { get; set; }
+        
         public IFormFileCollection UploadedFiles { get; set; }
     }
 }

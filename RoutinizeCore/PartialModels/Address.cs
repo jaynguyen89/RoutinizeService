@@ -203,5 +203,16 @@ namespace RoutinizeCore.Models {
 
             return errors;
         }
+
+        public string Normalize() {
+            var building = string.IsNullOrEmpty(Building) ? string.Empty : Building + ", ";
+            var street = string.IsNullOrEmpty(Street) ? string.Empty : Street + ", ";
+            var suburb = string.IsNullOrEmpty(Suburb) ? string.Empty : Suburb + ", ";
+            var state = string.IsNullOrEmpty(State) ? string.Empty : State + " ";
+            var post = string.IsNullOrEmpty(Postcode) ? string.Empty : Postcode + ", ";
+            var country = string.IsNullOrEmpty(Country) ? string.Empty : Country;
+
+            return $"{ building }{ street }{ suburb }{ state }{ post }{ country }";
+        }
     }
 }
