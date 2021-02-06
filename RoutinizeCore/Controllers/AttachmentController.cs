@@ -37,7 +37,7 @@ namespace RoutinizeCore.Controllers {
             _fileService = fileService;
         }
 
-        [HttpPost("set-todo-cover-image")]
+        [HttpPost("set-cover-image")]
         public async Task<JsonResult> SetCoverImage([FromHeader] int accountId,[FromBody] CoverUploadVM coverData) {
             var todo = await _todoService.GetTodoById(coverData.TodoId);
             if (todo == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Controllers {
@@ -21,12 +22,12 @@ namespace RoutinizeCore.Controllers {
             _userService = userService;
         }
         
-        // public async Task<JsonResult> ShareTodoWithCollaborator() { }
-        //
-        // public async Task<JsonResult> ShareTodoGroupWithCollaborator() { }
-        //
-        // public async Task<JsonResult> UnshareTodo() { }
-        //
-        // public async Task<JsonResult> UnshareTodoGroup() { }
+        public async Task<JsonResult> ShareTodoWithCollaborator() { }
+        
+        public async Task<JsonResult> ShareTodoGroupWithCollaborator() { }
+        
+        public async Task<JsonResult> UnshareTodo() { }
+        
+        public async Task<JsonResult> UnshareTodoGroup() { }
     }
 }

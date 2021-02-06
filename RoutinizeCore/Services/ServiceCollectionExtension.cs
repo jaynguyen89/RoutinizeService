@@ -24,6 +24,7 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IAddressService, AddressService>();
 
             services.AddScoped<ITodoService, TodoService>();
+            services.AddScoped<INoteService, NoteService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<ICollaborationService, CollaborationService>();
 

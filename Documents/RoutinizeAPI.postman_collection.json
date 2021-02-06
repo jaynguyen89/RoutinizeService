@@ -1,0 +1,2495 @@
+{
+	"info": {
+		"_postman_id": "bbd3ccbb-c161-45b0-ac71-641489a29020",
+		"name": "RoutinizeAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "ChangeAccountEmail",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"newEmail\": \"\",\r\n    \"newEmailConfirm\": \"\",\r\n    \"password\": \"\"\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/account/change-account-email",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"change-account-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetChallengeQuestionForProof",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/account/get-challenge-question-for-proof/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"get-challenge-question-for-proof",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAllChallengeResponsesByAccount",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/account/get-all-challenge-responses/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"get-all-challenge-responses",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateChallengeResponseByAccount",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"challengeResponses\": [\r\n        {\r\n            \"questionId\": 1,\r\n            \"response\": \"\"\r\n        },\r\n        {\r\n            \"questionId\": 5,\r\n            \"response\": \"\"\r\n        },\r\n        {\r\n            \"questionId\": 9,\r\n            \"response\": \"\"\r\n        }\r\n    ]\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/account/update-challenge-response",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"update-challenge-response"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EnableTwoFactorAuthentication",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/account/enable-two-factor/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"enable-two-factor",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DisableTwoFactorAuthentication",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "required",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"password\": \"\",\r\n    \"recaptchaToken\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/account/",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAllChallengeQuestions",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "aPDflUzZ7gxX42NYriJ5vnHrHN1ObeEdGi0XMvxpcrdAsRUKWdu7Eviv9orQ2kJk+4hZ06sCEV+3diO4P8De6w==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/account/get-all-challenge-questions",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"account",
+								"get-all-challenge-questions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Attachment",
+			"item": [
+				{
+					"name": "AddAttachments",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"itemId\": 1,\r\n    \"itemType\": \"Note\",\r\n    \"uploadedById\": 7,\r\n    \"tokenId\": 1,\r\n    \"attachments\": [\r\n        {\r\n            \"fileType\": 0,\r\n            \"fileName\": \"anything\",\r\n            \"fileUrl\": \"https://somewhere.com/any.png\"\r\n        },\r\n        {\r\n            \"fileType\": 2,\r\n            \"fileName\": \"something\",\r\n            \"fileUrl\": \"https://somewhere.com/other.png\"\r\n        }\r\n    ],\r\n    \"uploadedFiles\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/attachment/add",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SetAttachmentPermissions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"attachmentId\": 1,\r\n    \"allowAnyoneView\": true,\r\n    \"membersCanView\": [],\r\n    \"allowAnyoneEdit\": true,\r\n    \"membersCanEdit\": [],\r\n    \"allowAnyoneDelete\": false,\r\n    \"membersCanDelete\": [],\r\n    \"allowAnyoneDownload\": false,\r\n    \"membersCanDownload\": [7, 9]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/attachment/set-permission",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"set-permission"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveAttachmentSingle",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/attachment/remove/1/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"remove",
+								"1",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveAllAttachments",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/attachment/remove-all/todo/1/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"remove-all",
+								"todo",
+								"1",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAttachmentsForItem",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/attachment/get/note/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"get",
+								"note",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SetCoverImage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tokenId",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "todoId",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "uploadedFile",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5001/attachment/set-cover-image",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"set-cover-image"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveCoverImage",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/attachment/remove-cover-image/1/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"attachment",
+								"remove-cover-image",
+								"1",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "CheckRegistrationEmailAvailability",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/authentication/check-registration-email-availability/nguyen.le.kim.phuc@gmail.com",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"check-registration-email-availability",
+								"nguyen.le.kim.phuc@gmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CheckUsernameAvailability",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/authentication/check-username-availability/jay.nguyen",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"check-username-availability",
+								"jay.nguyen"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RegisterAccount",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"jay.nguyen\",\r\n    \"email\": \"nguyen.le.kim.phuc@gmail.com\",\r\n    \"password\": \"Jay1989!\",\r\n    \"passwordConfirm\": \"Jay1989!\",\r\n    \"recaptchaToken\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/register-account",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"register-account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ActivateAccount",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"nguyen.le.kim.phuc@gmail.com\",\r\n    \"activationToken\": \"\",\r\n    \"recaptchaToken\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/activate-account",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"activate-account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SendNewAccountActivationEmail",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Length",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"nguyen.le.kim.phuc@gmail.com\",\r\n    \"activationToken\": \"\",\r\n    \"recaptchaToken\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/request-new-account-activation-email",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"request-new-account-activation-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"jay.nguyen\",\r\n    \"email\": \"\",\r\n    \"password\": \"Jay1989!\",\r\n    \"trustedAuth\": false,\r\n    \"recaptchaToken\": null,\r\n    \"deviceInformation\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/authenticate",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AuthenticateSession",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"trustedAuth\": false,\r\n    \"recaptchaToken\": null,\r\n    \"deviceInformation\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/authenticate-session",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"authenticate-session"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unauthenticate",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "aPDflUzZ7gxX42NYriJ5vnHrHN1ObeEdGi0XMvxpcrdAsRUKWdu7Eviv9orQ2kJk+4hZ06sCEV+3diO4P8De6w==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/authentication/sign-out/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"sign-out",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ForgotPassword",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"recaptchaToken\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/forgot-password",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SendNewPasswordResetEmail",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"recaptchaToken\": null\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/request-new-password-reset-email?",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"request-new-password-reset-email"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RecoverPassword",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"newPassword\": \"\",\r\n    \"newPasswordConfirm\": \"\",\r\n    \"challengeResponse\": {\r\n        \"questionId\": 1,\r\n        \"response\": \"\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5001/authentication/reset-password",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"authentication",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Todo",
+			"item": [
+				{
+					"name": "AddNewPersonalTodo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 7,\r\n    \"groupId\": null,\r\n    \"isShared\": false,\r\n    \"emphasized\": false,\r\n    \"coverImage\": \"https://www.routinize.com/any.png\",\r\n    \"title\": \"Todo title\",\r\n    \"description\": \"Whatever something\",\r\n    \"details\": \"Hi I am a Todo.\",\r\n    \"dueDate\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/todo/create-personal",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"create-personal"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateTodo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"userId\": 7,\r\n    \"groupId\": null,\r\n    \"isShared\": false,\r\n    \"emphasized\": false,\r\n    \"coverImage\": \"https://www.routinize.com/any.png\",\r\n    \"title\": \"Todo title\",\r\n    \"description\": \"Whatever something\",\r\n    \"details\": \"Hi I am a Todo.\",\r\n    \"dueDate\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/todo/update/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"update",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateTodoGroup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"groupName\": \"Whatever\",\r\n    \"groupOfType\": \"Todo\",\r\n    \"description\": \"Group description\",\r\n    \"isShared\": false,\r\n    \"createdById\": 7\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/todo/create-group",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"create-group"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateTodoGroup",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"groupName\": \"Whatever\",\r\n    \"groupOfType\": \"Todo\",\r\n    \"description\": \"Group description\",\r\n    \"isShared\": false,\r\n    \"createdById\": 7\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/todp/update-group/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todp",
+								"update-group",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddNewSharedTodo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"todo\" : {\r\n        \"userId\": 7,\r\n        \"isShared\": true,\r\n        \"emphasized\": false,\r\n        \"coverImage\": \"https://www.routinize.com/any.png\",\r\n        \"title\": \"Any title\",\r\n        \"description\": null,\r\n        \"details\": null,\r\n        \"dueDate\": \"2021-12-05T13:30\"\r\n    },\r\n    \"sharedToId\" : 1,\r\n    \"message\": \"Please have a look and put a hand on this one.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/todo/create-shared",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"create-shared"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ToggleEmphasizeTodo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/toggle-emphasized/2/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"toggle-emphasized",
+								"2",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTodo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/delete/2/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"delete",
+								"2",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTodoGroup",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/delete-group/2/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"delete-group",
+								"2",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SetTodoAsDone",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/set-done/0/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"set-done",
+								"0",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SetTodoAsUndone",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/set-undone/2/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"set-undone",
+								"2",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPersonalActiveTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-active-personal/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-active-personal",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPersonalDoneTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-done-personal/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-done-personal",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPersonalArchivedTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-archived-personal/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-archived-personal",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPersonalActiveTodoGroupsForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-groups-active-personal/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-groups-active-personal",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPersonalArchivedTodoGroupsForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-groups-archived-personal/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-groups-archived-personal",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetSharedActiveTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-active-shared/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-active-shared",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetSharedDoneTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-done-shared/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-done-shared",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetSharedArchivedTodosForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-archived-shared/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-archived-shared",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetSharedActiveTodoGroupsForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/https://localhost:5001/todo/get-groups-active-shared/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"https:",
+								"",
+								"localhost:5001",
+								"todo",
+								"get-groups-active-shared",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetSharedArchivedTodoGroupsForUser",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-groups-archived-shared/2",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-groups-archived-shared",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetTodosForGroup",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/todo/get-group-items/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"todo",
+								"get-group-items",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "GetUserProfile",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/profile/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"profile",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SetProfileAvatar",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"accountId\": 7,\r\n    \"avatarName\": \"\",\r\n    \"avatarFile\": null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/set-profile-avatar",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"set-profile-avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateUserProfile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 0,\r\n    \"accountId\": 7,\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"preferedName\": \"\",\r\n    \"gender\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/update-profile",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"update-profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SaveUserAddress",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": null,\r\n    \"building\": null,\r\n    \"street\": \"\",\r\n    \"suburb\": \"\",\r\n    \"postcode\": 3000,\r\n    \"state\": \"VIC\",\r\n    \"country\": \"AU\",\r\n    \"latitude\": \"\",\r\n    \"longitude\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/save-user-address/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"save-user-address",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateUserAddress",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"name\": null,\r\n    \"building\": null,\r\n    \"street\": \"\",\r\n    \"suburb\": \"\",\r\n    \"postcode\": 3000,\r\n    \"state\": \"VIC\",\r\n    \"country\": \"AU\",\r\n    \"latitude\": \"\",\r\n    \"longitude\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/update-user-address",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"update-user-address"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveAddress",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/remove-address/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"remove-address",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateUserPrivacy",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 0,\r\n    \"addressPolicy\": 1,\r\n    \"namePolicy\": 2,\r\n    \"usernamePolicy\": 1,\r\n    \"phonePolicy\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/update-user-privacy/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"update-user-privacy",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateAppSettings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\": 1,\r\n    \"theme\": \"\",\r\n    \"isPremium\": false,\r\n    \"todoUnlocked\": false,\r\n    \"noteUnlocked\": false,\r\n    \"collabUnlocked\": false,\r\n    \"shouldHideAds\": false,\r\n    \"premiumUntil\": \"\",\r\n    \"unlockedUntil\": \"\",\r\n    \"dateTimeFormat\": \"\",\r\n    \"unitSystem\": \"\",\r\n    \"addressFormat\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/update-app-settings/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"update-app-settings",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetUserPrivacy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/get-user-privacy/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"get-user-privacy",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetUserAppSettings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "TQ+UwcSH54bCJ8D+L5+3yDFlRXhstBE/a3n+yBn7oi4GlXK8Sc5TWPQ4NXuPB+DQx/dW06AvqVBAB/yMwWjd7A==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/get-app-settings/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"get-app-settings",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "IsUserProfileInitialized",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "dsIUMJ8S3cCTZQtSZL6/eJx2dxbz9nMwrYQX8pu1f4N1LWER8cjnkHjoh006FFlQK/RgkkcchntwTtH/QqMqdw==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/is-user-profile-initialized",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"is-user-profile-initialized"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "InitializeUserProfile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/initialize-user-profile",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"initialize-user-profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateProfileAvatar",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "accountId",
+									"value": "7",
+									"type": "text"
+								},
+								{
+									"key": "avatarName",
+									"value": "something",
+									"type": "text"
+								},
+								{
+									"key": "avatarFile",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "tokenId",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5001/user/update-profile-avatar",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"update-profile-avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveProfileAvatar",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/user/remove-profile-avatar/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"user",
+								"remove-profile-avatar",
+								"1"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GetMediaApiAccessToken",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "AccountId",
+						"value": "7",
+						"type": "text"
+					},
+					{
+						"key": "AuthToken",
+						"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:5001/saveAvatar",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"saveAvatar"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
