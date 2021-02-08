@@ -313,6 +313,87 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
+        public async Task<User> GetUserByUniqueId(string uniqueId) {
+            try {
+                return await _dbContext.Users.SingleOrDefaultAsync(user => user.Account.UniqueId.Equals(uniqueId.ToUpper()));
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(GetUserByUniqueId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting entry from Users with SingleOrDefault.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(uniqueId) } = { uniqueId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(UserService) }.{ nameof(GetUserByUniqueId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(InvalidOperationException),
+                    DetailedInformation = $"Error while getting user, >1 entry matches predicate.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(uniqueId) } = { uniqueId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<User?> GetUserById(int userId) {
+            try {
+                return await _dbContext.Users.FindAsync(userId);
+            }
+            catch (Exception e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(UserService) }.{ nameof(GetUserById) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(Exception),
+                    DetailedInformation = $"Error while getting user using Find.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Account> GetAccountByUserId(int userId) {
+            try {
+                return await _dbContext.Users
+                                       .Where(user => user.Id == userId)
+                                       .Select(user => user.Account)
+                                       .SingleOrDefaultAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(GetAccountByUserId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting entry from Accounts with Where-SingleOrDefault.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(UserService) }.{ nameof(GetAccountByUserId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(InvalidOperationException),
+                    DetailedInformation = $"Error while getting account, >1 entry matches predicate.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
         private async Task<int?> GetUserPrivacyOrAppSettingIdByUserId([NotNull] int userId, string assetType = nameof(UserPrivacy)) {
             try {
                 return assetType.Equals(nameof(UserPrivacy))

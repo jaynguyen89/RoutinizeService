@@ -47,6 +47,14 @@ namespace RoutinizeCore.Controllers {
             _recaptchaService = recaptchaService;
         }
 
+        [HttpGet("get-unique-id")]
+        public async Task<JsonResult> GetAccountUniqueId([FromHeader] int accountId) {
+            var account = await _accountService.GetUserAccountById(accountId);
+            return account == null
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = account.UniqueId });
+        }
+
         [HttpPut("change-account-email")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> ChangeAccountEmail(EmailUpdateVM emailUpdateData) {

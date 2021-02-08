@@ -110,6 +110,12 @@ namespace HelperLibrary {
             return newSentence;
         }
 
+        public static string CapitalizeFirstLetterOfSentence([NotNull] string sentence) {
+            return !IsProperString(sentence)
+                ? default
+                : sentence.First().ToString().ToUpper().Concat(sentence.Substring(1)).ToString();
+        }
+
         public static string ExtractImageNameFromPath([NotNull] string imageName) {
             var pathTokens = imageName.Split(SharedConstants.FSLASH);
             return pathTokens[^1];

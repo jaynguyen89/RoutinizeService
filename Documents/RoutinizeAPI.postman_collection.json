@@ -1019,6 +1019,411 @@
 			]
 		},
 		{
+			"name": "Collaboration",
+			"item": [
+				{
+					"name": "RequestCollaboration",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"uniqueId\": \"something\",\r\n    \"message\": \"Hi please connect so we can collaborate.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/collaboration/request",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ResponseToCollaborationRequest",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/response/1/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"response",
+								"1",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetCollaborationRequests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/get-requests/1/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"get-requests",
+								"1",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RevokeCollaborationRequest",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/revoke/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"revoke",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetShareableCollaborators",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/get-shareables",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"get-shareables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ShareItemWithCollaborator",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"itemId\": 1,\r\n    \"itemType\": \"Note\",\r\n    \"sharedToUserId\": 3,\r\n    \"message\": \"Hi please have a look on this note.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/collaboration/share-item",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"share-item"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ShareContentGroupWithCollaborator",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"groupId\": 1,\r\n    \"groupOfType\": null,\r\n    \"sharedToUserId\": 5,\r\n    \"message\": \"Hi please have a look on these notes.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5001/collaboration/share-group",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"share-group"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnshareItem",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/unshare-item/3/Todo/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"unshare-item",
+								"3",
+								"Todo",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UnshareContentGroup",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/unshare-group/1/7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"unshare-group",
+								"1",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetCollaboratorsByItem",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "AccountId",
+								"value": "7",
+								"type": "text"
+							},
+							{
+								"key": "AuthToken",
+								"value": "g4EMTEj9Y45jv8KXUjsCy/Heb6kq9o4RHcANGNqFo3KIhX5falf9XfsIaAm7Dy+BGGTvbnhWJHGKAefbnDMXoQ==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://localhost:5001/collaboration/get-item-assignees/4/Note/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5001",
+							"path": [
+								"collaboration",
+								"get-item-assignees",
+								"4",
+								"Note",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Todo",
 			"item": [
 				{

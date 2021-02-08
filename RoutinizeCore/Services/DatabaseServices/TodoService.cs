@@ -50,48 +50,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<int?> InsertNewTodoGroup([NotNull] ContentGroup contentGroup) {
-            try {
-                await _dbContext.ContentGroups.AddAsync(contentGroup);
-                var result = await _dbContext.SaveChangesAsync();
-
-                return result == 0 ? -1 : contentGroup.Id;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(InsertNewTodoGroup) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Error while inserting entry to TodoGroups.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(contentGroup) } = { JsonConvert.SerializeObject(contentGroup) }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return null;
-            }
-        }
-
-        public async Task<bool> UpdateTodoGroup([NotNull] ContentGroup contentGroup) {
-            try {
-                _dbContext.ContentGroups.Update(contentGroup);
-                var result = await _dbContext.SaveChangesAsync();
-
-                return result != 0;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(UpdateTodoGroup) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Error while inserting entry to TodoGroups.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(contentGroup) } = { JsonConvert.SerializeObject(contentGroup) }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return false;
-            }
-        }
-
         public async Task<bool> UpdateTodo([NotNull] Todo todo) {
             try {
                 _dbContext.Todos.Update(todo);
@@ -706,6 +664,117 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
 
                 return default;
+            }
+        }
+
+        public async Task<bool?> IsTodoSharedToAnyoneElseExceptThisCollaborator([NotNull] int collaboratorId,[NotNull] int todoId,[NotNull] int ownerId) {
+            try {
+                var collaborationIdHavingThisCollaborator = await _dbContext.Collaborations
+                                                                            .Where(
+                                                                                collaboration => collaboration.CollaboratorId == collaboratorId &&
+                                                                                                 collaboration.UserId == ownerId &&
+                                                                                                 collaboration.IsAccepted
+                                                                            )
+                                                                            .Select(collaboration => collaboration.Id)
+                                                                            .SingleOrDefaultAsync();
+                
+                var isSharedDirectlyToOtherCollaborators = await _dbContext.CollaboratorTasks
+                                                                           .AnyAsync(
+                                                                               task => task.CollaborationId != collaborationIdHavingThisCollaborator &&
+                                                                                       task.Id == todoId &&
+                                                                                       task.TaskType.Equals(nameof(Todo))
+                                                                            );
+                if (isSharedDirectlyToOtherCollaborators) return true;
+
+                var groupIdHavingThisTodo = await _dbContext.Todos
+                                                            .Where(todo => todo.GroupId.HasValue && todo.Id == todoId)
+                                                            .Select(todo => todo.GroupId)
+                                                            .SingleOrDefaultAsync();
+
+                var isSharedInGroupToOtherCollaborators = await _dbContext.GroupShares
+                                                                          .AnyAsync(
+                                                                              groupShare => groupShare.GroupId == groupIdHavingThisTodo &&
+                                                                                            groupShare.SharedToType.Equals(nameof(Collaboration)) &&
+                                                                                            groupShare.SharedToId != collaborationIdHavingThisCollaborator
+                                                                          );
+                if (isSharedInGroupToOtherCollaborators) return true;
+
+                var isSharedDirectlyToATeam = await _dbContext.TeamTasks.AnyAsync(teamTask => teamTask.TaskId == todoId && teamTask.TaskType.Equals(nameof(Todo)));
+                if (isSharedDirectlyToATeam) return true;
+
+                var isSharedDirectlyToAProjectIteration = await _dbContext.IterationTasks.AnyAsync(task => task.TaskId == todoId && task.TaskType.Equals(nameof(Todo)));
+                if (isSharedDirectlyToAProjectIteration) return true;
+
+                var isSharedInGroupToATeam = await _dbContext.TeamTasks
+                                                             .AnyAsync(
+                                                                 teamTask => teamTask.TaskId == groupIdHavingThisTodo &&
+                                                                             teamTask.TaskType.Equals($"{ nameof(ContentGroup) }.{ nameof(Todo) }")
+                                                             );
+                if (isSharedInGroupToATeam) return true;
+
+                var isSharedInGroupToAProjectIteration = await _dbContext.IterationTasks
+                                                                         .AnyAsync(
+                                                                             iterationTask => iterationTask.TaskId == groupIdHavingThisTodo &&
+                                                                                              iterationTask.TaskType.Equals($"{ nameof(ContentGroup) }.{ nameof(Todo) }")
+                                                                         );
+                return isSharedInGroupToAProjectIteration;
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(TodoService) }.{ nameof(IsTodoSharedToAnyoneElseExceptThisCollaborator) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(collaboratorId) }, { nameof(todoId) }, { nameof(ownerId) }) = ({ collaboratorId }, { todoId }, { ownerId })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return default;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(TodoService) }.{ nameof(IsTodoSharedToAnyoneElseExceptThisCollaborator) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(InvalidOperationException),
+                    DetailedInformation = $"Error while searching Todo with SingleOrDefault, >1 entry matching predicate..\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(collaboratorId) }, { nameof(todoId) }, { nameof(ownerId) }) = ({ collaboratorId }, { todoId }, { ownerId })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<User> GetTodoOwnerFor(int itemId) {
+            try {
+                return await _dbContext.Todos
+                                       .Where(todo => todo.Id == itemId)
+                                       .Select(todo => todo.User)
+                                       .SingleOrDefaultAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(TodoService) }.{ nameof(GetTodoOwnerFor) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching TodoGroups IDs with Where-Select.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(itemId) } = { itemId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return default;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(TodoService) }.{ nameof(GetTodoOwnerFor) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(InvalidOperationException),
+                    DetailedInformation = $"Error while searching Todo with SingleOrDefault, >1 entry matching predicate..\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(itemId) } = { itemId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
             }
         }
 

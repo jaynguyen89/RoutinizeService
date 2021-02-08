@@ -9,10 +9,6 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<int?> InsertNewTodo([NotNull] Todo todo);
 
-        Task<int?> InsertNewTodoGroup([NotNull] ContentGroup contentGroup);
-
-        Task<bool> UpdateTodoGroup([NotNull] ContentGroup contentGroup);
-
         Task<bool> UpdateTodo([NotNull] Todo todo);
 
         Task<bool?> IsTodoCreatedByThisUser([NotNull] int userId,[NotNull] int todoId);
@@ -60,5 +56,9 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<KeyValuePair<int, ContentGroup>[]> GetSharedArchivedTodoGroups([NotNull] int userId);
         
         Task<Todo[]> GetTodosForContentGroupById([NotNull] int groupId);
+        
+        Task<bool?> IsTodoSharedToAnyoneElseExceptThisCollaborator([NotNull] int collaboratorId,[NotNull] int todoId,[NotNull] int ownerId);
+        
+        Task<User> GetTodoOwnerFor([NotNull] int itemId);
     }
 }

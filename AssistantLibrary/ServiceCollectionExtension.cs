@@ -13,6 +13,7 @@ namespace AssistantLibrary {
             services.AddScoped<IEmailSenderService, EmailSenderService>();
             services.AddScoped<IGoogleRecaptchaService, GoogleRecaptchaService>();
             services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
+            services.AddScoped<IQrCodeMaker, QrCodeMaker>();
 
             return services;
         }

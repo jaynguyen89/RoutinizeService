@@ -18,15 +18,18 @@ namespace RoutinizeCore.Controllers {
         private readonly ITodoService _todoService;
         private readonly ICollaborationService _collaborationService;
         private readonly IUserService _userService;
+        private readonly IContentGroupService _groupService;
 
         public TodoController(
             ITodoService todoService,
             ICollaborationService collaborationService,
-            IUserService userService
+            IUserService userService,
+            IContentGroupService groupService
         ) {
             _todoService = todoService;
             _collaborationService = collaborationService;
             _userService = userService;
+            _groupService = groupService;
         }
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace RoutinizeCore.Controllers {
 
             todoGroup.GroupOfType = nameof(Todo);
             
-            var result = await _todoService.InsertNewTodoGroup(todoGroup);
+            var result = await _groupService.InsertNewContentGroup(todoGroup);
             return !result.HasValue || result.Value < 1
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = result.Value });
@@ -80,7 +83,7 @@ namespace RoutinizeCore.Controllers {
             if (!shouldUpdateTodoGroup.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             if (!shouldUpdateTodoGroup.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
             
-            var result = await _todoService.UpdateTodoGroup(todoGroup);
+            var result = await _groupService.UpdateContentGroup(todoGroup);
             return result
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });

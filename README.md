@@ -13,6 +13,7 @@ This library provides the following services:
 - Google Recaptcha Verification
 - Email Sender
 - Google Two Factor Authentication
+- QRCode generator with QRCoder
 - Assistant Service: supports cryptography producer and verifier
 
 ###### HelperLibrary
