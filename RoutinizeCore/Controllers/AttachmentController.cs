@@ -114,8 +114,8 @@ namespace RoutinizeCore.Controllers {
 
             var error = attachmentsFailedToSave.Count != 0;
             if (attachmentData.UploadedFiles.Count == 0)
-                return error ? new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success})
-                             : new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Partial, Data = attachmentsFailedToSave});
+                return error ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                             : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Data = attachmentsFailedToSave });
             
             var httpResult = await _fileService.SendSaveFilesRequestToRoutinizeStorageApi(
                 new FilesUploadVM {

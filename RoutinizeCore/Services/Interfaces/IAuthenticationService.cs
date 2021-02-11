@@ -6,11 +6,9 @@ using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface IAuthenticationService {
+    public interface IAuthenticationService : IDbServiceBase {
 
         Task<int> InsertNewUserAccount([NotNull] RegisterAccountVM registrationData,[NotNull] string uniqueId,[NotNull] string activationToken);
-
-        Task<bool> RemoveNewlyInsertedUserAccount([NotNull] int accountId);
 
         Task<KeyValuePair<bool, bool?>> ActivateUserAccount([NotNull] AccountActivationVM activator);
 

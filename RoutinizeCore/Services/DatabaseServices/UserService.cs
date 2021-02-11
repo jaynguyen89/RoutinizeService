@@ -16,17 +16,39 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class UserService : IUserService {
-        
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class UserService : DbServiceBase, IUserService {
 
         public UserService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) { }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<int?> InsertBlankUserWithPrivacyAndAppSetting([NotNull] int accountId) {
@@ -343,7 +365,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<User?> GetUserById(int userId) {
+        public async Task<User> GetUserById(int userId) {
             try {
                 return await _dbContext.Users.FindAsync(userId);
             }
@@ -388,6 +410,24 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     DetailedInformation = $"Error while getting account, >1 entry matches predicate.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(userId) } = { userId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<bool?> DoesUserHasPremiumOrNoteUnlocked(int userId) {
+            try {
+                return await _dbContext.AppSettings.AnyAsync(settings => settings.UserId == userId && (settings.IsPremium || settings.NoteUnlocked));
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(DoesUserHasPremiumOrTodoUnlocked) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while checking entry existed in Users with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
                 return null;

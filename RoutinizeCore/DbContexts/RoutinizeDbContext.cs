@@ -26,7 +26,9 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<ChallengeRecord> ChallengeRecords { get; set; }
         public virtual DbSet<Collaboration> Collaborations { get; set; }
         public virtual DbSet<CollaboratorTask> CollaboratorTasks { get; set; }
+        public virtual DbSet<ContentFolder> ContentFolders { get; set; }
         public virtual DbSet<ContentGroup> ContentGroups { get; set; }
+        public virtual DbSet<FolderItem> FolderItems { get; set; }
         public virtual DbSet<GroupShare> GroupShares { get; set; }
         public virtual DbSet<IterationTask> IterationTasks { get; set; }
         public virtual DbSet<Note> Notes { get; set; }
@@ -253,6 +255,29 @@ namespace RoutinizeCore.DbContexts
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            modelBuilder.Entity<ContentFolder>(entity =>
+            {
+                entity.ToTable("ContentFolder");
+
+                entity.Property(e => e.ColorTag)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasDefaultValueSql("('#363636')");
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(150);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany(p => p.ContentFolders)
+                    .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             modelBuilder.Entity<ContentGroup>(entity =>
             {
                 entity.ToTable("ContentGroup");
@@ -272,6 +297,22 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.CreatedBy)
                     .WithMany(p => p.ContentGroups)
                     .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<FolderItem>(entity =>
+            {
+                entity.ToTable("FolderItem");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ItemType)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(d => d.Folder)
+                    .WithMany(p => p.FolderItems)
+                    .HasForeignKey(d => d.FolderId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -322,9 +363,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.DeletedOn).HasMaxLength(7);
-
-                entity.Property(e => e.Title).HasMaxLength(100);
+                entity.Property(e => e.Title).HasMaxLength(150);
 
                 entity.HasOne(d => d.Group)
                     .WithMany(p => p.Notes)
@@ -340,8 +379,6 @@ namespace RoutinizeCore.DbContexts
             modelBuilder.Entity<NoteSegment>(entity =>
             {
                 entity.ToTable("NoteSegment");
-
-                entity.Property(e => e.Body).HasMaxLength(4000);
 
                 entity.HasOne(d => d.Note)
                     .WithMany(p => p.NoteSegments)

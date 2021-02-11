@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,13 +16,12 @@ namespace RoutinizeCore.Controllers {
     [ApiController]
     [RoutinizeActionFilter]
     [Route("collaboration")]
-    public sealed class CollaborationController : ControllerBase {
+    public sealed class CollaborationController : AppController {
 
         private readonly ICollaborationService _collaborationService;
         private readonly IContentGroupService _groupService;
         private readonly IAccountService _accountService;
         private readonly IUserService _userService;
-        private readonly IUserNotifier _userNotifier;
 
         public CollaborationController(
             ICollaborationService collaborationService,
@@ -31,12 +29,11 @@ namespace RoutinizeCore.Controllers {
             IAccountService accountService,
             IUserService userService,
             IUserNotifier userNotifier
-        ) {
+        ) : base(userNotifier) {
             _collaborationService = collaborationService;
             _groupService = groupService;
             _accountService = accountService;
             _userService = userService;
-            _userNotifier = userNotifier;
         }
 
         [HttpPost("request")]
@@ -64,24 +61,31 @@ namespace RoutinizeCore.Controllers {
                 InvitedOn = DateTime.UtcNow
             };
 
+            await _collaborationService.StartTransaction();
             var saveResult = await _collaborationService.InsertNewCollaboratorRequest(collaboration);
-            if (!saveResult.HasValue || !saveResult.Value)
+            if (!saveResult.HasValue || !saveResult.Value) {
+                await _collaborationService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
-
-            var collaboratorName = Helpers.IsProperString(requestedCollaborator.PreferredName)
-                ? requestedCollaborator.PreferredName
-                : $"{ requestedCollaborator.FirstName } { requestedCollaborator.LastName }";
+            }
             
-            var isNotified = await _userNotifier.NotifyUserSingle(
-                requestedAccount.FcmToken,
+            var isNotified = await SendNotification(
+                requester,
+                requestedCollaborator.Id,
                 new UserNotification {
-                    Message = $"{ collaboratorName } has just sent you a collaboration request. Please respond as soon as possible.",
-                    Title = "Collaboration Request"
-                }
+                    Message = $"{ TokenNotifierName } has just sent you a collaboration request. Please respond as soon as possible.",
+                    Title = "Collaboration Request Sent"
+                },
+                _userService,
+                requestedAccount.FcmToken
             );
-            
-            return isNotified ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                              : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "An issue happened while sending notification." });
+
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
         [HttpGet("response/{collaborationId}/{isAccepted}")]
@@ -98,30 +102,36 @@ namespace RoutinizeCore.Controllers {
                 collaborationRequest.RejectedOn = DateTime.UtcNow;
             }
 
+            await _collaborationService.StartTransaction();
             var updateResult = await _collaborationService.UpdateCollaboration(collaborationRequest);
-            if (!updateResult.HasValue || !updateResult.Value)
+            if (!updateResult.HasValue || !updateResult.Value) {
+                await _collaborationService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
-
+            }
+            
             var requestedCollaborator = await _userService.GetUserById(collaborationRequest.CollaboratorId);
-            if (requestedCollaborator == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "An issue happened while sending notification." });
-            
-            var requesterAccount = await _userService.GetAccountByUserId(collaborationRequest.UserId);
-            if (requesterAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "An issue happened while sending notification." });
-            
-            var collaboratorName = Helpers.IsProperString(requestedCollaborator.PreferredName)
-                ? requestedCollaborator.PreferredName
-                : $"{ requestedCollaborator.FirstName } { requestedCollaborator.LastName }";
-
-            var isNotified = await _userNotifier.NotifyUserSingle(
-                requesterAccount.FcmToken,
+            if (requestedCollaborator == null) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "An issue happened while sending notification." });
+            }
+                        
+            var isNotified = await SendNotification(
+                requestedCollaborator,
+                collaborationRequest.UserId,
                 new UserNotification {
-                    Message = $"Your collaboration request with { collaboratorName } has been { (isAccepted == 1 ? "accepted. You guys can start sharing tasks now." : "rejected.") }.",
-                    Title = "Collaboration Request"
-                }
+                    Message = $"Your collaboration request with { TokenNotifierName } has been { (isAccepted == 1 ? "accepted. You guys can start sharing tasks now." : "rejected.") }.",
+                    Title = "Collaboration Request Received"
+                },
+                _userService
             );
             
-            return isNotified ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                              : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "An issue happened while sending notification." });
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
         [HttpGet("get-requests/{status}/{asRequester}")]
@@ -171,6 +181,22 @@ namespace RoutinizeCore.Controllers {
             var errorMessage = sharingData.ValidateMessage();
             if (errorMessage.Length != 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errorMessage });
             
+            var haveThisTask = await _collaborationService.DoesCollaboratorAlreadyHaveThisItemTask(sharingData);
+            if (!haveThisTask.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (haveThisTask.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Task already assigned to this collaborator." });
+            
+            var (error, sharedByUser) = await _userService.GetUserProfileByAccountId(accountId);
+            if (error || sharedByUser == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var haveCollaboration = await _collaborationService.AreTheyCollaborating(sharedByUser.Id, sharingData.SharedToUserId);
+            switch (haveCollaboration) {
+                case null:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                case < 1:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            }
+
+            await _collaborationService.StartTransaction();
             var updateItemExpression = sharingData.ItemType switch {
                 nameof(Todo) => (Func<Task<bool?>>)(async () => {
                     var todoService = HttpContext.RequestServices.GetService<ITodoService>();
@@ -206,23 +232,10 @@ namespace RoutinizeCore.Controllers {
             };
 
             var updateItemResult = updateItemExpression.Invoke().Result;
-            if (!updateItemResult.HasValue || !updateItemResult.Value)
+            if (!updateItemResult.HasValue || !updateItemResult.Value) {
+                await _collaborationService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
-
-            var (error, sharedByUser) = await _userService.GetUserProfileByAccountId(accountId);
-            if (error || sharedByUser == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-
-            var haveCollaboration = await _collaborationService.AreTheyCollaborating(sharedByUser.Id, sharingData.SharedToUserId);
-            switch (haveCollaboration) {
-                case null:
-                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-                case < 1:
-                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
             }
-
-            var haveThisTask = await _collaborationService.DoesCollaboratorAlreadyHaveThisItemTask(sharingData);
-            if (!haveThisTask.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-            if (haveThisTask.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Task already assigned to this collaborator." });
 
             var task = new CollaboratorTask {
                 CollaborationId = haveCollaboration.Value,
@@ -234,10 +247,28 @@ namespace RoutinizeCore.Controllers {
             };
 
             var saveResult = await _collaborationService.InsertNewCollaboratorTask(task);
-            //Todo: notify collaborator
-            return !saveResult.HasValue || saveResult.Value < 1
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
+            if (!saveResult.HasValue || saveResult.Value < 1) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            }
+            
+            var isNotified = await SendNotification(
+                sharedByUser,
+                sharingData.SharedToUserId,
+                new UserNotification {
+                    Message = $"{ TokenNotifierName } has just assigned a { sharingData.ItemType } to you. Please tap to see the item.",
+                    Title = "Task Assigned"
+                },
+                _userService
+            );
+
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
         }
 
         [HttpPost("share-group")]
@@ -273,9 +304,12 @@ namespace RoutinizeCore.Controllers {
                 SideNotes = sharingData.Message
             };
 
+            await _collaborationService.StartTransaction();
             var groupShareSaveResult = await _groupService.InsertNewGroupShare(groupShare);
-            if (!groupShareSaveResult.HasValue || groupShareSaveResult.Value < 1)
+            if (!groupShareSaveResult.HasValue || groupShareSaveResult.Value < 1) {
+                await _collaborationService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            }
 
             var task = new CollaboratorTask {
                 CollaborationId = haveCollaboration.Value,
@@ -287,35 +321,54 @@ namespace RoutinizeCore.Controllers {
             };
             
             var saveResult = await _collaborationService.InsertNewCollaboratorTask(task);
-            //Todo: notify collaborator
-            return !saveResult.HasValue || saveResult.Value < 1
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
+            if (!saveResult.HasValue || saveResult.Value < 1) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            }
+            
+            var isNotified = await SendNotification(
+                sharedByUser,
+                sharingData.SharedToUserId,
+                new UserNotification {
+                    Message = $"{ TokenNotifierName } has just assigned a Group of { contentGroup.GroupOfType }s to you. Please tap to view the group.",
+                    Title = "Group Task Assigned"
+                },
+                _userService
+            );
+
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
         }
 
         [HttpDelete("unshare-item/{itemId}/{itemType}/{unsharedToUserId}")]
         public async Task<JsonResult> UnshareItem([FromHeader] int accountId,[FromRoute] int itemId,[FromRoute] string itemType,[FromRoute] int unsharedToUserId) {
-            var (error, user) = await _userService.GetUserProfileByAccountId(accountId);
-            if (error || user == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            var (error, unsharedByUser) = await _userService.GetUserProfileByAccountId(accountId);
+            if (error || unsharedByUser == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
-            var haveCollaboration = await _collaborationService.AreTheyCollaborating(user.Id, unsharedToUserId);
+            var haveCollaboration = await _collaborationService.AreTheyCollaborating(unsharedByUser.Id, unsharedToUserId);
             switch (haveCollaboration) {
                 case null:
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
                 case < 1:
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
             }
-            
+
+            await _collaborationService.StartTransaction();
             var updateItemExpression = itemType switch {
                 nameof(Todo) => (Func<Task<bool?>>)(async () => {
                     var todoService = HttpContext.RequestServices.GetService<ITodoService>();
                     if (todoService == null) return default;
 
-                    var isTodoCreatedByUser = await todoService.IsTodoCreatedByThisUser(user.Id, itemId);
+                    var isTodoCreatedByUser = await todoService.IsTodoCreatedByThisUser(unsharedByUser.Id, itemId);
                     if (!isTodoCreatedByUser.HasValue) return default;
                     if (!isTodoCreatedByUser.Value) return false;
 
-                    var hasOtherSharing = await todoService.IsTodoSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, user.Id);
+                    var hasOtherSharing = await todoService.IsTodoSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, unsharedByUser.Id);
                     if (!hasOtherSharing.HasValue) return default;
                     
                     var todo = await todoService.GetTodoById(itemId);
@@ -328,11 +381,11 @@ namespace RoutinizeCore.Controllers {
                     var noteService = HttpContext.RequestServices.GetService<INoteService>();
                     if (noteService == null) return default;
 
-                    var isNoteCreatedByUser = await noteService.IsNoteCreatedByThisUser(user.Id, itemId);
+                    var isNoteCreatedByUser = await noteService.IsNoteCreatedByThisUser(unsharedByUser.Id, itemId);
                     if (!isNoteCreatedByUser.HasValue) return default;
                     if (!isNoteCreatedByUser.Value) return false;
 
-                    var hasOtherSharing = await noteService.IsNoteSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, user.Id);
+                    var hasOtherSharing = await noteService.IsNoteSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, unsharedByUser.Id);
                     if (!hasOtherSharing.HasValue) return default;
                     
                     var note = await noteService.GetNoteById(itemId);
@@ -345,11 +398,11 @@ namespace RoutinizeCore.Controllers {
                     var noteService = HttpContext.RequestServices.GetService<INoteService>();
                     if (noteService == null) return default;
                     
-                    var isNoteSegmentCreatedByUser = await noteService.IsNoteSegmentCreatedByThisUser(user.Id, itemId);
+                    var isNoteSegmentCreatedByUser = await noteService.IsNoteSegmentCreatedByThisUser(unsharedByUser.Id, itemId);
                     if (!isNoteSegmentCreatedByUser.HasValue) return default;
                     if (!isNoteSegmentCreatedByUser.Value) return false;
 
-                    var hasOtherSharing = await noteService.IsNoteSegmentSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, user.Id);
+                    var hasOtherSharing = await noteService.IsNoteSegmentSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, itemId, unsharedByUser.Id);
                     if (!hasOtherSharing.HasValue) return default;
 
                     var noteSegment = await noteService.GetNoteSegmentById(itemId);
@@ -364,8 +417,10 @@ namespace RoutinizeCore.Controllers {
             var updateItemResult = updateItemExpression.Invoke().Result;
             switch (updateItemResult) {
                 case null:
+                    await _collaborationService.RevertTransaction();
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
                 case false:
+                    await _collaborationService.RevertTransaction();
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
             }
 
@@ -373,18 +428,36 @@ namespace RoutinizeCore.Controllers {
             if (task == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
             var deleteResult = await _collaborationService.DeleteCollaboratorTask(task);
-            //Todo: notify collaborator
-            return !deleteResult.HasValue || !deleteResult.Value
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            if (!deleteResult.HasValue || !deleteResult.Value) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+            
+            var isNotified = await SendNotification(
+                unsharedByUser,
+                unsharedToUserId,
+                new UserNotification {
+                    Message = $"{ TokenNotifierName } has just unassigned a { itemType } to you.",
+                    Title = "Task Unassigned"
+                },
+                _userService
+            );
+
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
         [HttpDelete("unshare-group/{groupId}/{unsharedToUserId}")]
         public async Task<JsonResult> UnshareContentGroup([FromHeader] int accountId,[FromRoute] int groupId,[FromRoute] int unsharedToUserId) {
-            var (error, user) = await _userService.GetUserProfileByAccountId(accountId);
-            if (error || user == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            var (error, unsharedByUser) = await _userService.GetUserProfileByAccountId(accountId);
+            if (error || unsharedByUser == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             
-            var haveCollaboration = await _collaborationService.AreTheyCollaborating(user.Id, unsharedToUserId);
+            var haveCollaboration = await _collaborationService.AreTheyCollaborating(unsharedByUser.Id, unsharedToUserId);
             switch (haveCollaboration) {
                 case null:
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -392,30 +465,56 @@ namespace RoutinizeCore.Controllers {
                     return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
             }
 
-            var isGroupCreatedByUser = await _groupService.IsGroupCreatedByThisUser(user.Id, groupId);
+            var isGroupCreatedByUser = await _groupService.IsGroupCreatedByThisUser(unsharedByUser.Id, groupId);
             if (!isGroupCreatedByUser.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             if (!isGroupCreatedByUser.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
 
             var itemGroup = await _groupService.GetContentGroupById(groupId);
             if (itemGroup == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             
-            var hasOtherSharing = await _groupService.IsGroupSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, groupId, itemGroup.GroupOfType, user.Id);
+            var hasOtherSharing = await _groupService.IsGroupSharedToAnyoneElseExceptThisCollaborator(unsharedToUserId, groupId, itemGroup.GroupOfType, unsharedByUser.Id);
             if (!hasOtherSharing.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
+            await _collaborationService.StartTransaction();
             if (hasOtherSharing.Value != itemGroup.IsShared) {
                 itemGroup.IsShared = hasOtherSharing.Value;
                 var groupUpdateResult = await _groupService.UpdateContentGroup(itemGroup);
-                if (!groupUpdateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+                
+                if (!groupUpdateResult) {
+                    await _collaborationService.RevertTransaction();
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+                }
             }
 
             var task = await _collaborationService.GetCollaboratorTaskFor(haveCollaboration.Value, groupId, $"{ nameof(ContentGroup) }.{ itemGroup.GroupOfType }");
-            if (task == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (task == null) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            }
 
             var deleteResult = await _collaborationService.DeleteCollaboratorTask(task);
-            //Todo: notify collaborator
-            return !deleteResult.HasValue || !deleteResult.Value
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            if (!deleteResult.HasValue || !deleteResult.Value) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            var isNotified = await SendNotification(
+                unsharedByUser,
+                unsharedToUserId,
+                new UserNotification {
+                    Message = $"{ TokenNotifierName } has just unassigned a Group of { itemGroup.GroupOfType }s to you.",
+                    Title = "Group Task Unassigned"
+                },
+                _userService
+            );
+
+            if (!isNotified) {
+                await _collaborationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while sending notification." });
+            }
+
+            await _collaborationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
         [HttpGet("get-item-assignees/{itemId}/{itemType}/{isGroup}")]

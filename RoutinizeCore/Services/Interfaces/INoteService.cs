@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using HelperLibrary.Shared;
 using RoutinizeCore.Models;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface INoteService {
+    public interface INoteService : IDbServiceBase {
 
         Task<Note> GetNoteById([NotNull] int noteId);
         
@@ -25,5 +26,21 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<User> GetNoteOwnerFor([NotNull] int noteId);
         
         Task<User> GetNoteSegmentOwnerFor([NotNull] int segmentId);
+        
+        Task<int?> InsertNewNote([NotNull] Note note);
+        
+        Task<int?> InsertNoteSegment([NotNull] NoteSegment segment);
+        
+        Task<bool?> DeleteNoteSegment([NotNull] NoteSegment segment);
+        
+        Task<bool?> DeleteNote([NotNull] Note note);
+        
+        Task<Note[]> GetPersonalActiveNotes([NotNull] int userId);
+        
+        Task<Note[]> GetPersonalArchivedNotes([NotNull] int userId);
+        
+        Task<Note[]> GetSharedActiveNotes([NotNull] int userId);
+        
+        Task<Note[]> GetSharedArchivedNotes([NotNull] int userId);
     }
 }

@@ -5,7 +5,7 @@ using RoutinizeCore.Models;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface IUserService {
+    public interface IUserService : IDbServiceBase {
 
         Task<int?> InsertBlankUserWithPrivacyAndAppSetting([NotNull] int accountId);
 
@@ -31,8 +31,10 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<User> GetUserByUniqueId([NotNull] string uniqueId);
         
-        Task<User?> GetUserById([NotNull] int userId);
+        Task<User> GetUserById([NotNull] int userId);
         
         Task<Account> GetAccountByUserId([NotNull] int userId);
+        
+        Task<bool?> DoesUserHasPremiumOrNoteUnlocked(int userId);
     }
 }

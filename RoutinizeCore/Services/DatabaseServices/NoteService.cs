@@ -14,17 +14,39 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class NoteService : INoteService {
-        
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class NoteService : DbServiceBase, INoteService {
 
         public NoteService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) { }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<Note> GetNoteById(int noteId) {
@@ -177,7 +199,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(NoteService) }.{ nameof(IsNoteSharedToAnyoneElseExceptThisCollaborator) }",
+                    Location = $"{ nameof(NoteService) }.{ nameof(IsNoteSharedToAnyoneElseExceptThisCollaborator) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching Notes with AnyAsync.\n\n{ e.StackTrace }",
@@ -211,7 +233,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(NoteService) }.{ nameof(IsNoteSegmentCreatedByThisUser) }",
+                    Location = $"{ nameof(NoteService) }.{ nameof(IsNoteSegmentCreatedByThisUser) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching NoteSegments with AnyAsync.\n\n{ e.StackTrace }",
@@ -234,7 +256,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(NoteService) }.{ nameof(IsNoteSegmentSharedToAnyoneElseExceptThisCollaborator) }",
+                    Location = $"{ nameof(NoteService) }.{ nameof(IsNoteSegmentSharedToAnyoneElseExceptThisCollaborator) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching Notes with AnyAsync.\n\n{ e.StackTrace }",
@@ -267,7 +289,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(NoteService) }.{ nameof(GetNoteOwnerFor) }",
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetNoteOwnerFor) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching User through Notes with Where-Select-Single.\n\n{ e.StackTrace }",
@@ -300,7 +322,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(NoteService) }.{ nameof(GetNoteOwnerFor) }",
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetNoteOwnerFor) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching User through NoteSegment with Where-Select-Single.\n\n{ e.StackTrace }",
@@ -317,6 +339,186 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     BriefInformation = nameof(InvalidOperationException),
                     DetailedInformation = $"Error while searching User through NoteSegment with SingleOrDefault, >1 entry matching predicate..\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(segmentId) } = { segmentId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<int?> InsertNewNote(Note note) {
+            try {
+                await _dbContext.Notes.AddAsync(note);
+                var result = await _dbContext.SaveChangesAsync();
+
+                return result == 0 ? -1 : note.Id;
+            }
+            catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(InsertNewNote) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"Error while inserting Note.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(note) } = { JsonConvert.SerializeObject(note) }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<int?> InsertNoteSegment(NoteSegment segment) {
+            try {
+                await _dbContext.NoteSegments.AddAsync(segment);
+                var result = await _dbContext.SaveChangesAsync();
+
+                return result == 0 ? -1 : segment.Id;
+            }
+            catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(InsertNoteSegment) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"Error while inserting NoteSegment.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(segment) } = { JsonConvert.SerializeObject(segment) }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<bool?> DeleteNoteSegment(NoteSegment segment) {
+            try {
+                _dbContext.NoteSegments.Remove(segment);
+                var result = await _dbContext.SaveChangesAsync();
+
+                return result != 0;
+            }
+            catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(DeleteNoteSegment) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"Error while removing NoteSegment.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(segment) }.Id = { segment.Id }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<bool?> DeleteNote(Note note) {
+            try {
+                _dbContext.Notes.Remove(note);
+                var result = await _dbContext.SaveChangesAsync();
+
+                return result != 0;
+            }
+            catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(DeleteNote) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(DbUpdateException),
+                    DetailedInformation = $"Error while removing Note.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(note) }.Id = { note.Id }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Note[]> GetPersonalActiveNotes(int userId) {
+            try {
+                return await _dbContext.Notes
+                                       .Where(
+                                           note => note.UserId == userId &&
+                                                   !note.IsShared &&
+                                                   !note.DeletedOn.HasValue
+                                       )
+                                       .ToArrayAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetPersonalActiveNotes) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Notes with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Note[]> GetPersonalArchivedNotes(int userId) {
+            try {
+                return await _dbContext.Notes
+                                       .Where(
+                                           note => note.UserId == userId &&
+                                                   !note.IsShared &&
+                                                   note.DeletedOn.HasValue
+                                       )
+                                       .ToArrayAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetPersonalArchivedNotes) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Notes with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Note[]> GetSharedActiveNotes(int userId) {
+            try {
+                return await _dbContext.Notes
+                                       .Where(
+                                           note => note.UserId == userId &&
+                                                   note.IsShared &&
+                                                   !note.DeletedOn.HasValue
+                                       )
+                                       .ToArrayAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetSharedActiveNotes) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Notes with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Note[]> GetSharedArchivedNotes(int userId) {
+            try {
+                return await _dbContext.Notes
+                                       .Where(
+                                           note => note.UserId == userId &&
+                                                   note.IsShared &&
+                                                   note.DeletedOn.HasValue
+                                       )
+                                       .ToArrayAsync();
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(NoteService) }.{ nameof(GetSharedArchivedNotes) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Notes with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 

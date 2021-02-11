@@ -4,7 +4,7 @@ using RoutinizeCore.Models;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface IAccountService {
+    public interface IAccountService : IDbServiceBase {
         
         Task<bool> IsRegistrationEmailAvailable([NotNull] string email);
 

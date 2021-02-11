@@ -5,7 +5,7 @@ using RoutinizeCore.ViewModels.Attachment;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface IAttachmentService {
+    public interface IAttachmentService : IDbServiceBase {
         
         Task<bool?> InsertNewAttachment([NotNull] Attachment attachment);
         

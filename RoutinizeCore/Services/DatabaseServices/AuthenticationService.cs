@@ -17,17 +17,39 @@ using RoutinizeCore.ViewModels.Authentication;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class AuthenticationService : IAuthenticationService {
-        
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class AuthenticationService : DbServiceBase, IAuthenticationService {
 
         public AuthenticationService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) { }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<int> InsertNewUserAccount(
@@ -61,28 +83,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
 
                 return -1;
-            }
-        }
-
-        public async Task<bool> RemoveNewlyInsertedUserAccount([NotNull] int accountId) {
-            try {
-                var dbAccountToRemove = await _dbContext.Accounts.FindAsync(accountId);
-                _dbContext.Accounts.Remove(dbAccountToRemove);
-
-                var result = await _dbContext.SaveChangesAsync();
-                return result > 0;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(AuthenticationService) }.{ nameof(RemoveNewlyInsertedUserAccount) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Failed to remove an instance from database table Accounts.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(accountId) } = { accountId }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return false;
             }
         }
 

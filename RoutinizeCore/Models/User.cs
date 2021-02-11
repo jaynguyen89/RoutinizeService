@@ -13,6 +13,7 @@ namespace RoutinizeCore.Models
             Attachments = new HashSet<Attachment>();
             CollaborationCollaborators = new HashSet<Collaboration>();
             CollaborationUsers = new HashSet<Collaboration>();
+            ContentFolders = new HashSet<ContentFolder>();
             ContentGroups = new HashSet<ContentGroup>();
             GroupShares = new HashSet<GroupShare>();
             Notes = new HashSet<Note>();
@@ -43,6 +44,7 @@ namespace RoutinizeCore.Models
         public virtual ICollection<Attachment> Attachments { get; set; }
         public virtual ICollection<Collaboration> CollaborationCollaborators { get; set; }
         public virtual ICollection<Collaboration> CollaborationUsers { get; set; }
+        public virtual ICollection<ContentFolder> ContentFolders { get; set; }
         public virtual ICollection<ContentGroup> ContentGroups { get; set; }
         public virtual ICollection<GroupShare> GroupShares { get; set; }
         public virtual ICollection<Note> Notes { get; set; }

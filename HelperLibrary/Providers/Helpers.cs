@@ -110,7 +110,7 @@ namespace HelperLibrary {
             return newSentence;
         }
 
-        public static string CapitalizeFirstLetterOfSentence([NotNull] string sentence) {
+        public static string CapitalizeFirstLetterOfSentence([AllowNull] string sentence) {
             return !IsProperString(sentence)
                 ? default
                 : sentence.First().ToString().ToUpper().Concat(sentence.Substring(1)).ToString();

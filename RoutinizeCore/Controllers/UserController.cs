@@ -225,16 +225,23 @@ namespace RoutinizeCore.Controllers {
                 userProfile = new User { Id = saveProfileResult.Value, AccountId = accountId };
             }
 
+            await _userService.StartTransaction();
+            
             var saveAddressResult = await _addressService.SaveNewAddress(address);
-            if (!saveAddressResult.HasValue || saveAddressResult.Value < 1)
+            if (!saveAddressResult.HasValue || saveAddressResult.Value < 1) {
+                await _userService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
 
             userProfile.AddressId = saveAddressResult;
             var updateResult = await _userService.UpdateUserProfile(userProfile);
+            if (updateResult.HasValue && updateResult.Value) {
+                await _userService.CommitTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = userProfile });
+            }
 
-            return updateResult.HasValue && updateResult.Value
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = userProfile })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            await _userService.RevertTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
         }
 
         [HttpPut("update-user-address")]
@@ -252,11 +259,27 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpDelete("remove-address/{addressId}")]
-        public async Task<JsonResult> RemoveAddress(int addressId) {
+        public async Task<JsonResult> RemoveAddress([FromHeader] int accountId,[FromRoute] int addressId) {
+            var (error, userProfile) = await _userService.GetUserProfileByAccountId(accountId);
+            if (error || userProfile == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            userProfile.AddressId = null;
+            await _userService.StartTransaction();
+
+            var updateUserResult = await _userService.UpdateUserProfile(userProfile);
+            if (!updateUserResult.HasValue || !updateUserResult.Value) {
+                await _userService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+            
             var result = await _addressService.RemoveAddress(addressId);
-            return result.HasValue && result.Value
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while removing data." });
+            if (result.HasValue && result.Value) {
+                await _userService.CommitTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
+
+            await _userService.RevertTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while removing data." });
         }
 
         [HttpPut("update-user-privacy/{accountId}")]

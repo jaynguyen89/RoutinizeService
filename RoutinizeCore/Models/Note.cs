@@ -19,7 +19,7 @@ namespace RoutinizeCore.Models
         public bool Emphasized { get; set; }
         public string Title { get; set; }
         public DateTime CreatedOn { get; set; }
-        public string DeletedOn { get; set; }
+        public DateTime? DeletedOn { get; set; }
 
         public virtual ContentGroup Group { get; set; }
         public virtual User User { get; set; }

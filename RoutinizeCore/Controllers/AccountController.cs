@@ -70,31 +70,34 @@ namespace RoutinizeCore.Controllers {
             if (!_assistantService.IsHashMatchesPlainText(userAccount.PasswordHash, emailUpdateData.Password))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "Password is incorrect.", Error = SharedEnums.HttpStatusCodes.Forbidden });
 
-            var emailUpdateLog = new EmailUpdateLog {
-                Activity = nameof(ChangeAccountEmail),
-                AccountId = userAccount.Id,
-                EmailBeingReplaced = userAccount.Email
-            };
-
-            if (!await _accountLogService.InsertRoutinizeAccountLog(emailUpdateLog))
-                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Message = "An error occurred while updating your email."});
-
             userAccount.Email = emailUpdateData.NewEmail;
             userAccount.EmailConfirmed = false;
 
             var confirmationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.RecoveryToken = confirmationToken;
             userAccount.TokenSetOn = DateTime.UtcNow;
-            
+
+            await _accountService.StartTransaction();
             var updateResult = await _accountService.UpdateUserAccount(userAccount);
             if (!updateResult) {
-                await _accountLogService.RemoveAccountLogEntry(emailUpdateLog);
-                
+                await _accountService.RevertTransaction();
+
                 return new JsonResult(new JsonResponse {
                     Result = SharedEnums.RequestResults.Failed,
                     Message = "An error occurred while updating your account.",
                     Error = SharedEnums.HttpStatusCodes.InternalServerError
                 });
+            }
+            
+            var emailUpdateLog = new EmailUpdateLog {
+                Activity = nameof(ChangeAccountEmail),
+                AccountId = userAccount.Id,
+                EmailBeingReplaced = userAccount.Email
+            };
+
+            if (!await _accountLogService.InsertRoutinizeAccountLog(emailUpdateLog)) {
+                await _accountService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An error occurred while updating your email." });
             }
 
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }EmailUpdateNotificationEmail.html");
@@ -113,10 +116,19 @@ namespace RoutinizeCore.Controllers {
             };
 
             fileReader.Close();
-            if (!await _emailSenderService.SendEmailSingle(emailUpdateEmail))
-                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Partial, Message = "Failed to send the activation email."});
-            
+            if (!await _emailSenderService.SendEmailSingle(emailUpdateEmail)) {
+                await _accountLogService.RemoveAccountLogEntry(emailUpdateLog);
+                await _accountService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send the activation email." });
+            }
+
+            await _accountService.CommitTransaction();
             return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpPost("verify-new-email")]
+        public async Task<JsonResult> VerifyNewEmail() {
+            throw new NotImplementedException();
         }
 
         [HttpGet("get-challenge-question-for-proof/{accountId}")]
@@ -174,7 +186,8 @@ namespace RoutinizeCore.Controllers {
             bool? saveResult = null;
             bool? removeResult = null;
             bool? updateResult = null;
-            
+
+            await _accountService.StartTransaction();
             if (newChallengeResponses.Length != 0)
                 saveResult = await _challengeService.SaveChallengeRecordsForAccount(newAccountChallengeData.AccountId, newChallengeResponses);
             
@@ -184,7 +197,12 @@ namespace RoutinizeCore.Controllers {
             if (saveResult.HasValue && saveResult.Value && removeResult.HasValue && removeResult.Value && updatedResponses.Length != 0)
                 updateResult = await _challengeService.UpdateChallengeRecords(updatedResponses);
 
-            if (updateResult.HasValue && updateResult.Value) return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success});
+            if (updateResult.HasValue && updateResult.Value) {
+                await _accountService.CommitTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
+
+            await _accountService.RevertTransaction();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
         }
 

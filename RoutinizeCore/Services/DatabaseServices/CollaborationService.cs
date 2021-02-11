@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HelperLibrary;
+using HelperLibrary.Shared;
 using Microsoft.EntityFrameworkCore;
 using MongoLibrary.Interfaces;
 using MongoLibrary.Models;
@@ -16,17 +17,39 @@ using static HelperLibrary.Shared.SharedEnums;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class CollaborationService : ICollaborationService {
-
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class CollaborationService : DbServiceBase, ICollaborationService {
 
         public CollaborationService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) { }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<int?> DoesUserHasThisCollaborator([NotNull] int userId,[NotNull] int collaboratorId) {
@@ -87,13 +110,13 @@ namespace RoutinizeCore.Services.DatabaseServices {
                                                                    .Select(group => group.Id)
                                                                    .FirstOrDefaultAsync();
 
-                var hasAccessToTodoGroup = await IsTodoGroupAssociatedWithThisCollaborator(userId, contentGroupIdContainingTodo, permission);
+                var hasAccessToTodoGroup = await IsContentGroupAssociatedWithThisCollaborator(userId, contentGroupIdContainingTodo, nameof(Todo), permission);
                 if (!hasAccessToTodoGroup.HasValue) return null;
 
                 var isAssociatedWithTodoItem = await _dbContext.CollaboratorTasks
                                                                .AnyAsync(
                                                                    task => task.TaskId == todoId &&
-                                                                           (byte) permission <= task.Permission &&
+                                                                           (byte) permission >= task.Permission &&
                                                                            task.Collaboration.CollaboratorId == userId
                                                                );
                 
@@ -113,23 +136,23 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool?> IsTodoGroupAssociatedWithThisCollaborator(int userId, int todoGroupId, Permissions permission = Permissions.Edit) {
+        public async Task<bool?> IsContentGroupAssociatedWithThisCollaborator(int userId, int groupId, string groupType, Permissions permission = Permissions.Edit) {
             try {
                 return await _dbContext.CollaboratorTasks.AnyAsync(
                     task => task.Collaboration.CollaboratorId == userId &&
                             task.Collaboration.IsAccepted &&
-                            task.TaskId == todoGroupId &&
-                            task.TaskType.Equals($"{nameof(ContentGroup)}.{nameof(Todo)}") &&
-                            (byte) permission <= task.Permission
+                            task.TaskId == groupId &&
+                            task.TaskType.Equals($"{ nameof(ContentGroup) }.{ groupType }") &&
+                            (byte) permission >= task.Permission
                     );
             }
             catch (ArgumentNullException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(CollaborationService) }.{ nameof(IsTodoGroupAssociatedWithThisCollaborator) }",
+                    Location = $"{ nameof(CollaborationService) }.{ nameof(IsContentGroupAssociatedWithThisCollaborator) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error in lambda Join-Where-AnyAsync.\n\n{ e.StackTrace }",
-                    ParamData = $"({ nameof(userId) }, { nameof(todoGroupId) }) = ({ userId }, { todoGroupId })",
+                    DetailedInformation = $"Error in lambda Where-Select-AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(userId) }, { nameof(groupId) }, { nameof(permission) }) = ({ userId }, { groupId }, { permission })",
                     Severity = LogSeverity.Caution.GetEnumValue()
                 });
 
@@ -584,6 +607,46 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
 
                 return default;
+            }
+        }
+
+        public async Task<bool?> IsNoteAssociatedWithThisUser(int noteId, int userId, Permissions permission) {
+            try {
+                var note = await _dbContext.Notes.FindAsync(noteId);
+                if (note == null) return null;
+                if (!note.IsShared) return false;
+                
+                var isOwner = await _dbContext.Notes.AnyAsync(aNote => aNote.Id == noteId && aNote.UserId == userId);
+                if (isOwner) return true;
+
+                var isSharedDirectly = await _dbContext.CollaboratorTasks
+                                                       .AnyAsync(
+                                                           task => task.Collaboration.CollaboratorId == userId &&
+                                                                   task.Collaboration.IsAccepted &&
+                                                                   task.TaskId == noteId &&
+                                                                   task.TaskType.Equals($"{ nameof(Note) }") &&
+                                                                   task.Permission >= (byte) permission
+                                                       );
+                if (isSharedDirectly) return true;
+                
+                var contentGroupIdContainingNote = await _dbContext.ContentGroups
+                                                                   .Where(group => group.Id == note.GroupId && group.GroupOfType.Equals(nameof(Note)))
+                                                                   .Select(group => group.Id)
+                                                                   .FirstOrDefaultAsync();
+
+                return await IsContentGroupAssociatedWithThisCollaborator(userId, contentGroupIdContainingNote, nameof(Todo), permission);
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(CollaborationService) }.{ nameof(IsNoteAssociatedWithThisUser) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error in lambda Where-Select-AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(userId) }, { nameof(noteId) }, { nameof(permission) }) = ({ userId }, { noteId }, { permission })",
+                    Severity = LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
             }
         }
     }

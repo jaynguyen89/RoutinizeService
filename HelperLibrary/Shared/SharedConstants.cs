@@ -73,5 +73,9 @@ namespace HelperLibrary.Shared {
             { "alt", "multipart/alternative" },
             { "base64", "application/base64" }
         };
+
+        public const string TASK_INSERT = "INSERT";
+        public const string TASK_UPDATE = "UPDATE";
+        public const string TASK_DELETE = "DELETE";
     }
 }

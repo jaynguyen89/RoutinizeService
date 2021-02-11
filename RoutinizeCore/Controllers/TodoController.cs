@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
+using NotifierLibrary.Assets;
+using NotifierLibrary.Interfaces;
 using RoutinizeCore.Attributes;
 using RoutinizeCore.Models;
 using RoutinizeCore.Services.Interfaces;
@@ -13,23 +15,21 @@ namespace RoutinizeCore.Controllers {
     [ApiController]
     [Route("todo")]
     [RoutinizeActionFilter]
-    public sealed class TodoController {
+    public sealed class TodoController : AppController {
 
         private readonly ITodoService _todoService;
         private readonly ICollaborationService _collaborationService;
         private readonly IUserService _userService;
-        private readonly IContentGroupService _groupService;
 
         public TodoController(
             ITodoService todoService,
             ICollaborationService collaborationService,
             IUserService userService,
-            IContentGroupService groupService
-        ) {
+            IUserNotifier userNotifier
+        ) : base(userNotifier) {
             _todoService = todoService;
             _collaborationService = collaborationService;
             _userService = userService;
-            _groupService = groupService;
         }
 
         /// <summary>
@@ -61,34 +61,6 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
         }
 
-        [HttpPost("create-group")]
-        public async Task<JsonResult> CreateTodoGroup(ContentGroup todoGroup) {
-            var errors = todoGroup.VerifyContentGroupData();
-            if (errors.Count != 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errors });
-
-            todoGroup.GroupOfType = nameof(Todo);
-            
-            var result = await _groupService.InsertNewContentGroup(todoGroup);
-            return !result.HasValue || result.Value < 1
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = result.Value });
-        }
-
-        [HttpPut("update-group/{updatedByUserId}")]
-        public async Task<JsonResult> UpdateTodoGroup([FromRoute] int updatedByUserId,[FromBody] ContentGroup todoGroup) {
-            var errors = todoGroup.VerifyContentGroupData(true);
-            if (errors.Count != 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errors });
-
-            var shouldUpdateTodoGroup = await IsTodoGroupAndUserAssociated(updatedByUserId, todoGroup.Id, SharedEnums.Permissions.Edit);
-            if (!shouldUpdateTodoGroup.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-            if (!shouldUpdateTodoGroup.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
-            
-            var result = await _groupService.UpdateContentGroup(todoGroup);
-            return result
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
-        }
-
         /// <summary>
         /// Add new SHARED item WITHOUT attachment and WITHOUT group.
         /// </summary>
@@ -106,9 +78,13 @@ namespace RoutinizeCore.Controllers {
             }
 
             sharedTodoData.Todo.IsShared = true;
+            await _todoService.StartTransaction();
+            
             var saveTodoResult = await _todoService.InsertNewTodo(sharedTodoData.Todo);
-            if (!saveTodoResult.HasValue || saveTodoResult.Value < 1)
+            if (!saveTodoResult.HasValue || saveTodoResult.Value < 1) {
+                await _todoService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
 
             var collaboratorTask = new CollaboratorTask {
                 CollaborationId = hasCollaboration.Value,
@@ -120,9 +96,29 @@ namespace RoutinizeCore.Controllers {
             };
 
             var saveTaskResult = await _collaborationService.InsertNewCollaboratorTask(collaboratorTask);
-            if (!saveTaskResult.HasValue || saveTaskResult.Value < 1)
+            if (!saveTaskResult.HasValue || saveTaskResult.Value < 1) {
+                await _todoService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
 
+            var todoOwner = await _userService.GetUserById(sharedTodoData.Todo.UserId);
+
+            var isNotified = await SendNotification(
+                todoOwner,
+                sharedTodoData.SharedToId,
+                new UserNotification {
+                    Message = $"{ TokenNotifierName } has just assigned a Todo to you. Please tap to see the item.",
+                    Title = "Task Assigned"
+                },
+                _userService
+            );
+
+            if (!isNotified) {
+                await _todoService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            await _todoService.CommitTransaction();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveTodoResult.Value });
         }
 
@@ -144,32 +140,24 @@ namespace RoutinizeCore.Controllers {
         }
 
         [HttpDelete("delete/{userId}/{todoId}")]
-        public async Task<JsonResult> DeleteTodo([FromRoute] int userId, [FromRoute] int todoId) {
+        public async Task<JsonResult> DeleteTodo([FromRoute] int userId,[FromRoute] int todoId) {
             var shouldDeleteTodo = await IsTodoAndUserAssociated(userId, todoId, SharedEnums.Permissions.Delete);
             if (!shouldDeleteTodo.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             if (!shouldDeleteTodo.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
 
             var premiumOrUnlockedTodo = await _userService.DoesUserHasPremiumOrTodoUnlocked(userId);
             if (!premiumOrUnlockedTodo.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-            
-            var result = premiumOrUnlockedTodo.Value ? await _todoService.SetTodoDeletedOnById(todoId)
-                                                          : await _todoService.DeleteTodoById(todoId);
-            
-            if (!result.HasValue || !result.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
-        }
 
-        [HttpDelete("delete-group/{userId}/{todoGroupId}")]
-        public async Task<JsonResult> DeleteTodoGroup([FromRoute] int userId, [FromRoute] int todoGroupId) {
-            var shouldDeleteGroup = await IsTodoGroupAndUserAssociated(userId, todoGroupId, SharedEnums.Permissions.Delete);
-            if (!shouldDeleteGroup.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-            if (!shouldDeleteGroup.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            var todo = await _todoService.GetTodoById(todoId);
+            if (todo == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
-            var premiumOrUnlockedTodo = await _userService.DoesUserHasPremiumOrTodoUnlocked(userId);
-            if (!premiumOrUnlockedTodo.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
-
-            var result = premiumOrUnlockedTodo.Value ? await _todoService.SetTodoGroupDeletedOnById(todoGroupId)
-                                                          : await _todoService.DeleteTodoGroupById(todoGroupId);
+            bool? result;
+            if (premiumOrUnlockedTodo.Value) {
+                todo.DeletedOn = DateTime.UtcNow;
+                result = await _todoService.UpdateTodo(todo);
+            }
+            else
+                result = await _todoService.DeleteTodoById(todoId);
             
             if (!result.HasValue || !result.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
@@ -199,36 +187,45 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
+        [HttpPut("revive/{todoId}")]
+        public async Task<JsonResult> ReviveTodo([FromRoute] int userId,[FromRoute] int todoId) {
+            var shouldReviveTodo = await IsTodoAndUserAssociated(userId, todoId, SharedEnums.Permissions.Delete);
+            if (!shouldReviveTodo.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!shouldReviveTodo.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var premiumOrUnlockedTodo = await _userService.DoesUserHasPremiumOrTodoUnlocked(userId);
+            if (!premiumOrUnlockedTodo.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!premiumOrUnlockedTodo.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Please subscribe Premium to use this feature." });
+
+            var todo = await _todoService.GetTodoById(todoId);
+            if (todo == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            todo.DeletedOn = null;
+            var result = await _todoService.UpdateTodo(todo);
+            
+            return result
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+        }
+
         [HttpGet("get-active-personal/{userId}")]
-        public async Task<JsonResult> GetPersonalActiveTodosForUser([FromRoute] int userId) {
+        public async Task<JsonResult> GetPersonalActiveTodosForOwner([FromRoute] int userId) {
             var activeTodos = await _todoService.GetPersonalActiveTodos(userId);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = activeTodos });
         }
         
         [HttpGet("get-done-personal/{userId}")]
-        public async Task<JsonResult> GetPersonalDoneTodosForUser([FromRoute] int userId) {
+        public async Task<JsonResult> GetPersonalDoneTodosForOwner([FromRoute] int userId) {
             var doneTodos = await _todoService.GetPersonalDoneTodos(userId);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = doneTodos });
         }
         
         [HttpGet("get-archived-personal/{userId}")]
-        public async Task<JsonResult> GetPersonalArchivedTodosForUser([FromRoute] int userId) {
+        public async Task<JsonResult> GetPersonalArchivedTodosForOwner([FromRoute] int userId) {
             var archivedTodos = await _todoService.GetPersonalArchivedTodos(userId);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = archivedTodos });
         }
         
-        [HttpGet("get-groups-active-personal/{userId}")]
-        public async Task<JsonResult> GetPersonalActiveTodoGroupsForUser([FromRoute] int userId) {
-            var activeGroups = await _todoService.GetPersonalActiveTodoGroups(userId);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = activeGroups });
-        }
-        
-        [HttpGet("get-groups-archived-personal/{userId}")]
-        public async Task<JsonResult> GetPersonalArchivedTodoGroupsForUser([FromRoute] int userId) {
-            var archivedGroups = await _todoService.GetPersonalArchivedTodoGroups(userId);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = archivedGroups });
-        }
-
         [HttpGet("get-active-shared/{userId}")]
         public async Task<JsonResult> GetSharedActiveTodosForUser([FromRoute] int userId) {
             var activeTodos = await _todoService.GetSharedActiveTodos(userId);
@@ -246,24 +243,6 @@ namespace RoutinizeCore.Controllers {
             var archivedTodos = await _todoService.GetSharedArchivedTodos(userId);
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = archivedTodos });
         }
-        
-        [HttpGet("get-groups-active-shared/{userId}")]
-        public async Task<JsonResult> GetSharedActiveTodoGroupsForUser([FromRoute] int userId) {
-            var activeGroups = await _todoService.GetSharedActiveTodoGroups(userId);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = activeGroups });
-        }
-        
-        [HttpGet("get-groups-archived-shared/{userId}")]
-        public async Task<JsonResult> GetSharedArchivedTodoGroupsForUser([FromRoute] int userId) {
-            var archivedGroups = await _todoService.GetSharedArchivedTodoGroups(userId);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = archivedGroups });
-        }
-
-        [HttpGet("get-group-items/{groupId}")]
-        public async Task<JsonResult> GetTodosForGroup([FromRoute] int groupId) {
-            var todos = await _todoService.GetTodosForContentGroupById(groupId);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = todos });
-        }
 
         private async Task<bool?> IsTodoAndUserAssociated(int userId, int todoId, SharedEnums.Permissions permission) {
             var isTodoCreatedByUser = await _todoService.IsTodoCreatedByThisUser(userId, todoId);
@@ -271,14 +250,6 @@ namespace RoutinizeCore.Controllers {
             if (isTodoCreatedByUser.Value) return true;
             
             return await _collaborationService.IsTodoAssociatedWithThisCollaborator(userId, todoId, permission);
-        }
-
-        private async Task<bool?> IsTodoGroupAndUserAssociated(int userId, int todoGroupId, SharedEnums.Permissions permission) {
-            var isTodoGroupCreatedByUser = await _todoService.IsTodoGroupCreatedByThisUser(userId, todoGroupId);
-            if (!isTodoGroupCreatedByUser.HasValue) return null;
-            if (isTodoGroupCreatedByUser.Value) return true;
-
-            return await _collaborationService.IsTodoGroupAssociatedWithThisCollaborator(userId, todoGroupId, permission);
         }
     }
 }

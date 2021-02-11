@@ -21,7 +21,7 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IChallengeService, ChallengeService>();
-            services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IAddressService, AddressServiceBase>();
 
             services.AddScoped<ITodoService, TodoService>();
             services.AddScoped<INoteService, NoteService>();

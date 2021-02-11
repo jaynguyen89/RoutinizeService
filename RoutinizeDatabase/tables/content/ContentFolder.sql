@@ -1,0 +1,11 @@
+﻿CREATE TABLE [dbo].[ContentFolder]
+(
+	Id INT IDENTITY(1, 1) NOT NULL,
+	CreatedById INT NOT NULL,
+	[Name] NVARCHAR(30) NOT NULL,
+	[Description] NVARCHAR(150) DEFAULT NULL,
+	ColorTag NVARCHAR(10) NOT NULL DEFAULT '#363636',
+	CreatedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
+	CONSTRAINT [PK_ContentFolder_Id] PRIMARY KEY ([Id] ASC),
+	CONSTRAINT [FK_ContentFolder_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [dbo].[User] ([Id]) --ON DELETE CASCADE
+)

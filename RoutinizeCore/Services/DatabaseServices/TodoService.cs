@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -16,17 +15,39 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class TodoService : ITodoService {
-
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class TodoService : DbServiceBase, ITodoService {
 
         public TodoService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) { }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<int?> InsertNewTodo([NotNull] Todo todo) {
@@ -89,28 +110,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<bool?> IsTodoGroupCreatedByThisUser(int userId, int todoGroupId) {
-            try {
-                return await _dbContext.ContentGroups.AnyAsync(
-                    group => group.Id == todoGroupId &&
-                             group.CreatedById == userId &&
-                             group.GroupOfType.Equals(nameof(Todo))
-                );
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(IsTodoGroupCreatedByThisUser) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching TodoGroup with AnyAsync.\n\n{ e.StackTrace }",
-                    ParamData = $"({ nameof(userId) }, { nameof(todoGroupId) }) = ({ userId }, { todoGroupId })",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return null;
-            }
-        }
-
         public async Task<Todo> GetTodoById([NotNull] int todoId) {
             try {
                 return await _dbContext.Todos.FindAsync(todoId);
@@ -146,131 +145,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     DetailedInformation = $"Error while deleting entry from Todos.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(todoId) } = { todoId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return null;
-            }
-        }
-
-        public async Task<bool?> SetTodoDeletedOnById([NotNull] int todoId) {
-            try {
-                var todo = await _dbContext.Todos.FindAsync(todoId);
-                if (todo == null) return null;
-                
-                todo.DeletedOn = DateTime.UtcNow;
-                _dbContext.Todos.Update(todo);
-                
-                var result = await _dbContext.SaveChangesAsync();
-                return result != 0;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(SetTodoDeletedOnById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Error while updating entry to Todos.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoId) } = { todoId }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return null;
-            }
-        }
-
-        public async Task<bool?> SetTodoGroupDeletedOnById([NotNull] int todoGroupId) {
-            try {
-                var todoGroup = await _dbContext.ContentGroups.SingleOrDefaultAsync(
-                    group => group.Id == todoGroupId && group.GroupOfType.Equals(nameof(Todo))
-                );
-                if (todoGroup == null) return null;
-                
-                todoGroup.DeletedOn = DateTime.UtcNow;
-                _dbContext.ContentGroups.Update(todoGroup);
-
-                var result = await _dbContext.SaveChangesAsync();
-                return result != 0;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(SetTodoGroupDeletedOnById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Error while updating entry to ContentGroups.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return null;
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(SetTodoGroupDeletedOnById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching TodoGroup with SingleOrDefault.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return null;
-            }
-            catch (InvalidOperationException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(SetTodoGroupDeletedOnById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = $"Error while searching TodoGroup with SingleOrDefault, >1 entry matching predicate..\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return null;
-            }
-        }
-
-        public async Task<bool?> DeleteTodoGroupById([NotNull] int todoGroupId) {
-            try {
-                var todoGroup = await _dbContext.ContentGroups.SingleOrDefaultAsync(
-                    group => group.Id == todoGroupId && group.GroupOfType.Equals(nameof(Todo))
-                );
-                if (todoGroup == null) return null;
-
-                _dbContext.ContentGroups.Remove(todoGroup);
-                var result = await _dbContext.SaveChangesAsync();
-                return result != 0;
-            }
-            catch (DbUpdateException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(DeleteTodoGroupById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(DbUpdateException),
-                    DetailedInformation = $"Error while updating entry to ContentGroups.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
-                });
-
-                return null;
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(DeleteTodoGroupById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching TodoGroup with SingleOrDefault.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return null;
-            }
-            catch (InvalidOperationException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(DeleteTodoGroupById) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(InvalidOperationException),
-                    DetailedInformation = $"Error while searching TodoGroup with SingleOrDefault, >1 entry matching predicate..\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(todoGroupId) } = { todoGroupId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
                 return null;
@@ -409,85 +283,9 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
-        public async Task<KeyValuePair<int, ContentGroup>[]> GetPersonalActiveTodoGroups(int userId) {
-            try {
-                return await _dbContext.ContentGroups
-                                       .Where(
-                                           group => !group.IsShared &&
-                                                    !group.DeletedOn.HasValue &&
-                                                    group.GroupOfType.Equals(nameof(Todo)) &&
-                                                    group.CreatedById == userId
-                                       )
-                                       .Select(
-                                           group => new KeyValuePair<int, ContentGroup>(
-                                               group.Todos.Count,
-                                               new ContentGroup {
-                                                   Id = group.Id,
-                                                   Description = group.Description,
-                                                   GroupName = group.GroupName,
-                                                   GroupOfType = group.GroupOfType,
-                                                   CreatedById = group.CreatedById,
-                                                   CreatedOn = group.CreatedOn
-                                               }
-                                           )
-                                       )
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(GetPersonalActiveTodoGroups) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
-            }
-        }
-
-        public async Task<KeyValuePair<int, ContentGroup>[]> GetPersonalArchivedTodoGroups(int userId) {
-            try {
-                return await _dbContext.ContentGroups
-                                       .Where(
-                                           group => !group.IsShared &&
-                                                    group.DeletedOn.HasValue &&
-                                                    group.GroupOfType.Equals(nameof(Todo)) &&
-                                                    group.CreatedById == userId
-                                       )
-                                       .Select(
-                                           group => new KeyValuePair<int, ContentGroup>(
-                                               group.Todos.Count,
-                                               new ContentGroup {
-                                                   Id = group.Id,
-                                                   Description = group.Description,
-                                                   GroupName = group.GroupName,
-                                                   GroupOfType = group.GroupOfType,
-                                                   CreatedById = group.CreatedById,
-                                                   CreatedOn = group.CreatedOn
-                                               }
-                                           )
-                                       )
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(GetPersonalArchivedTodoGroups) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
-            }
-        }
-
         public async Task<Todo[]> GetSharedActiveTodos(int userId) {
             try {
-                var todoGroupIdsSharedToUser = await GetTodoGroupIdsSharedByUser(userId);
+                var todoGroupIdsSharedToUser = await GetGroupIdsSharedToUserForType<Todo>(userId);
                 return await _dbContext.Todos
                                        .Where(
                                            todo => todo.GroupId.HasValue &&
@@ -515,7 +313,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
         public async Task<Todo[]> GetSharedDoneTodos(int userId) {
             try {
-                var todoGroupIdsSharedToUser = await GetTodoGroupIdsSharedByUser(userId);
+                var todoGroupIdsSharedToUser = await GetGroupIdsSharedToUserForType<Todo>(userId);
                 return await _dbContext.Todos
                                        .Where(
                                            todo => todo.GroupId.HasValue &&
@@ -543,7 +341,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
         public async Task<Todo[]> GetSharedArchivedTodos(int userId) {
             try {
-                var todoGroupIdsSharedToUser = await GetTodoGroupIdsSharedByUser(userId);
+                var todoGroupIdsSharedToUser = await GetGroupIdsSharedToUserForType<Todo>(userId);
                 return await _dbContext.Todos
                                        .Where(
                                            todo => todo.GroupId.HasValue &&
@@ -560,106 +358,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
-            }
-        }
-
-        public async Task<KeyValuePair<int, ContentGroup>[]> GetSharedActiveTodoGroups(int userId) {
-            try {
-                var todoGroupIdsSharedToUser = await GetTodoGroupIdsSharedByUser(userId);
-                return await _dbContext.ContentGroups
-                                       .Where(
-                                           group => group.IsShared &&
-                                                    group.GroupOfType.Equals(nameof(Todo)) &&
-                                                    todoGroupIdsSharedToUser.Contains(group.Id) &&
-                                                    !group.DeletedOn.HasValue
-                                       )
-                                       .Select(group => new KeyValuePair<int, ContentGroup>(
-                                               group.Todos.Count,
-                                               new ContentGroup {
-                                                   Id = group.Id,
-                                                   Description = group.Description,
-                                                   GroupName = group.GroupName,
-                                                   GroupOfType = group.GroupOfType,
-                                                   CreatedById = group.CreatedById,
-                                                   CreatedOn = group.CreatedOn
-                                               }
-                                           )
-                                       )
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(GetSharedActiveTodoGroups) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
-            }
-        }
-
-        public async Task<KeyValuePair<int, ContentGroup>[]> GetSharedArchivedTodoGroups(int userId) {
-            try {
-                var todoGroupIdsSharedToUser = await GetTodoGroupIdsSharedByUser(userId);
-                return await _dbContext.ContentGroups
-                                       .Where(
-                                           group => group.IsShared &&
-                                                    group.GroupOfType.Equals(nameof(Todo)) &&
-                                                    todoGroupIdsSharedToUser.Contains(group.Id) &&
-                                                    group.DeletedOn.HasValue
-                                       )
-                                       .Select(group => new KeyValuePair<int, ContentGroup>(
-                                               group.Todos.Count,
-                                               new ContentGroup {
-                                                   Id = group.Id,
-                                                   Description = group.Description,
-                                                   GroupName = group.GroupName,
-                                                   GroupOfType = group.GroupOfType,
-                                                   CreatedById = group.CreatedById,
-                                                   CreatedOn = group.CreatedOn
-                                               }
-                                           )
-                                       )
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(TodoService) }.{ nameof(GetSharedArchivedTodoGroups) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching Todos with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
-            }
-        }
-
-        public async Task<Todo[]> GetTodosForContentGroupById(int groupId) {
-            try {
-                return await _dbContext.Todos
-                                       .Where(
-                                           todo => todo.GroupId.HasValue &&
-                                                   todo.GroupId.Value == groupId &&
-                                                   (todo.Group.DeletedOn.HasValue || !todo.DeletedOn.HasValue)
-                                       )
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(TodoService) }.{ nameof(GetTodoGroupIdsSharedByUser) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching TodoGroups IDs with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(groupId) } = { groupId }",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
@@ -775,30 +473,6 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 });
 
                 return null;
-            }
-        }
-
-        private async Task<int[]> GetTodoGroupIdsSharedByUser(int userId) {
-            try {
-                return await _dbContext.CollaboratorTasks
-                                       .Where(
-                                           task => task.Collaboration.CollaboratorId == userId &&
-                                                   task.TaskType.Equals($"{nameof(ContentGroup)}.{nameof(Todo)}")
-                                       )
-                                       .Select(task => task.TaskId)
-                                       .ToArrayAsync();
-            }
-            catch (ArgumentNullException e) {
-                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"private { nameof(TodoService) }.{ nameof(GetTodoGroupIdsSharedByUser) }",
-                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
-                    BriefInformation = nameof(ArgumentNullException),
-                    DetailedInformation = $"Error while searching TodoGroups IDs with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"{ nameof(userId) } = { userId }",
-                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
-                });
-
-                return default;
             }
         }
     }

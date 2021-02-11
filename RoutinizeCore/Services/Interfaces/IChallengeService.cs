@@ -6,7 +6,7 @@ using RoutinizeCore.ViewModels.Challenge;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface IChallengeService {
+    public interface IChallengeService : IDbServiceBase {
 
         Task<ChallengeQuestionVM[]> GetChallengeQuestions();
 

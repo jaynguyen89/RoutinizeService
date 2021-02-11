@@ -17,20 +17,44 @@ using RoutinizeCore.ViewModels.Challenge;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class ChallengeService : IChallengeService {
-
-        private readonly IRoutinizeCoreLogService _coreLogService;
-        private readonly RoutinizeDbContext _dbContext;
+    public sealed class ChallengeService : DbServiceBase, IChallengeService {
+        
         private readonly IRoutinizeRedisCache _redisCache;
         
         public ChallengeService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext,
             IRoutinizeRedisCache redisCache
-        ) {
-            _coreLogService = coreLogService;
-            _dbContext = dbContext;
+        ) : base(coreLogService, dbContext) {
             _redisCache = redisCache;
+        }
+        
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+            await base.SetChangesToDbContext(any, task);
+        }
+
+        public new async Task<bool?> CommitChanges() {
+            return await base.CommitChanges();
+        }
+
+        public new void ToggleTransactionAuto(bool auto = true) {
+            base.ToggleTransactionAuto(auto);
+        }
+
+        public new async Task StartTransaction() {
+            await base.StartTransaction();
+        }
+
+        public new async Task CommitTransaction() {
+            await base.CommitTransaction();
+        }
+
+        public new async Task RevertTransaction() {
+            await base.RevertTransaction();
+        }
+
+        public new async Task ExecuteRawOn<T>(string query) {
+            await base.ExecuteRawOn<T>(query);
         }
 
         public async Task<ChallengeQuestionVM[]> GetChallengeQuestions() {

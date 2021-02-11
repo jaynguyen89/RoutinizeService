@@ -133,14 +133,20 @@ namespace RoutinizeCore.Controllers {
             }
 
             var activationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            await _authenticationService.StartTransaction();
+            
             var newAccountId = await _authenticationService.InsertNewUserAccount(registrationData, accountUniqueId, activationToken);
+            if (newAccountId < 1) {
+                await _authenticationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
+            }
 
-            if (newAccountId < 1) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
+            if (await SendAccountActivationEmail(registrationData.Username, registrationData.Email, activationToken)) {
+                await _authenticationService.CommitTransaction();
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success});
+            }
 
-            if (await SendAccountActivationEmail(registrationData.Username, registrationData.Email, activationToken))
-                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
-
-            await _authenticationService.RemoveNewlyInsertedUserAccount(newAccountId);
+            await _authenticationService.RevertTransaction();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
         }
 
@@ -157,32 +163,47 @@ namespace RoutinizeCore.Controllers {
             //var isRequestedByHuman = await _googleRecaptchaService.IsHumanRegistration(activator.RecaptchaToken);
             //if (!isRequestedByHuman.Result) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.ImATeapot });
 
+            await _authenticationService.StartTransaction();
+            
             var (activationResult, isPositiveResult) = await _authenticationService.ActivateUserAccount(activator);
-            if (!activationResult) return new JsonResult(new JsonResponse {
-                Result = SharedEnums.RequestResults.Failed,
-                Message = isPositiveResult == null ? "No account matched the activation data in our record." : (
-                        !isPositiveResult.Value
-                            ? "We encountered an internal error while activating your account."
-                            : "The activation data have expired. Please request another activation email."
-                    ),
-                Error = isPositiveResult == null ? SharedEnums.HttpStatusCodes.NotFound : (
-                        !isPositiveResult.Value ? SharedEnums.HttpStatusCodes.InternalServerError : SharedEnums.HttpStatusCodes.RequestTimeout    
-                    )
-            });
-
-            if (!isPositiveResult.HasValue || !isPositiveResult.Value)
+            if (!activationResult) {
+                await _authenticationService.RevertTransaction();
                 return new JsonResult(new JsonResponse {
                     Result = SharedEnums.RequestResults.Failed,
-                    Message = "We encountered an internal error while activating your account."
+                    Message = isPositiveResult == null ? "No account matched the activation data in our record." : (
+                            !isPositiveResult.Value
+                                ? "We encountered an internal error while activating your account."
+                                : "The activation data have expired. Please request another activation email."
+                        ),
+                    Error = isPositiveResult == null ? SharedEnums.HttpStatusCodes.NotFound : (
+                            !isPositiveResult.Value ? SharedEnums.HttpStatusCodes.InternalServerError : SharedEnums.HttpStatusCodes.RequestTimeout    
+                        )
                 });
+            }
+
+            if (!isPositiveResult.HasValue || !isPositiveResult.Value) {
+                await _authenticationService.RevertTransaction();
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Message = "We encountered an internal error while activating your account."});
+            }
+            
+            var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
+            if (userAccount == null) {
+                await _authenticationService.RevertTransaction();
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Message = "We encountered an internal error while activating your account."});
+            }
+            
+            var newProfileResult = await _userService.InsertBlankUserWithPrivacyAndAppSetting(userAccount.Id);
+            if (!newProfileResult.HasValue || newProfileResult.Value < 1) {
+                await _authenticationService.RevertTransaction();
+                return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Failed, Message = "Failed to initialize your account data and user profile."});
+            }
+            
+            await _authenticationService.CommitTransaction();
 
             using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationConfirmationEmail.html");
             var accountActivationConfirmationEmailTemplate = await fileReader.ReadToEndAsync();
 
-            var userAccount = await _accountService.GetUserAccountByEmail(activator.Email);
-            var accountActivationConfirmationEmailContent = accountActivationConfirmationEmailTemplate.Replace(
-                "[USER_NAME]", userAccount != null ? userAccount.Username : activator.Email
-            );
+            var accountActivationConfirmationEmailContent = accountActivationConfirmationEmailTemplate.Replace("[USER_NAME]", userAccount.Username);
 
             var accountActivationConfirmationEmail = new EmailContent {
                 Subject = "Account activated",
@@ -190,8 +211,6 @@ namespace RoutinizeCore.Controllers {
                 ReceiverName = userAccount != null ? userAccount.Username : "Routinize User",
                 ReceiverAddress = activator.Email
             };
-            
-            if (userAccount != null) await _userService.InsertBlankUserWithPrivacyAndAppSetting(userAccount.Id);
             
             if (await _emailSenderService.SendEmailSingle(accountActivationConfirmationEmail))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
@@ -214,11 +233,15 @@ namespace RoutinizeCore.Controllers {
             userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
+            await _accountService.StartTransaction();
             if (await _accountService.UpdateUserAccount(userAccount) &&
                 await SendAccountActivationEmail(userAccount.Username, userAccount.Email, userAccount.RecoveryToken)
-            )
+            ) {
+                await _accountService.CommitTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
 
+            await _accountService.RevertTransaction();
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Error = SharedEnums.HttpStatusCodes.InternalServerError });
         }
 
@@ -378,17 +401,27 @@ namespace RoutinizeCore.Controllers {
             userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
-            if (!await _accountService.UpdateUserAccount(userAccount))
-                return new JsonResult(new JsonResponse {
-                    Result = SharedEnums.RequestResults.Failed,
-                    Message = "An issue happened while attempting to recover your account.",
-                    Error = SharedEnums.HttpStatusCodes.InternalServerError
-                });
-            
+            await _accountService.StartTransaction();
+
+            if (!await _accountService.UpdateUserAccount(userAccount)) {
+                await _accountService.RevertTransaction();
+                return new JsonResult(
+                    new JsonResponse {
+                        Result = SharedEnums.RequestResults.Failed,
+                        Message = "An issue happened while attempting to recover your account.",
+                        Error = SharedEnums.HttpStatusCodes.InternalServerError
+                    }
+                );
+            }
+
             var emailSendingResult = await SendPasswordResetEmail(userAccount.Username, userAccount.Email, userAccount.Id, userAccount.RecoveryToken);
-            return emailSendingResult
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
+            if (emailSendingResult) {
+                await _accountService.CommitTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
+
+            await _accountService.RevertTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
         }
 
         [HttpGet("request-new-password-reset-email")]
@@ -404,18 +437,27 @@ namespace RoutinizeCore.Controllers {
             
             userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
             userAccount.TokenSetOn = DateTime.UtcNow;
-            
-            if (!await _accountService.UpdateUserAccount(userAccount))
-                return new JsonResult(new JsonResponse {
-                    Result = SharedEnums.RequestResults.Failed,
-                    Message = "An issue happened while attempting to recover your account.",
-                    Error = SharedEnums.HttpStatusCodes.InternalServerError
-                });
-            
+
+            await _accountService.StartTransaction();
+            if (!await _accountService.UpdateUserAccount(userAccount)) {
+                await _accountService.RevertTransaction();
+                return new JsonResult(
+                    new JsonResponse {
+                        Result = SharedEnums.RequestResults.Failed,
+                        Message = "An issue happened while attempting to recover your account.",
+                        Error = SharedEnums.HttpStatusCodes.InternalServerError
+                    }
+                );
+            }
+
             var emailSendingResult = await SendPasswordResetEmail(userAccount.Username, userAccount.Email, userAccount.Id, userAccount.RecoveryToken);
-            return emailSendingResult
-                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
-                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
+            if (emailSendingResult) {
+                await _accountService.CommitTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            }
+
+            await _accountService.RevertTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial, Message = "Failed to send Recover Password email." });
         }
 
         [HttpPut("reset-password")]

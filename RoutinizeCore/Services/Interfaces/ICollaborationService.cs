@@ -6,7 +6,7 @@ using RoutinizeCore.ViewModels.Collaboration;
 
 namespace RoutinizeCore.Services.Interfaces {
 
-    public interface ICollaborationService {
+    public interface ICollaborationService : IDbServiceBase {
 
         Task<int?> DoesUserHasThisCollaborator([NotNull] int userId,[NotNull] int collaboratorId);
 
@@ -14,7 +14,7 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<bool?> IsTodoAssociatedWithThisCollaborator([NotNull] int userId,[NotNull] int todoId, SharedEnums.Permissions permission = SharedEnums.Permissions.Edit);
 
-        Task<bool?> IsTodoGroupAssociatedWithThisCollaborator([NotNull] int userId,[NotNull] int todoGroupId, SharedEnums.Permissions permission = SharedEnums.Permissions.Edit);
+        Task<bool?> IsContentGroupAssociatedWithThisCollaborator([NotNull] int userId,[NotNull] int groupId,[NotNull] string groupType, SharedEnums.Permissions permission = SharedEnums.Permissions.Edit);
         
         Task<bool?> InsertNewCollaboratorRequest([NotNull] Collaboration collaboration);
         
@@ -47,5 +47,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<bool?> DeleteCollaboratorTask([NotNull] CollaboratorTask task);
         
         Task<User[]> GetCollaboratorsOnItemFor([NotNull] int ownerId,[NotNull] int itemId,[NotNull] string itemType,[NotNull] bool isGroup = false);
+        
+        Task<bool?> IsNoteAssociatedWithThisUser(int noteId, int userId, SharedEnums.Permissions permission);
     }
 }
