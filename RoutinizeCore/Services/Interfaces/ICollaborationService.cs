@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HelperLibrary.Shared;
 using RoutinizeCore.Models;
 using RoutinizeCore.ViewModels.Collaboration;
+using RoutinizeCore.ViewModels.TaskRelationship;
 
 namespace RoutinizeCore.Services.Interfaces {
 
@@ -49,5 +50,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<User[]> GetCollaboratorsOnItemFor([NotNull] int ownerId,[NotNull] int itemId,[NotNull] string itemType,[NotNull] bool isGroup = false);
         
         Task<bool?> IsNoteAssociatedWithThisUser(int noteId, int userId, SharedEnums.Permissions permission);
+        
+        //Task<bool?> AreTheseTasksInTheSameCollaboration(TaskVM relationshipDataFromTask, TaskVM relationshipDataToTask);
     }
 }

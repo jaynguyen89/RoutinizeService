@@ -70,6 +70,7 @@
     <Folder Include="tables\collaboration" />
     <Folder Include="tables\interaction" />
     <Folder Include="publish\scripts" />
+    <Folder Include="tables\static" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="tables\managing\Account.sql" />
@@ -77,7 +78,6 @@
     <Build Include="tables\content\Note.sql" />
     <Build Include="tables\content\NoteSegment.sql" />
     <Build Include="tables\content\Attachment.sql" />
-    <Build Include="tables\content\TaskRelation.sql" />
     <Build Include="tables\content\RandomIdea.sql" />
     <Build Include="tables\collaboration\Team.sql" />
     <Build Include="tables\collaboration\TeamMember.sql" />
@@ -92,10 +92,28 @@
     <Build Include="tables\interaction\TeamInvitation.sql" />
     <Build Include="tables\interaction\TeamRequest.sql" />
     <Build Include="tables\interaction\AttachmentPermission.sql" />
-    <Build Include="tables\managing\Role.sql" />
-    <Build Include="tables\managing\RoleClaim.sql" />
     <Build Include="tables\content\ContentGroup.sql" />
     <Build Include="tables\content\GroupShare.sql" />
+    <Build Include="tables\interaction\TaskRelation.sql" />
+    <Build Include="tables\content\TaskFolder.sql" />
+    <Build Include="tables\content\FolderItem.sql" />
+    <Build Include="tables\interaction\Cooperation.sql" />
+    <Build Include="tables\interaction\DepartmentAccess.sql" />
+    <Build Include="tables\interaction\ProjectRelation.sql" />
+    <Build Include="tables\interaction\UserDepartment.sql" />
+    <Build Include="tables\managing\ChallengeRecord.sql" />
+    <Build Include="tables\managing\Department.sql" />
+    <Build Include="tables\managing\Organization.sql" />
+    <Build Include="tables\static\ChallengeQuestion.sql" />
+    <Build Include="tables\static\Industry.sql" />
+    <Build Include="tables\static\Relationship.sql" />
+    <Build Include="tables\static\DepartmentRole.sql" />
+    <Build Include="tables\static\TeamRole.sql" />
+    <Build Include="tables\managing\TeamRoleClaim.sql" />
+    <Build Include="tables\interaction\TeamDepartment.sql" />
+    <Build Include="tables\interaction\UserOrganization.sql" />
+    <Build Include="tables\collaboration\CooperationTaskVault.sql" />
+    <Build Include="tables\collaboration\TaskVaultItem.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="obj\Debug\RoutinizeDatabase.sqlproj.FileListAbsolute.txt" />

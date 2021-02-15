@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[Cooperation]
+(
+	Id INT IDENTITY(1, 1) NOT NULL,
+	TermsAndConditions NVARCHAR(MAX) DEFAULT NULL,
+	StartedOn DATETIME2(7) DEFAULT NULL,
+	EndedOn DATETIME2(7) DEFAULT NULL,
+ 	CONSTRAINT [PK_Cooperation_Id] PRIMARY KEY ([Id] ASC)
+)

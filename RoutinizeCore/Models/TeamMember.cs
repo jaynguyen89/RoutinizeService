@@ -9,7 +9,7 @@ namespace RoutinizeCore.Models
     {
         public TeamMember()
         {
-            RoleClaims = new HashSet<RoleClaim>();
+            TeamRoleClaims = new HashSet<TeamRoleClaim>();
         }
 
         public int Id { get; set; }
@@ -20,6 +20,6 @@ namespace RoutinizeCore.Models
 
         public virtual User Member { get; set; }
         public virtual Team Team { get; set; }
-        public virtual ICollection<RoleClaim> RoleClaims { get; set; }
+        public virtual ICollection<TeamRoleClaim> TeamRoleClaims { get; set; }
     }
 }

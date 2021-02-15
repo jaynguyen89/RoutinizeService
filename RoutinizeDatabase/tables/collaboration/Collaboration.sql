@@ -8,6 +8,7 @@
 	IsAccepted BIT NOT NULL DEFAULT 0,
 	AcceptedOn DATETIME2(7) DEFAULT NULL,
 	RejectedOn DATETIME2(7) DEFAULT NULL,
+	IsActive BIT NOT NULL DEFAULT 0,
 	CONSTRAINT [PK_Collaboration_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_Collaboration_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]), --ON DELETE CASCADE
 	CONSTRAINT [FK_Collaboration_User_CollaboratorId] FOREIGN KEY ([CollaboratorId]) REFERENCES [dbo].[User] ([Id]) --ON DELETE CASCADE

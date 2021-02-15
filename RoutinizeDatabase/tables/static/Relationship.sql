@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[Relationship]
+(
+	Id INT IDENTITY(1, 1) NOT NULL,
+	[Name] NVARCHAR(20) NOT NULL,
+	EnumValue TINYINT NOT NULL,
+	OppositeName NVARCHAR(50) NOT NULL,
+	CONSTRAINT [PK_Relationships_Id] PRIMARY KEY ([Id] ASC)
+)

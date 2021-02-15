@@ -8,7 +8,7 @@ namespace RoutinizeCore.Models
     public partial class RoleClaim
     {
         public int Id { get; set; }
-        public int RoleId { get; set; }
+        public int TeamRoleId { get; set; }
         public int ClaimerId { get; set; }
         public bool AllowAddMember { get; set; }
         public bool AllowApproveMember { get; set; }
@@ -16,6 +16,6 @@ namespace RoutinizeCore.Models
         public bool AllowEditTeamInfo { get; set; }
 
         public virtual TeamMember Claimer { get; set; }
-        public virtual Role Role { get; set; }
+        public virtual TeamRole TeamRole { get; set; }
     }
 }

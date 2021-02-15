@@ -10,5 +10,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<bool?> UpdateAddress(Address address);
 
         Task<bool?> RemoveAddress(int addressId);
+        
+        Task<Address> GetAddressById(int addressId);
     }
 }

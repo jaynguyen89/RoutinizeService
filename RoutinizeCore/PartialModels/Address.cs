@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -17,6 +18,25 @@ namespace RoutinizeCore.Models {
             errors.AddRange(VerifyCountry());
 
             return errors;
+        }
+
+        public string[] VerifyLocationData() {
+            if (!float.TryParse(Latitude, out _) || !float.TryParse(Longitude, out _))
+                return new[] { "Insufficient location data provided." };
+            
+            if (!Helpers.IsProperString(Country) &&
+                !Helpers.IsProperString(State) &&
+                !Helpers.IsProperString(Postcode) &&
+                !Helpers.IsProperString(Suburb) &&
+                !Helpers.IsProperString(Street)
+            ) return new[] { "Location details are missing." };
+
+            Name = Name?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            if (Helpers.IsProperString(Name) && Name?.Length > 50)
+                return new[] { "Location Name is too long. Max 50 characters." };
+            
+            Name = null;
+            return Array.Empty<string>();
         }
 
         public List<string> GenerateErrorMessages(List<int> errors) {

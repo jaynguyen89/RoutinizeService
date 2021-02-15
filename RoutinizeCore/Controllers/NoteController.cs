@@ -140,7 +140,7 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
         }
         
-        [HttpPost("update-segment")]
+        [HttpPut("update-segment")]
         public async Task<JsonResult> UpdateNoteSegment([FromHeader] int accountId,[FromBody] NoteSegment segment) {
             var errorMessage = segment.ValidateBody();
             if (errorMessage) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Segment body is empty." });
@@ -158,7 +158,7 @@ namespace RoutinizeCore.Controllers {
                                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPost("update")]
+        [HttpPut("update")]
         public async Task<JsonResult> UpdateNote([FromHeader] int accountId,[FromBody] Note note) {
             note.ValidateNote();
 
@@ -175,7 +175,7 @@ namespace RoutinizeCore.Controllers {
                                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPost("remove-segment/{segmentId}")]
+        [HttpDelete("remove-segment/{segmentId}")]
         public async Task<JsonResult> RemoveNoteSegment([FromHeader] int accountId,[FromRoute] int segmentId) {
             var segment = await _noteService.GetNoteSegmentById(segmentId);
             if (segment == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -203,7 +203,7 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPost("remove/{noteId}")]
+        [HttpDelete("remove/{noteId}")]
         public async Task<JsonResult> DeleteNote([FromHeader] int accountId,[FromRoute] int noteId) {
             var note = await _noteService.GetNoteById(noteId);
             if (note == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -231,7 +231,7 @@ namespace RoutinizeCore.Controllers {
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPost("revive/{noteId}")]
+        [HttpPut("revive/{noteId}")]
         public async Task<JsonResult> ReviveNote([FromHeader] int accountId,[FromRoute] int noteId) {
             var note = await _noteService.GetNoteById(noteId);
             if (note == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -254,7 +254,7 @@ namespace RoutinizeCore.Controllers {
                            : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPost("revive-segment/{segmentId}")]
+        [HttpPut("revive-segment/{segmentId}")]
         public async Task<JsonResult> ReviveNoteSegment([FromHeader] int accountId,[FromRoute] int segmentId) {
             var segment = await _noteService.GetNoteSegmentById(segmentId);
             if (segment == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });

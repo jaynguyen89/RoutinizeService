@@ -9,7 +9,10 @@ namespace RoutinizeCore.Models
     {
         public Project()
         {
-            Teams = new HashSet<Team>();
+            ProjectIterations = new HashSet<ProjectIteration>();
+            ProjectRelationFromProjects = new HashSet<ProjectRelation>();
+            ProjectRelationToProjects = new HashSet<ProjectRelation>();
+            TeamProjects = new HashSet<TeamProject>();
         }
 
         public int Id { get; set; }
@@ -24,6 +27,9 @@ namespace RoutinizeCore.Models
 
         public virtual Attachment CoverImage { get; set; }
         public virtual User CreatedBy { get; set; }
-        public virtual ICollection<Team> Teams { get; set; }
+        public virtual ICollection<ProjectIteration> ProjectIterations { get; set; }
+        public virtual ICollection<ProjectRelation> ProjectRelationFromProjects { get; set; }
+        public virtual ICollection<ProjectRelation> ProjectRelationToProjects { get; set; }
+        public virtual ICollection<TeamProject> TeamProjects { get; set; }
     }
 }

@@ -21,13 +21,15 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IChallengeService, ChallengeService>();
-            services.AddScoped<IAddressService, AddressServiceBase>();
+            services.AddScoped<IAddressService, AddressService>();
 
             services.AddScoped<ITodoService, TodoService>();
             services.AddScoped<INoteService, NoteService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<ICollaborationService, CollaborationService>();
             services.AddScoped<IContentGroupService, ContentGroupService>();
+            
+            services.AddScoped<ITaskRelationService, TaskRelationService>();
 
             return services;
         }

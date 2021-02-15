@@ -26,28 +26,46 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<ChallengeRecord> ChallengeRecords { get; set; }
         public virtual DbSet<Collaboration> Collaborations { get; set; }
         public virtual DbSet<CollaboratorTask> CollaboratorTasks { get; set; }
-        public virtual DbSet<ContentFolder> ContentFolders { get; set; }
+        public virtual DbSet<ColorPallete> ColorPalletes { get; set; }
         public virtual DbSet<ContentGroup> ContentGroups { get; set; }
+        public virtual DbSet<Cooperation> Cooperations { get; set; }
+        public virtual DbSet<CooperationParticipant> CooperationParticipants { get; set; }
+        public virtual DbSet<CooperationRequest> CooperationRequests { get; set; }
+        public virtual DbSet<CooperationTaskVault> CooperationTaskVaults { get; set; }
+        public virtual DbSet<Department> Departments { get; set; }
+        public virtual DbSet<DepartmentAccess> DepartmentAccesses { get; set; }
+        public virtual DbSet<DepartmentRole> DepartmentRoles { get; set; }
         public virtual DbSet<FolderItem> FolderItems { get; set; }
         public virtual DbSet<GroupShare> GroupShares { get; set; }
+        public virtual DbSet<Industry> Industries { get; set; }
         public virtual DbSet<IterationTask> IterationTasks { get; set; }
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<NoteSegment> NoteSegments { get; set; }
+        public virtual DbSet<Organization> Organizations { get; set; }
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<ProjectIteration> ProjectIterations { get; set; }
+        public virtual DbSet<ProjectRelation> ProjectRelations { get; set; }
         public virtual DbSet<RandomIdea> RandomIdeas { get; set; }
-        public virtual DbSet<Role> Roles { get; set; }
-        public virtual DbSet<RoleClaim> RoleClaims { get; set; }
+        public virtual DbSet<Relationship> Relationships { get; set; }
         public virtual DbSet<TaskComment> TaskComments { get; set; }
+        public virtual DbSet<TaskFolder> TaskFolders { get; set; }
+        public virtual DbSet<TaskLegend> TaskLegends { get; set; }
         public virtual DbSet<TaskPermission> TaskPermissions { get; set; }
         public virtual DbSet<TaskRelation> TaskRelations { get; set; }
+        public virtual DbSet<TaskVaultItem> TaskVaultItems { get; set; }
         public virtual DbSet<Team> Teams { get; set; }
+        public virtual DbSet<TeamDepartment> TeamDepartments { get; set; }
         public virtual DbSet<TeamInvitation> TeamInvitations { get; set; }
         public virtual DbSet<TeamMember> TeamMembers { get; set; }
+        public virtual DbSet<TeamProject> TeamProjects { get; set; }
         public virtual DbSet<TeamRequest> TeamRequests { get; set; }
+        public virtual DbSet<TeamRole> TeamRoles { get; set; }
+        public virtual DbSet<TeamRoleClaim> TeamRoleClaims { get; set; }
         public virtual DbSet<TeamTask> TeamTasks { get; set; }
         public virtual DbSet<Todo> Todos { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<UserDepartment> UserDepartments { get; set; }
+        public virtual DbSet<UserOrganization> UserOrganizations { get; set; }
         public virtual DbSet<UserPrivacy> UserPrivacies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -255,27 +273,19 @@ namespace RoutinizeCore.DbContexts
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
-            modelBuilder.Entity<ContentFolder>(entity =>
+            modelBuilder.Entity<ColorPallete>(entity =>
             {
-                entity.ToTable("ContentFolder");
+                entity.ToTable("ColorPallete");
 
-                entity.Property(e => e.ColorTag)
+                entity.Property(e => e.ColorCode)
                     .IsRequired()
-                    .HasMaxLength(10)
-                    .HasDefaultValueSql("('#363636')");
+                    .HasMaxLength(10);
 
-                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
-
-                entity.Property(e => e.Description).HasMaxLength(150);
-
-                entity.Property(e => e.Name)
+                entity.Property(e => e.ColorName)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(50);
 
-                entity.HasOne(d => d.CreatedBy)
-                    .WithMany(p => p.ContentFolders)
-                    .HasForeignKey(d => d.CreatedById)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                entity.Property(e => e.SupplementColorIds).HasMaxLength(200);
             });
 
             modelBuilder.Entity<ContentGroup>(entity =>
@@ -297,6 +307,121 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.CreatedBy)
                     .WithMany(p => p.ContentGroups)
                     .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<Cooperation>(entity =>
+            {
+                entity.ToTable("Cooperation");
+            });
+
+            modelBuilder.Entity<CooperationParticipant>(entity =>
+            {
+                entity.ToTable("CooperationParticipant");
+
+                entity.Property(e => e.ParticipantType)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.ParticipatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.Cooperation)
+                    .WithMany(p => p.CooperationParticipants)
+                    .HasForeignKey(d => d.CooperationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<CooperationRequest>(entity =>
+            {
+                entity.ToTable("CooperationRequest");
+
+                entity.Property(e => e.Message).HasMaxLength(4000);
+
+                entity.Property(e => e.RequestAcceptance).HasMaxLength(500);
+
+                entity.Property(e => e.RequestedByType)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.Property(e => e.RequestedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.RequestedToType)
+                    .IsRequired()
+                    .HasMaxLength(30);
+            });
+
+            modelBuilder.Entity<CooperationTaskVault>(entity =>
+            {
+                entity.ToTable("CooperationTaskVault");
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(150);
+
+                entity.Property(e => e.TaskVaultName).HasMaxLength(50);
+
+                entity.HasOne(d => d.Cooperation)
+                    .WithMany(p => p.CooperationTaskVaults)
+                    .HasForeignKey(d => d.CooperationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<Department>(entity =>
+            {
+                entity.ToTable("Department");
+
+                entity.Property(e => e.ContactDetails).HasMaxLength(500);
+
+                entity.Property(e => e.Description).HasMaxLength(4000);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(60);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.Departments)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Parent)
+                    .WithMany(p => p.InverseParent)
+                    .HasForeignKey(d => d.ParentId);
+            });
+
+            modelBuilder.Entity<DepartmentAccess>(entity =>
+            {
+                entity.ToTable("DepartmentAccess");
+
+                entity.Property(e => e.AccessibleDepartmentIds)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.HasOne(d => d.Cooperation)
+                    .WithMany(p => p.DepartmentAccesses)
+                    .HasForeignKey(d => d.CooperationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DepartmentAccess_Cooperation_CooerationId");
+            });
+
+            modelBuilder.Entity<DepartmentRole>(entity =>
+            {
+                entity.ToTable("DepartmentRole");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.ForDepartmentIds).HasMaxLength(500);
+
+                entity.Property(e => e.RoleName)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.HasOne(d => d.AddedBy)
+                    .WithMany(p => p.DepartmentRoles)
+                    .HasForeignKey(d => d.AddedById)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -337,6 +462,19 @@ namespace RoutinizeCore.DbContexts
                     .WithMany(p => p.GroupShares)
                     .HasForeignKey(d => d.SharedById)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<Industry>(entity =>
+            {
+                entity.ToTable("Industry");
+
+                entity.Property(e => e.Description).HasMaxLength(200);
+
+                entity.Property(e => e.Name).HasMaxLength(100);
+
+                entity.HasOne(d => d.Parent)
+                    .WithMany(p => p.InverseParent)
+                    .HasForeignKey(d => d.ParentId);
             });
 
             modelBuilder.Entity<IterationTask>(entity =>
@@ -386,6 +524,41 @@ namespace RoutinizeCore.DbContexts
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            modelBuilder.Entity<Organization>(entity =>
+            {
+                entity.ToTable("Organization");
+
+                entity.Property(e => e.BriefDescription).HasMaxLength(1000);
+
+                entity.Property(e => e.FullName).HasMaxLength(60);
+
+                entity.Property(e => e.PhoneNumbers).HasMaxLength(1000);
+
+                entity.Property(e => e.RegistrationCode).HasMaxLength(20);
+
+                entity.Property(e => e.RegistrationNumber).HasMaxLength(30);
+
+                entity.Property(e => e.ShortName).HasMaxLength(30);
+
+                entity.Property(e => e.UniqueId)
+                    .IsRequired()
+                    .HasMaxLength(35);
+
+                entity.Property(e => e.Websites).HasMaxLength(1000);
+
+                entity.HasOne(d => d.Address)
+                    .WithMany(p => p.Organizations)
+                    .HasForeignKey(d => d.AddressId);
+
+                entity.HasOne(d => d.Industry)
+                    .WithMany(p => p.Organizations)
+                    .HasForeignKey(d => d.IndustryId);
+
+                entity.HasOne(d => d.Mother)
+                    .WithMany(p => p.InverseMother)
+                    .HasForeignKey(d => d.MotherId);
+            });
+
             modelBuilder.Entity<Project>(entity =>
             {
                 entity.ToTable("Project");
@@ -420,9 +593,31 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.IterationName).HasMaxLength(50);
 
-                entity.HasOne(d => d.Team)
+                entity.HasOne(d => d.Project)
                     .WithMany(p => p.ProjectIterations)
-                    .HasForeignKey(d => d.TeamId)
+                    .HasForeignKey(d => d.ProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<ProjectRelation>(entity =>
+            {
+                entity.ToTable("ProjectRelation");
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.FromProject)
+                    .WithMany(p => p.ProjectRelationFromProjects)
+                    .HasForeignKey(d => d.FromProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Relationship)
+                    .WithMany(p => p.ProjectRelations)
+                    .HasForeignKey(d => d.RelationshipId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.ToProject)
+                    .WithMany(p => p.ProjectRelationToProjects)
+                    .HasForeignKey(d => d.ToProjectId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -440,32 +635,17 @@ namespace RoutinizeCore.DbContexts
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
-            modelBuilder.Entity<Role>(entity =>
+            modelBuilder.Entity<Relationship>(entity =>
             {
-                entity.ToTable("Role");
+                entity.ToTable("Relationship");
 
-                entity.Property(e => e.Description)
-                    .IsRequired()
-                    .HasMaxLength(150);
-
-                entity.Property(e => e.RoleName)
+                entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(20);
-            });
 
-            modelBuilder.Entity<RoleClaim>(entity =>
-            {
-                entity.ToTable("RoleClaim");
-
-                entity.HasOne(d => d.Claimer)
-                    .WithMany(p => p.RoleClaims)
-                    .HasForeignKey(d => d.ClaimerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
-
-                entity.HasOne(d => d.Role)
-                    .WithMany(p => p.RoleClaims)
-                    .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                entity.Property(e => e.OppositeName)
+                    .IsRequired()
+                    .HasMaxLength(50);
             });
 
             modelBuilder.Entity<TaskComment>(entity =>
@@ -492,6 +672,58 @@ namespace RoutinizeCore.DbContexts
                     .HasConstraintName("FK_TaskComment_TaskComment_QuotedCommentId");
             });
 
+            modelBuilder.Entity<TaskFolder>(entity =>
+            {
+                entity.ToTable("TaskFolder");
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(150);
+
+                entity.Property(e => e.FillColor).HasMaxLength(10);
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(d => d.Color)
+                    .WithMany(p => p.TaskFolders)
+                    .HasForeignKey(d => d.ColorId);
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany(p => p.TaskFolders)
+                    .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<TaskLegend>(entity =>
+            {
+                entity.ToTable("TaskLegend");
+
+                entity.Property(e => e.Description).HasMaxLength(150);
+
+                entity.Property(e => e.FillColor).HasMaxLength(10);
+
+                entity.Property(e => e.ForDepartmentIds).HasMaxLength(500);
+
+                entity.Property(e => e.ForProjectIds).HasMaxLength(500);
+
+                entity.Property(e => e.ForTeamIds).HasMaxLength(500);
+
+                entity.Property(e => e.LegendName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasOne(d => d.Color)
+                    .WithMany(p => p.TaskLegends)
+                    .HasForeignKey(d => d.ColorId);
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany(p => p.TaskLegends)
+                    .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             modelBuilder.Entity<TaskPermission>(entity =>
             {
                 entity.ToTable("TaskPermission");
@@ -503,18 +735,36 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("TaskRelation");
 
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.RelatedToType)
                     .IsRequired()
                     .HasMaxLength(30);
 
-                entity.Property(e => e.RelationshipName)
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .HasDefaultValueSql("('RELATES TO')");
-
                 entity.Property(e => e.TaskType)
                     .IsRequired()
                     .HasMaxLength(30);
+
+                entity.HasOne(d => d.Relationship)
+                    .WithMany(p => p.TaskRelations)
+                    .HasForeignKey(d => d.RelationshipId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<TaskVaultItem>(entity =>
+            {
+                entity.ToTable("TaskVaultItem");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ItemType)
+                    .IsRequired()
+                    .HasMaxLength(30);
+
+                entity.HasOne(d => d.TaskVault)
+                    .WithMany(p => p.TaskVaultItems)
+                    .HasForeignKey(d => d.TaskVaultId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<Team>(entity =>
@@ -534,10 +784,25 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.CreatedBy)
                     .WithMany(p => p.Teams)
                     .HasForeignKey(d => d.CreatedById);
+            });
 
-                entity.HasOne(d => d.Project)
-                    .WithMany(p => p.Teams)
-                    .HasForeignKey(d => d.ProjectId);
+            modelBuilder.Entity<TeamDepartment>(entity =>
+            {
+                entity.ToTable("TeamDepartment");
+
+                entity.HasOne(d => d.Department)
+                    .WithMany(p => p.TeamDepartments)
+                    .HasForeignKey(d => d.DepartmentId);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.TeamDepartments)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Team)
+                    .WithMany(p => p.TeamDepartments)
+                    .HasForeignKey(d => d.TeamId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<TeamInvitation>(entity =>
@@ -576,6 +841,25 @@ namespace RoutinizeCore.DbContexts
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            modelBuilder.Entity<TeamProject>(entity =>
+            {
+                entity.ToTable("TeamProject");
+
+                entity.Property(e => e.AssignedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.HasOne(d => d.Project)
+                    .WithMany(p => p.TeamProjects)
+                    .HasForeignKey(d => d.ProjectId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Team)
+                    .WithMany(p => p.TeamProjects)
+                    .HasForeignKey(d => d.TeamId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             modelBuilder.Entity<TeamRequest>(entity =>
             {
                 entity.ToTable("TeamRequest");
@@ -594,6 +878,43 @@ namespace RoutinizeCore.DbContexts
                     .HasForeignKey(d => d.TeamId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TeamRequest_TeamId");
+            });
+
+            modelBuilder.Entity<TeamRole>(entity =>
+            {
+                entity.ToTable("TeamRole");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.ForTeamIds).HasMaxLength(500);
+
+                entity.Property(e => e.RoleName)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.TeamRoles)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<TeamRoleClaim>(entity =>
+            {
+                entity.ToTable("TeamRoleClaim");
+
+                entity.HasOne(d => d.Claimer)
+                    .WithMany(p => p.TeamRoleClaims)
+                    .HasForeignKey(d => d.ClaimerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.TeamRole)
+                    .WithMany(p => p.TeamRoleClaims)
+                    .HasForeignKey(d => d.TeamRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<TeamTask>(entity =>
@@ -663,6 +984,53 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.Address)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.AddressId);
+            });
+
+            modelBuilder.Entity<UserDepartment>(entity =>
+            {
+                entity.ToTable("UserDepartment");
+
+                entity.Property(e => e.EmployeeCode).HasMaxLength(50);
+
+                entity.Property(e => e.PositionName).HasMaxLength(50);
+
+                entity.HasOne(d => d.Department)
+                    .WithMany(p => p.UserDepartments)
+                    .HasForeignKey(d => d.DepartmentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.DepartmentRole)
+                    .WithMany(p => p.UserDepartments)
+                    .HasForeignKey(d => d.DepartmentRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserDepartments)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<UserOrganization>(entity =>
+            {
+                entity.ToTable("UserOrganization");
+
+                entity.Property(e => e.EmployeeCode).HasMaxLength(50);
+
+                entity.Property(e => e.PositionName).HasMaxLength(50);
+
+                entity.HasOne(d => d.DepartmentRole)
+                    .WithMany(p => p.UserOrganizations)
+                    .HasForeignKey(d => d.DepartmentRoleId);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.UserOrganizations)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserOrganizations)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<UserPrivacy>(entity =>

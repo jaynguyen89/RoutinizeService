@@ -56,6 +56,15 @@ namespace HelperLibrary.Shared {
             Delete
         }
 
+        public enum Relationships {
+            RelatesTo,
+            Blocks,
+            Causes,
+            DependsOn,
+            Verifies,
+            Resolves
+        }
+
         public enum AttachmentTypes {
             [StringValue("image")]
             Photo = 0,

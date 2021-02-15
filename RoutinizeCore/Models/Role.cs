@@ -10,6 +10,7 @@ namespace RoutinizeCore.Models
         public Role()
         {
             RoleClaims = new HashSet<RoleClaim>();
+            UserDepartments = new HashSet<UserDepartment>();
         }
 
         public int Id { get; set; }
@@ -18,5 +19,6 @@ namespace RoutinizeCore.Models
         public byte EnumValueClient { get; set; }
 
         public virtual ICollection<RoleClaim> RoleClaims { get; set; }
+        public virtual ICollection<UserDepartment> UserDepartments { get; set; }
     }
 }

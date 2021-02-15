@@ -10,6 +10,7 @@ namespace RoutinizeCore.Models
         public Address()
         {
             Attachments = new HashSet<Attachment>();
+            Organizations = new HashSet<Organization>();
             Users = new HashSet<User>();
         }
 
@@ -25,6 +26,7 @@ namespace RoutinizeCore.Models
         public string Longitude { get; set; }
 
         public virtual ICollection<Attachment> Attachments { get; set; }
+        public virtual ICollection<Organization> Organizations { get; set; }
         public virtual ICollection<User> Users { get; set; }
     }
 }

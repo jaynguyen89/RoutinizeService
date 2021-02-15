@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using HelperLibrary;
 using HelperLibrary.Shared;
@@ -12,9 +13,9 @@ using RoutinizeCore.Services.Interfaces;
 
 namespace RoutinizeCore.Services.DatabaseServices {
 
-    public sealed class AddressServiceBase : DbServiceBase, IAddressService {
+    public sealed class AddressService : DbServiceBase, IAddressService {
 
-        public AddressServiceBase(
+        public AddressService(
             IRoutinizeCoreLogService coreLogService,
             RoutinizeDbContext dbContext
         ) : base(coreLogService, dbContext) { }
@@ -56,7 +57,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (DbUpdateException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(UserService) }.{ nameof(SaveNewAddress) }",
+                    Location = $"{ nameof(AddressService) }.{ nameof(SaveNewAddress) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while inserting entry into Addresses.\n\n{ e.StackTrace }",
@@ -77,7 +78,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (DbUpdateException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(UserService) }.{ nameof(UpdateAddress) }",
+                    Location = $"{ nameof(AddressService) }.{ nameof(UpdateAddress) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while updating entry to Addresses.\n\n{ e.StackTrace }",
@@ -101,10 +102,28 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
             catch (DbUpdateException e) {
                 await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
-                    Location = $"{ nameof(UserService) }.{ nameof(RemoveAddress) }",
+                    Location = $"{ nameof(AddressService) }.{ nameof(RemoveAddress) }",
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(DbUpdateException),
                     DetailedInformation = $"Error while removing entry from Addresses.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(addressId) } = { addressId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Address> GetAddressById(int addressId) {
+            try {
+                return await _dbContext.Addresses.FindAsync(addressId);
+            }
+            catch (Exception e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(AddressService) }.{ nameof(GetAddressById) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(Exception),
+                    DetailedInformation = $"Error while getting Address using Find.\n\n{ e.StackTrace }",
                     ParamData = $"{ nameof(addressId) } = { addressId }",
                     Severity = SharedEnums.LogSeverity.High.GetEnumValue()
                 });

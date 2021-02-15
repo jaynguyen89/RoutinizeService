@@ -13,6 +13,6 @@ namespace RoutinizeCore.Models
         public string ItemType { get; set; }
         public DateTime AddedOn { get; set; }
 
-        public virtual ContentFolder Folder { get; set; }
+        public virtual TaskFolder Folder { get; set; }
     }
 }
