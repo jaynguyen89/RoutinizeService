@@ -32,7 +32,7 @@ namespace RoutinizeCore.Models {
             ) return new[] { "Location details are missing." };
 
             Name = Name?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
-            if (Helpers.IsProperString(Name) && Name?.Length > 50)
+            if (Helpers.IsProperString(Name) && Name?.Length > 100)
                 return new[] { "Location Name is too long. Max 50 characters." };
             
             Name = null;
@@ -90,7 +90,7 @@ namespace RoutinizeCore.Models {
 
             Building = Helpers.CapitalizeFirstLetterOfEachWord(Building);
 
-            var lenTest = new Regex(@".{1,30}");
+            var lenTest = new Regex(@".{1,100}");
             if (!lenTest.IsMatch(Building))
                 errors.Add(0);
 
@@ -111,7 +111,7 @@ namespace RoutinizeCore.Models {
 
             Street = Helpers.CapitalizeFirstLetterOfEachWord(Street);
 
-            var lenTest = new Regex(@".{1,50}");
+            var lenTest = new Regex(@".{1,300}");
             if (!lenTest.IsMatch(Street))
                 errors.Add(3);
 
@@ -131,7 +131,7 @@ namespace RoutinizeCore.Models {
             Name = Helpers.CapitalizeFirstLetterOfEachWord(Name.Trim());
             var errors = new List<int>();
 
-            var lenTest = new Regex(@".{1,50}");
+            var lenTest = new Regex(@".{1,100}");
             if (!lenTest.IsMatch(Name))
                 errors.Add(5);
 
@@ -152,7 +152,7 @@ namespace RoutinizeCore.Models {
 
             Suburb = Helpers.CapitalizeFirstLetterOfEachWord(Suburb);
 
-            var lenTest = new Regex(@".{1,30}");
+            var lenTest = new Regex(@".{1,100}");
             if (!lenTest.IsMatch(Suburb))
                 errors.Add(8);
 
@@ -171,7 +171,7 @@ namespace RoutinizeCore.Models {
             if (!Helpers.IsProperString(Postcode))
                 return new List<int> { 10 };
 
-            var lenTest = new Regex(@".{1,10}");
+            var lenTest = new Regex(@".{1,20}");
             if (!lenTest.IsMatch(Postcode))
                 errors.Add(11);
 
@@ -192,7 +192,7 @@ namespace RoutinizeCore.Models {
 
             State = Helpers.CapitalizeFirstLetterOfEachWord(State);
 
-            var lenTest = new Regex(@".{1,30}");
+            var lenTest = new Regex(@".{1,100}");
             if (!lenTest.IsMatch(State))
                 errors.Add(14);
 
@@ -213,7 +213,7 @@ namespace RoutinizeCore.Models {
 
             Country = Helpers.CapitalizeFirstLetterOfEachWord(Country);
 
-            var lenTest = new Regex(@".{1,30}");
+            var lenTest = new Regex(@".{1,100}");
             if (!lenTest.IsMatch(Country))
                 errors.Add(17);
 

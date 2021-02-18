@@ -17,6 +17,7 @@ namespace RoutinizeCore.Models
         public int Id { get; set; }
         public int OrganizationId { get; set; }
         public int? ParentId { get; set; }
+        public string Avatar { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ContactDetails { get; set; }

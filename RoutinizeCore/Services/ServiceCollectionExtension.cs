@@ -28,6 +28,9 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<ICollaborationService, CollaborationService>();
             services.AddScoped<IContentGroupService, ContentGroupService>();
+
+            services.AddScoped<IOrganizationService, OrganizationService>();
+            services.AddScoped<IDepartmentRoleService, DepartmentRoleService>();
             
             services.AddScoped<ITaskRelationService, TaskRelationService>();
 

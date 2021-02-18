@@ -12,7 +12,7 @@ namespace HelperLibrary.Shared {
         public const int TWO_FA_QR_IMAGE_SIZE = 300;
         public const int TWO_FA_TOLERANCE = 3; //minutes
 
-        public const int ACCOUNT_UNIQUE_ID_LENGTH = 16;
+        public const int DEFAULT_UNIQUE_ID_LENGTH = 16;
         public const char ACCOUNT_UNIQUE_ID_DELIMITER = '-';
         public const int ACCOUNT_UNIQUE_ID_GROUP_LENGTH = 4;
 
@@ -77,5 +77,8 @@ namespace HelperLibrary.Shared {
         public const string TASK_INSERT = "INSERT";
         public const string TASK_UPDATE = "UPDATE";
         public const string TASK_DELETE = "DELETE";
+
+        public const string DEFAULT_DEPARTMENT_ROLE = "Owner (default)";
+        public const string DEFAULT_POSITION_TITLE = "CEO (default)";
     }
 }

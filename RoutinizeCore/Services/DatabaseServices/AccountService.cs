@@ -97,13 +97,11 @@ namespace RoutinizeCore.Services.DatabaseServices {
 
         public async Task<bool> IsAccountUniqueIdAvailable([NotNull] string accountUniqueId) {
             try {
-                var dbAccount = await _dbContext.Accounts.SingleOrDefaultAsync(account =>
+                return await _dbContext.Accounts.AnyAsync(account =>
                     account.UniqueId.Equals(accountUniqueId.ToUpper())
                 );
-
-                return dbAccount == null;
             }
-            catch (InvalidOperationException) {
+            catch (ArgumentNullException) {
                 return false;
             }
         }

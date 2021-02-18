@@ -18,7 +18,7 @@ namespace RoutinizeCore.ViewModels.Collaboration {
 
             Message = Message?.Trim();
             Message = Message?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
-            if (Message?.Length > 150) return new[] { "Message is too long. Max 150 characters." };
+            if (Message?.Length > 300) return new[] { "Message is too long. Max 300 characters." };
             
             Message = Helpers.CapitalizeFirstLetterOfSentence(Message);
             return Array.Empty<string>();

@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{19fcdf53-9bff-4ff5-8143-dc0e35ef7c40}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
@@ -16,12 +16,13 @@
     <ModelCollation>1033, CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <TargetLanguage>CS</TargetLanguage>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -114,6 +115,12 @@
     <Build Include="tables\interaction\UserOrganization.sql" />
     <Build Include="tables\collaboration\CooperationTaskVault.sql" />
     <Build Include="tables\collaboration\TaskVaultItem.sql" />
+    <Build Include="tables\static\ColorPallete.sql" />
+    <Build Include="tables\static\TaskLegend.sql" />
+    <Build Include="tables\interaction\CooperationParticipant.sql" />
+    <Build Include="tables\interaction\CooperationRequest.sql" />
+    <Build Include="tables\static\PositionTitle.sql" />
+    <Build Include="tables\collaboration\TeamProject.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="obj\Debug\RoutinizeDatabase.sqlproj.FileListAbsolute.txt" />

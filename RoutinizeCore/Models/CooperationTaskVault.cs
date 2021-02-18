@@ -14,7 +14,7 @@ namespace RoutinizeCore.Models
 
         public int Id { get; set; }
         public int CooperationId { get; set; }
-        public int PossesedByCooperatorId { get; set; }
+        public int PossessedByCooperatorId { get; set; }
         public int AssignedToCooperatorId { get; set; }
         public string TaskVaultName { get; set; }
         public string Description { get; set; }

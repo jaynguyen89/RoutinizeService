@@ -244,6 +244,7 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
         }
 
+        //Todo: Consider to remove this method, use AddressController.UpdateAddress instead
         [HttpPut("update-user-address")]
         public async Task<JsonResult> UpdateUserAddress(Address address) {
             var errors = address.VerifyAddressData();

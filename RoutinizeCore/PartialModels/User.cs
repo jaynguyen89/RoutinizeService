@@ -17,13 +17,13 @@ namespace RoutinizeCore.Models {
         }
 
         private List<int> VerifyFirstName() {
-            if (!Helpers.IsProperString(PreferredName))
+            if (!Helpers.IsProperString(FirstName))
                 return new List<int> { 1 };
 
             FirstName = Helpers.CapitalizeFirstLetterOfEachWord(FirstName.Trim());
             var errors = new List<int>();
 
-            var lenTest = new Regex(@".{1,50}");
+            var lenTest = new Regex(@".{2,100}");
             if (!lenTest.IsMatch(FirstName))
                 errors.Add(2);
 
@@ -35,13 +35,13 @@ namespace RoutinizeCore.Models {
         }
 
         private List<int> VerifyLastName() {
-            if (!Helpers.IsProperString(PreferredName))
+            if (!Helpers.IsProperString(LastName))
                 return new List<int> { 4 };
 
             LastName = Helpers.CapitalizeFirstLetterOfEachWord(LastName.Trim());
             var errors = new List<int>();
 
-            var lenTest = new Regex(@".{1,50}");
+            var lenTest = new Regex(@".{2,100}");
             if (!lenTest.IsMatch(LastName))
                 errors.Add(5);
 
@@ -61,7 +61,7 @@ namespace RoutinizeCore.Models {
             PreferredName = Helpers.CapitalizeFirstLetterOfEachWord(PreferredName.Trim());
             var errors = new List<int>();
 
-            var lenTest = new Regex(@".{1,50}");
+            var lenTest = new Regex(@".{2,50}");
             if (!lenTest.IsMatch(PreferredName))
                 errors.Add(7);
 
@@ -77,16 +77,16 @@ namespace RoutinizeCore.Models {
             
             //For FamilyName
             if (errors.Contains(1)) messages.Add("Family Name is missing.");
-            if (errors.Contains(2)) messages.Add("Family Name is either too short or long.");
+            if (errors.Contains(2)) messages.Add($"Family Name is either too { (LastName.Length < 2 ? "short" : "long") }.");
             if (errors.Contains(3)) messages.Add("Family Name can only contain these special characters: _-.(')");
 
             //For GivenName
             if (errors.Contains(4)) messages.Add("Given Name is missing.");
-            if (errors.Contains(5)) messages.Add("Given Name is either too short or long.");
+            if (errors.Contains(5)) messages.Add($"Given Name is either too { (FirstName.Length < 2 ? "short" : "long") }.");
             if (errors.Contains(6)) messages.Add("Given Name can only contain these special characters: _-.(')");
             
             //For PreferedName
-            if (errors.Contains(7)) messages.Add("Prefered Name is either too short or long.");
+            if (errors.Contains(7)) messages.Add($"Prefered Name is either too { (PreferredName.Length < 2 ? "short" : "long") }.");
             if (errors.Contains(8)) messages.Add("Prefered Name can only contain these special characters: _-.(')");
 
             return messages;

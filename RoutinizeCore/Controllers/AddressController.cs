@@ -90,6 +90,20 @@ namespace RoutinizeCore.Controllers {
             return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = addresses });
         }
 
+        [HttpPut("update")]
+        public async Task<JsonResult> UpdateAddress(Address address) {
+            var errors = address.VerifyAddressData();
+            if (errors.Count != 0) {
+                var errorMessages = address.GenerateErrorMessages(errors);
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errorMessages });
+            }
+        
+            var result = await _addressService.UpdateAddress(address);
+            return result.HasValue && result.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+        }
+
         // [HttpPut("update")]
         // public async Task<JsonResult> UpdateLocation(Address address) {
         //     

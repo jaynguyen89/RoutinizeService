@@ -3,7 +3,7 @@
 	Id INT IDENTITY(1, 1) NOT NULL,
 	TeamId INT NOT NULL,
 	ProjectId INT NOT NULL,
-	[Description] NVARCHAR(1000) DEFAULT NULL,
+	[Description] NVARCHAR(2000) DEFAULT NULL,
 	AssignedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
 	CONSTRAINT [PK_TeamProject_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_TeamProject_Project_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [dbo].[Project] ([Id]),

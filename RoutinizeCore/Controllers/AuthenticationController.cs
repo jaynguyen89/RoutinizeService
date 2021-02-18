@@ -125,7 +125,7 @@ namespace RoutinizeCore.Controllers {
             var isAccountUniqueIdValid = false;
             var accountUniqueId = string.Empty;
             while (!isAccountUniqueIdValid) {
-                accountUniqueId = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_UNIQUE_ID_LENGTH);
+                accountUniqueId = Helpers.GenerateRandomString(SharedConstants.DEFAULT_UNIQUE_ID_LENGTH);
                 isAccountUniqueIdValid = await _accountService.IsAccountUniqueIdAvailable(accountUniqueId);
 
                 if (isAccountUniqueIdValid)

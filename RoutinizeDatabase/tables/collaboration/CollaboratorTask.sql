@@ -6,7 +6,7 @@
 	TaskType NVARCHAR(30) NOT NULL,
 	Permission TINYINT NOT NULL DEFAULT 0,
 	AssignedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
-	[Message] NVARCHAR(150) DEFAULT NULL,
+	[Message] NVARCHAR(300) DEFAULT NULL,
 	CONSTRAINT [PK_CollaboratorTask_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_CollaboratorTask_Collaboration_CollaborationId] FOREIGN KEY ([CollaborationId]) REFERENCES [dbo].[Collaboration] ([Id])
 )

@@ -14,6 +14,7 @@ namespace RoutinizeCore.Models
         }
 
         public int Id { get; set; }
+        public int OrganizationId { get; set; }
         public int AddedById { get; set; }
         public string RoleName { get; set; }
         public bool IsManagerialRole { get; set; }
@@ -27,6 +28,9 @@ namespace RoutinizeCore.Models
         public bool AllowCreateDepartmentRole { get; set; }
         public bool AllowEditDepartmentRole { get; set; }
         public bool AllowDeleteDepartmentRole { get; set; }
+        public bool AllowAddUserOrganization { get; set; }
+        public bool AllowEditUserOrganization { get; set; }
+        public bool AllowDeleteUserOrganization { get; set; }
         public bool AllowAddUserDepartment { get; set; }
         public bool AllowEditUserDepartment { get; set; }
         public bool AllowDeleteUserDepartment { get; set; }
@@ -39,6 +43,7 @@ namespace RoutinizeCore.Models
         public bool AllowConstraintProject { get; set; }
 
         public virtual User AddedBy { get; set; }
+        public virtual Organization Organization { get; set; }
         public virtual ICollection<UserDepartment> UserDepartments { get; set; }
         public virtual ICollection<UserOrganization> UserOrganizations { get; set; }
     }

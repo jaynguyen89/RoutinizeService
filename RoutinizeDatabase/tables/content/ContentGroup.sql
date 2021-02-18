@@ -1,9 +1,9 @@
 ﻿CREATE TABLE [dbo].[ContentGroup]
 (
 	Id INT IDENTITY(1, 1) NOT NULL,
-	GroupName NVARCHAR(50) NOT NULL,
+	GroupName NVARCHAR(100) NOT NULL,
 	GroupOfType NVARCHAR(30) NOT NULL, --References to Todo or Note
-	[Description] NVARCHAR(150) DEFAULT NULL,
+	[Description] NVARCHAR(300) DEFAULT NULL,
 	IsShared BIT NOT NULL DEFAULT 0,
 	CreatedById INT NOT NULL,
 	CreatedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),

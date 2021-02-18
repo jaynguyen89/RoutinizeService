@@ -103,7 +103,7 @@ namespace HelperLibrary {
         
         public static string CapitalizeFirstLetterOfEachWord([NotNull] string sentence) {
             var newSentence = sentence
-                              .Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE)
+                              .Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE)
                               .ToLower();
 
             newSentence = Regex.Replace(newSentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());

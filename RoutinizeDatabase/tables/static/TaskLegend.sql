@@ -3,11 +3,11 @@
 	Id INT IDENTITY(1, 1) NOT NULL,
 	CreatedById INT NOT NULL,
 	ForOrganizationWide BIT NOT NULL DEFAULT 0,
-	ForDepartmentIds NVARCHAR(500) DEFAULT NULL, -- Applied to all Teams in the specified Department
-	ForTeamIds NVARCHAR(500) DEFAULT NULL, -- Applied to all Projects in the specified Team
-	ForProjectIds NVARCHAR(500) DEFAULT NULL, -- Applied only to the specified Projects
+	ForDepartmentIds NVARCHAR(4000) DEFAULT NULL, -- Applied to all Teams in the specified Department
+	ForTeamIds NVARCHAR(4000) DEFAULT NULL, -- Applied to all Projects in the specified Team
+	ForProjectIds NVARCHAR(4000) DEFAULT NULL, -- Applied only to the specified Projects
 	LegendName NVARCHAR(50) NOT NULL,
-	[Description] NVARCHAR(150) DEFAULT NULL,
+	[Description] NVARCHAR(300) DEFAULT NULL,
 	ColorId INT DEFAULT NULL,
 	FillColor NVARCHAR(10) DEFAULT NULL,
 	FillPattern TINYINT NOT NULL DEFAULT 0,

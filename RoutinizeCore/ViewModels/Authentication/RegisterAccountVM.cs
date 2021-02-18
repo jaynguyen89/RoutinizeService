@@ -26,7 +26,7 @@ namespace RoutinizeCore.ViewModels.Authentication {
 
             var errors = new List<int>();
 
-            var lenTest = new Regex(@".{10,50}");
+            var lenTest = new Regex(@".{10,100}");
             if (!lenTest.IsMatch(Email))
                 errors.Add(1);
 
@@ -107,14 +107,14 @@ namespace RoutinizeCore.ViewModels.Authentication {
             var messages = new List<string>();
 
             //For Email
-            if (errors.Contains(0)) messages.Add("Email field is missing input. Email is required for registration.");
-            if (errors.Contains(1)) messages.Add("Email is either too short or long. Min 10, Max 50 characters.");
-            if (errors.Contains(2) || errors.Contains(3)) messages.Add("The email you enter seems to be invalid.");
+            if (errors.Contains(0)) messages.Add("Email is missing.");
+            if (errors.Contains(1)) messages.Add($"Email is too { (Email.Length < 10 ? "short. Min 10 characters" : "long. Max 100 characters.") }.");
+            if (errors.Contains(2) || errors.Contains(3)) messages.Add("The email seems to be invalid.");
 
             //For UserName
-            if (errors.Contains(4)) messages.Add("Username field is missing input. Username is required for registration.");
-            if (errors.Contains(5)) messages.Add("Username is either too short or long. Min 3, Max 20 characters.");
-            if (errors.Contains(6) || errors.Contains(7)) messages.Add("The username you enter is not in the required format.");
+            if (errors.Contains(4)) messages.Add("Username is missing.");
+            if (errors.Contains(5)) messages.Add($"Username is too { (Username.Length < 3 ? "short. Min 3 characters" : "long. Max 20 characters.") }.");
+            if (errors.Contains(6) || errors.Contains(7)) messages.Add("The username contains invalid character.");
 
             //For Password
             if (errors.Contains(8)) messages.Add("Password and/or Confirm Password fields are missing inputs.");

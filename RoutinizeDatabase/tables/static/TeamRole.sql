@@ -4,10 +4,10 @@ CREATE TABLE [dbo].[TeamRole]
 (
 	Id INT IDENTITY(1, 1) NOT NULL,
 	UserId INT NOT NULL,
-	RoleName NVARCHAR(20) NOT NULL,
-	[Description] NVARCHAR(150) NOT NULL,
+	RoleName NVARCHAR(50) NOT NULL,
+	[Description] NVARCHAR(300) NOT NULL,
 	EnumValue TINYINT NOT NULL,
-	ForTeamIds NVARCHAR(500) DEFAULT NULL, -- Save in JSON format int[]
+	ForTeamIds NVARCHAR(4000) DEFAULT NULL, -- Save in JSON format int[]
 	AddedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
 	AllowAddProjectIteration BIT NOT NULL DEFAULT 0,
 	AllowEditProjectIteration BIT NOT NULL DEFAULT 0,

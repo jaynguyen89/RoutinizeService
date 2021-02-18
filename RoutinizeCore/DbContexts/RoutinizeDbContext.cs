@@ -42,6 +42,7 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<NoteSegment> NoteSegments { get; set; }
         public virtual DbSet<Organization> Organizations { get; set; }
+        public virtual DbSet<PositionTitle> PositionTitles { get; set; }
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<ProjectIteration> ProjectIterations { get; set; }
         public virtual DbSet<ProjectRelation> ProjectRelations { get; set; }
@@ -80,13 +81,13 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.Email)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(100);
 
-                entity.Property(e => e.FcmToken).HasMaxLength(200);
+                entity.Property(e => e.FcmToken).HasMaxLength(100);
 
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.PasswordSalt)
                     .IsRequired()
@@ -109,23 +110,23 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Address");
 
-                entity.Property(e => e.Building).HasMaxLength(30);
+                entity.Property(e => e.Building).HasMaxLength(100);
 
-                entity.Property(e => e.Country).HasMaxLength(30);
+                entity.Property(e => e.Country).HasMaxLength(100);
 
                 entity.Property(e => e.Latitude).HasMaxLength(30);
 
                 entity.Property(e => e.Longitude).HasMaxLength(30);
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name).HasMaxLength(100);
 
-                entity.Property(e => e.Postcode).HasMaxLength(10);
+                entity.Property(e => e.Postcode).HasMaxLength(20);
 
-                entity.Property(e => e.State).HasMaxLength(30);
+                entity.Property(e => e.State).HasMaxLength(100);
 
-                entity.Property(e => e.Street).HasMaxLength(50);
+                entity.Property(e => e.Street).HasMaxLength(300);
 
-                entity.Property(e => e.Suburb).HasMaxLength(30);
+                entity.Property(e => e.Suburb).HasMaxLength(100);
             });
 
             modelBuilder.Entity<AppSetting>(entity =>
@@ -242,7 +243,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.InvitedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Message).HasMaxLength(150);
+                entity.Property(e => e.Message).HasMaxLength(300);
 
                 entity.HasOne(d => d.Collaborator)
                     .WithMany(p => p.CollaborationCollaborators)
@@ -261,7 +262,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AssignedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Message).HasMaxLength(150);
+                entity.Property(e => e.Message).HasMaxLength(300);
 
                 entity.Property(e => e.TaskType)
                     .IsRequired()
@@ -294,11 +295,11 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(150);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.GroupName)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.GroupOfType)
                     .IsRequired()
@@ -356,9 +357,9 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(150);
+                entity.Property(e => e.Description).HasMaxLength(1000);
 
-                entity.Property(e => e.TaskVaultName).HasMaxLength(50);
+                entity.Property(e => e.TaskVaultName).HasMaxLength(100);
 
                 entity.HasOne(d => d.Cooperation)
                     .WithMany(p => p.CooperationTaskVaults)
@@ -370,13 +371,13 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Department");
 
-                entity.Property(e => e.ContactDetails).HasMaxLength(500);
+                entity.Property(e => e.Avatar).HasMaxLength(100);
 
                 entity.Property(e => e.Description).HasMaxLength(4000);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasMaxLength(60);
+                    .HasMaxLength(100);
 
                 entity.HasOne(d => d.Organization)
                     .WithMany(p => p.Departments)
@@ -411,17 +412,22 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.Description)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(300);
 
-                entity.Property(e => e.ForDepartmentIds).HasMaxLength(500);
+                entity.Property(e => e.ForDepartmentIds).HasMaxLength(4000);
 
                 entity.Property(e => e.RoleName)
                     .IsRequired()
-                    .HasMaxLength(20);
+                    .HasMaxLength(100);
 
                 entity.HasOne(d => d.AddedBy)
                     .WithMany(p => p.DepartmentRoles)
                     .HasForeignKey(d => d.AddedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.DepartmentRoles)
+                    .HasForeignKey(d => d.OrganizationId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -468,7 +474,7 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Industry");
 
-                entity.Property(e => e.Description).HasMaxLength(200);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.Name).HasMaxLength(100);
 
@@ -483,7 +489,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AssignedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Message).HasMaxLength(150);
+                entity.Property(e => e.Message).HasMaxLength(300);
 
                 entity.Property(e => e.TaskType)
                     .IsRequired()
@@ -530,21 +536,19 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.BriefDescription).HasMaxLength(1000);
 
-                entity.Property(e => e.FullName).HasMaxLength(60);
+                entity.Property(e => e.FullName).HasMaxLength(100);
 
-                entity.Property(e => e.PhoneNumbers).HasMaxLength(1000);
+                entity.Property(e => e.LogoName).HasMaxLength(100);
 
-                entity.Property(e => e.RegistrationCode).HasMaxLength(20);
+                entity.Property(e => e.RegistrationCode).HasMaxLength(30);
 
                 entity.Property(e => e.RegistrationNumber).HasMaxLength(30);
 
-                entity.Property(e => e.ShortName).HasMaxLength(30);
+                entity.Property(e => e.ShortName).HasMaxLength(60);
 
                 entity.Property(e => e.UniqueId)
                     .IsRequired()
                     .HasMaxLength(35);
-
-                entity.Property(e => e.Websites).HasMaxLength(1000);
 
                 entity.HasOne(d => d.Address)
                     .WithMany(p => p.Organizations)
@@ -559,13 +563,31 @@ namespace RoutinizeCore.DbContexts
                     .HasForeignKey(d => d.MotherId);
             });
 
+            modelBuilder.Entity<PositionTitle>(entity =>
+            {
+                entity.ToTable("PositionTitle");
+
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Description).HasMaxLength(300);
+
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.PositionTitles)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             modelBuilder.Entity<Project>(entity =>
             {
                 entity.ToTable("Project");
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.Description).HasMaxLength(2000);
 
                 entity.Property(e => e.ProjectCode).HasMaxLength(20);
 
@@ -589,9 +611,9 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.Description).HasMaxLength(2000);
 
-                entity.Property(e => e.IterationName).HasMaxLength(50);
+                entity.Property(e => e.IterationName).HasMaxLength(100);
 
                 entity.HasOne(d => d.Project)
                     .WithMany(p => p.ProjectIterations)
@@ -678,13 +700,13 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(150);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.FillColor).HasMaxLength(10);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
-                    .HasMaxLength(30);
+                    .HasMaxLength(100);
 
                 entity.HasOne(d => d.Color)
                     .WithMany(p => p.TaskFolders)
@@ -700,15 +722,15 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("TaskLegend");
 
-                entity.Property(e => e.Description).HasMaxLength(150);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.FillColor).HasMaxLength(10);
 
-                entity.Property(e => e.ForDepartmentIds).HasMaxLength(500);
+                entity.Property(e => e.ForDepartmentIds).HasMaxLength(4000);
 
-                entity.Property(e => e.ForProjectIds).HasMaxLength(500);
+                entity.Property(e => e.ForProjectIds).HasMaxLength(4000);
 
-                entity.Property(e => e.ForTeamIds).HasMaxLength(500);
+                entity.Property(e => e.ForTeamIds).HasMaxLength(4000);
 
                 entity.Property(e => e.LegendName)
                     .IsRequired()
@@ -773,9 +795,9 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.TeamName).HasMaxLength(50);
+                entity.Property(e => e.TeamName).HasMaxLength(100);
 
-                entity.Property(e => e.UniqueCode).HasMaxLength(150);
+                entity.Property(e => e.UniqueCode).HasMaxLength(50);
 
                 entity.HasOne(d => d.CoverImage)
                     .WithMany(p => p.Teams)
@@ -847,7 +869,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AssignedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.Description).HasMaxLength(2000);
 
                 entity.HasOne(d => d.Project)
                     .WithMany(p => p.TeamProjects)
@@ -888,13 +910,13 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.Description)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(300);
 
-                entity.Property(e => e.ForTeamIds).HasMaxLength(500);
+                entity.Property(e => e.ForTeamIds).HasMaxLength(4000);
 
                 entity.Property(e => e.RoleName)
                     .IsRequired()
-                    .HasMaxLength(20);
+                    .HasMaxLength(50);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.TeamRoles)
@@ -923,7 +945,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AssignedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Message).HasMaxLength(150);
+                entity.Property(e => e.Message).HasMaxLength(300);
 
                 entity.Property(e => e.TaskType)
                     .IsRequired()
@@ -943,9 +965,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(250);
-
-                entity.Property(e => e.Details).HasMaxLength(4000);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.Title).HasMaxLength(100);
 
@@ -968,11 +988,11 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("User");
 
-                entity.Property(e => e.AvatarName).HasMaxLength(50);
+                entity.Property(e => e.AvatarName).HasMaxLength(100);
 
-                entity.Property(e => e.FirstName).HasMaxLength(50);
+                entity.Property(e => e.FirstName).HasMaxLength(100);
 
-                entity.Property(e => e.LastName).HasMaxLength(50);
+                entity.Property(e => e.LastName).HasMaxLength(100);
 
                 entity.Property(e => e.PreferredName).HasMaxLength(50);
 
@@ -992,8 +1012,6 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.EmployeeCode).HasMaxLength(50);
 
-                entity.Property(e => e.PositionName).HasMaxLength(50);
-
                 entity.HasOne(d => d.Department)
                     .WithMany(p => p.UserDepartments)
                     .HasForeignKey(d => d.DepartmentId)
@@ -1002,6 +1020,11 @@ namespace RoutinizeCore.DbContexts
                 entity.HasOne(d => d.DepartmentRole)
                     .WithMany(p => p.UserDepartments)
                     .HasForeignKey(d => d.DepartmentRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Position)
+                    .WithMany(p => p.UserDepartments)
+                    .HasForeignKey(d => d.PositionId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.User)
@@ -1016,15 +1039,19 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.EmployeeCode).HasMaxLength(50);
 
-                entity.Property(e => e.PositionName).HasMaxLength(50);
-
                 entity.HasOne(d => d.DepartmentRole)
                     .WithMany(p => p.UserOrganizations)
-                    .HasForeignKey(d => d.DepartmentRoleId);
+                    .HasForeignKey(d => d.DepartmentRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.Organization)
                     .WithMany(p => p.UserOrganizations)
                     .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.Position)
+                    .WithMany(p => p.UserOrganizations)
+                    .HasForeignKey(d => d.PositionId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.User)

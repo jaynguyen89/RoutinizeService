@@ -19,7 +19,7 @@ namespace RoutinizeCore.ViewModels.Note {
             var noteErrors = Note.ValidateNoteAndSegments().ToList();
 
             if (!Helpers.IsProperString(Message)) Message = null;
-            else if (Message?.Length > 150) noteErrors.Add("Message is too long. Max 150 characters.");
+            else if (Message?.Length > 300) noteErrors.Add("Message is too long. Max 300 characters.");
 
             return noteErrors;
         }

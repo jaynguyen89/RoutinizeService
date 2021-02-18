@@ -18,11 +18,10 @@ namespace RoutinizeCore.Models {
             
             Description = Description?.Trim();
             if (!Helpers.IsProperString(Description)) Description = null;
-            else if (Description?.Length > 250) errorMessages.Add("Description is too long. Max 250 characters.");
+            else if (Description?.Length > 300) errorMessages.Add("Description is too long. Max 300 characters.");
             
             Details = Details?.Trim();
             if (!Helpers.IsProperString(Details)) Details = null;
-            else if (Details?.Length > 4000) errorMessages.Add("Details is too long. Max 4000 characters.");
             
             if (Title == null && Description == null && Details == null)
                 errorMessages.Add("Please enter some information for one of Title, Description or Details.");
