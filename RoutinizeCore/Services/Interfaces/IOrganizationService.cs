@@ -7,9 +7,9 @@ namespace RoutinizeCore.Services.Interfaces {
 
     public interface IOrganizationService : IDbServiceBase {
 
-        Task<string[]> GetIndustryList();
+        Task<IndustryVM[]> GetIndustryList();
         
-        Task<SearchOrganizationResultVM> SearchMotherOrganizationsOnFullNameByKeywordFor(int organizationId, string keyword);
+        Task<SearchOrganizationVM> SearchForMotherOrganizations(OrganizationSearchDataVM searchData);
         
         Task<bool> IsOrganizationUniqueIdAvailable([NotNull] string uniqueId);
         
@@ -21,7 +21,7 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<bool?> UpdateOrganization(Organization organization);
         
-        Task<OrganizationVM[]> GetAllOrganizationByUserId(int userId);
+        Task<OrganizationVM[]> GetAllOrganizationsOwnedByUserId(int userId);
         
         Task<OrganizationDetailVM> GetDetailsForOrganizationById(int organizationId);
         
@@ -39,29 +39,31 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<UserOrganization> GetUserOrganizationById(int id);
         
+        Task<UserOrganization> GetUserOrganizationByUserId(int userId, int organizationId);
+        
         Task<UserDepartment> GetUserDepartmentById(int id);
+        
+        Task<UserDepartment> GetUserDepartmentByUserId(int userId, int organizationId);
         
         Task<bool?> UpdateUserOrganization(UserOrganization userOrganization);
         
         Task<bool?> UpdateUserDepartment(UserDepartment userDepartment);
         
-        Task<UserOrganizationVM[]> GetAllOrganizationManagers(int organizationId);
+        Task<UserOrganizationVM[]> GetAllOrganizationManagers(int organizationId, bool isActive = true);
         
-        Task<UserDepartmentVM[]> GetAllDepartmentEmployees(int organizationId);
+        Task<UserDepartmentVM[]> GetAllDepartmentEmployees(int organizationId, bool isActive = true);
         
-        Task<AllPersonelsVM> GetAllOrganizationPersonels(int organizationId);
-        
-        Task<bool?> DeleteUserOrganization(UserOrganization userOrganization);
-        
-        Task<bool?> DeleteUserDepartment(UserDepartment userDepartment);
-        
-        Task<PositionTitle> GetAllPositionTitles();
+        Task<AllPersonelsVM> GetAllOrganizationPersonels(int organizationId, bool isActive);
+
+        Task<PositionTitle[]> GetAllPositionTitlesFor(int organizationId);
         
         Task<bool?> DeletePositionTitleById(int positionId);
         
         Task<bool?> UpdatePositionTitle(PositionTitle positionTitle);
         
-        Task<Organization> GetOrganizationByUserId(int userId);
+        Task<bool?> HasUserBeenAddedTo(string destination, int userId, int organizationId);
+        
+        Task<GenericRoleVM[]> GetRolesAccordingToDepartmentId(int departmentId, int organizationId);
     }
 
 }

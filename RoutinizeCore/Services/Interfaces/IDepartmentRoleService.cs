@@ -8,7 +8,7 @@ namespace RoutinizeCore.Services.Interfaces {
 
         Task<int?> InsertNewDepartmentRole(DepartmentRole departmentRole);
         
-        Task<DepartmentRole> GetDepartmentRoleById(int employeeDataRoleId);
+        Task<DepartmentRole> GetDepartmentRoleById(int departmentRoleId);
         
         Task<bool?> UpdateDepartmentRole(DepartmentRole departmentRole);
         
@@ -16,8 +16,8 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<bool?> DeleteRoleById(int roleId);
         
-        Task<GetRolesVM> GetAllDepartmentRoles();
+        Task<GetRolesVM> GetAllDepartmentRoles(int organizationId);
         
-        Task<AllPersonelsVM> GetAnyoneHavingThisRoleById(int roleId);
+        Task<AllPersonelsVM> GetAnyoneHavingThisRoleForOrganization(int roleId, int organizationId);
     }
 }

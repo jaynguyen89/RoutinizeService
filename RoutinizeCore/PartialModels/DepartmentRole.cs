@@ -18,7 +18,7 @@ namespace RoutinizeCore.Models {
         private List<string> VerifyRoleName() {
             if (!Helpers.IsProperString(RoleName)) return new List<string> { "Role name is missing." };
 
-            RoleName = RoleName.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            RoleName = RoleName.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             return RoleName.Length > 100 ? new List<string> { "Role name is too long. Max 100 characters." } : default;
         }
 
@@ -28,17 +28,17 @@ namespace RoutinizeCore.Models {
                 return default;
             }
 
-            Description = Description.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Description = Description.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             Description = Helpers.CapitalizeFirstLetterOfSentence(Description);
             return Description.Length > 300 ? new List<string> { "Role description is too long. Max 300 characters." } : default;
         }
 
         public static DepartmentRole GetDefaultManagerialInstance() {
-            return new DepartmentRole {
-                RoleName = SharedConstants.DEFAULT_DEPARTMENT_ROLE,
+            return new() {
+                RoleName = SharedConstants.DefaultDepartmentRole,
                 IsManagerialRole = true,
                 Description = "Default Owner role is created when user creates an organization. This role is assigned, and grants all permissions, to that user by default.",
-                //EnumValue = 0,
+                HierarchyIndex = 0,
                 AddedOn = DateTime.UtcNow,
                 AllowCreateDepartment = true,
                 AllowEditDepartment = true,
@@ -63,7 +63,7 @@ namespace RoutinizeCore.Models {
         }
 
         public static implicit operator DepartmentRole(ManagerRoleVM role) {
-            return new DepartmentRole {
+            return new() {
                 RoleName = role.RoleName,
                 IsManagerialRole = true,
                 AddedOn = DateTime.UtcNow,
@@ -90,7 +90,7 @@ namespace RoutinizeCore.Models {
         }
         
         public static implicit operator DepartmentRole(EmployeeRoleVM role) {
-            return new DepartmentRole {
+            return new() {
                 RoleName = role.RoleName,
                 IsManagerialRole = true,
                 AddedOn = DateTime.UtcNow,
@@ -112,6 +112,7 @@ namespace RoutinizeCore.Models {
             IsManagerialRole = newRoleData.IsManagerialRole;
             Description = newRoleData.Description;
             ForDepartmentIds = newRoleData.ForDepartmentIds;
+            HierarchyIndex = newRoleData.HierarchyIndex;
 
             AllowCreateDepartment = newRoleData.AllowCreateDepartment;
             AllowEditDepartment = newRoleData.AllowEditDepartment;

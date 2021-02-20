@@ -31,7 +31,7 @@ namespace RoutinizeCore.Models {
                 !Helpers.IsProperString(Street)
             ) return new[] { "Location details are missing." };
 
-            Name = Name?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Name = Name?.Trim()?.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             if (Helpers.IsProperString(Name) && Name?.Length > 100)
                 return new[] { "Location Name is too long. Max 50 characters." };
             
@@ -82,7 +82,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (Building == null) return errors;
 
-            Building = Building.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            Building = Building.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Building)) {
                 Building = null;
                 return errors;
@@ -105,7 +105,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (Street == null) return new List<int> { 2 };
 
-            Street = Street.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            Street = Street.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Street))
                 return new List<int> { 2 };
 
@@ -146,7 +146,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (Suburb == null) return new List<int> { 7 };
 
-            Suburb = Suburb.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            Suburb = Suburb.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Suburb))
                 return new List<int> { 7 };
 
@@ -167,7 +167,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (Postcode == null) return new List<int> { 10 };
 
-            Postcode = Postcode.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            Postcode = Postcode.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Postcode))
                 return new List<int> { 10 };
 
@@ -186,7 +186,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (State == null) return new List<int> { 13 };
 
-            State = State.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            State = State.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(State))
                 return new List<int> { 13 };
 
@@ -207,7 +207,7 @@ namespace RoutinizeCore.Models {
             var errors = new List<int>();
             if (Country == null) return new List<int> { 16 };
 
-            Country = Country.Trim().Replace(SharedConstants.DOUBLE_SPACE, SharedConstants.MONO_SPACE);
+            Country = Country.Trim().Replace(SharedConstants.DoubleSpace, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Country))
                 return new List<int> { 16 };
 

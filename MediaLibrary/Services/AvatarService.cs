@@ -34,7 +34,7 @@ namespace MediaLibrary.Services {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(uploadedData.TokenId);
                 if (apiAccessToken.AccountId != uploadedData.AccountId) return null;
 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["form"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.ContentTypes["form"]));
 
                 var formFile = new StreamContent(uploadedData.UploadedFile.OpenReadStream());
                 formFile.Headers.ContentType = MediaTypeHeaderValue.Parse(uploadedData.UploadedFile.ContentType);
@@ -65,7 +65,7 @@ namespace MediaLibrary.Services {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(tokenId);
                 if (apiAccessToken.AccountId != accountId) return null;
                 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["json"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.ContentTypes["json"]));
                 var response = await _httpClient.PostAsJsonAsync(
                     "avatar/remove-avatar",
                     JsonConvert.SerializeObject(new {
@@ -93,7 +93,7 @@ namespace MediaLibrary.Services {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(uploadedData.TokenId);
                 if (apiAccessToken.AccountId != uploadedData.AccountId) return null;
                 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["form"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.ContentTypes["form"]));
                 
                 var formFile = new StreamContent(uploadedData.FileToSave.OpenReadStream());
                 formFile.Headers.ContentType = MediaTypeHeaderValue.Parse(uploadedData.FileToSave.ContentType);

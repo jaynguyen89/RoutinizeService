@@ -9,5 +9,14 @@
         public string Name { get; set; }
         
         public bool Gender { get; set; }
+
+        public static implicit operator UserVM(Models.User user) {
+            return new() {
+                Id = user.Id,
+                Avatar = user.AvatarName,
+                Name = user.PreferredName ?? $"{ user.FirstName } { user.LastName }",
+                Gender = user.Gender
+            };
+        }
     }
 }

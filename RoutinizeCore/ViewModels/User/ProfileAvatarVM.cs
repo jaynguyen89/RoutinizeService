@@ -26,13 +26,13 @@ namespace RoutinizeCore.ViewModels.User {
                 errors.Add(-1);
 
             if (AvatarFile != null) {
-                if (!SharedConstants.IMAGE_TYPES.Contains(AvatarFile.ContentType)) {
+                if (!SharedConstants.ImageTypes.Contains(AvatarFile.ContentType)) {
                     errors.Add(0);
                     return errors;
                 }
 
                 if (AvatarFile.Length == 0) errors.Add(1);
-                if (AvatarFile.Length > SharedConstants.IMAGE_FILE_MAX_SIZE) errors.Add(2);
+                if (AvatarFile.Length > SharedConstants.ImageFileMaxSize) errors.Add(2);
             }
 
             return errors;

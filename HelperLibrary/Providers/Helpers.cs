@@ -33,8 +33,8 @@ namespace HelperLibrary {
 
         public static string AppendCharacterToString(
             [NotNull] string any,
-            [NotNull] char characterToAppend = SharedConstants.ACCOUNT_UNIQUE_ID_DELIMITER,
-            [NotNull] int step = SharedConstants.ACCOUNT_UNIQUE_ID_GROUP_LENGTH
+            [NotNull] char characterToAppend = SharedConstants.AccountUniqueIdDelimiter,
+            [NotNull] int step = SharedConstants.AccountUniqueIdGroupLength
         ) {
             return any.ToCharArray().Select(character => character.ToString()).ToList()
                       .Aggregate((previousChar, nextChar) => {
@@ -103,7 +103,7 @@ namespace HelperLibrary {
         
         public static string CapitalizeFirstLetterOfEachWord([NotNull] string sentence) {
             var newSentence = sentence
-                              .Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE)
+                              .Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace)
                               .ToLower();
 
             newSentence = Regex.Replace(newSentence, @"(^\w)|(\s\w)", m => m.Value.ToUpper());
@@ -117,7 +117,7 @@ namespace HelperLibrary {
         }
 
         public static string ExtractImageNameFromPath([NotNull] string imageName) {
-            var pathTokens = imageName.Split(SharedConstants.FSLASH);
+            var pathTokens = imageName.Split(SharedConstants.Fslash);
             return pathTokens[^1];
         }
 

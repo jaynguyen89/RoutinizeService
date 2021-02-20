@@ -14,7 +14,7 @@ namespace RoutinizeCore.Models {
             }
 
             Title = Title.Trim();
-            Title = Title.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Title = Title.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             Title = Helpers.CapitalizeFirstLetterOfSentence(Title);
 
             if (NoteSegments.Count == 0) return new[] { "Note has no content." };
@@ -30,7 +30,7 @@ namespace RoutinizeCore.Models {
             }
 
             Title = Title.Trim();
-            Title = Title.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Title = Title.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             Title = Helpers.CapitalizeFirstLetterOfSentence(Title);
         }
     }

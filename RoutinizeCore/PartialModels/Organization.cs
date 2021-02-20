@@ -72,7 +72,7 @@ namespace RoutinizeCore.Models {
                 return default;
             }
 
-            RegistrationNumber = RegistrationNumber.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            RegistrationNumber = RegistrationNumber.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             var errors = new List<string>();
 
             var lenTest = new Regex(@".{3,30}");
@@ -92,7 +92,7 @@ namespace RoutinizeCore.Models {
                 return default;
             }
 
-            RegistrationCode = RegistrationCode.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            RegistrationCode = RegistrationCode.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             var errors = new List<string>();
 
             var lenTest = new Regex(@".{3,30}");

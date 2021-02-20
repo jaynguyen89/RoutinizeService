@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using Newtonsoft.Json;
 
 namespace RoutinizeCore.ViewModels.Organization {
 
@@ -22,7 +23,7 @@ namespace RoutinizeCore.ViewModels.Organization {
 
             var websiteError = Websites.Select(
                                            website => {
-                                               var url = website?.Trim()?.Replace(SharedConstants.ALL_SPACES, string.Empty);
+                                               var url = website?.Trim()?.Replace(SharedConstants.AllSpaces, string.Empty);
                                                if (!Helpers.IsProperString(url)) return new List<string>() { "Website URL is missing." };
 
                                                url = url.ToLower();
@@ -38,6 +39,10 @@ namespace RoutinizeCore.ViewModels.Organization {
                                        .FirstOrDefault(errors => errors.Count != 0);
 
             return phoneNumberError.Concat(websiteError ?? new List<string>()).ToList();
+        }
+
+        public static implicit operator DepartmentContactVM(string contactDetails) {
+            return JsonConvert.DeserializeObject<DepartmentContactVM>(contactDetails);
         }
     }
 }

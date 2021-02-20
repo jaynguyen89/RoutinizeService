@@ -44,7 +44,7 @@ namespace RoutinizeCore.ViewModels.Organization {
                 PositionId = this.PositionId,
                 EmployeeCode = this.EmployeeCode,
                 IsActive = true,
-                JointOn = this.JointOn
+                JointOn = this.JointOn ?? DateTime.UtcNow
             };
         }
         
@@ -56,7 +56,7 @@ namespace RoutinizeCore.ViewModels.Organization {
                 PositionId = this.PositionId,
                 EmployeeCode = this.EmployeeCode,
                 IsActive = true,
-                JointOn = this.JointOn
+                JointOn = this.JointOn ?? DateTime.UtcNow
             };
         }
 

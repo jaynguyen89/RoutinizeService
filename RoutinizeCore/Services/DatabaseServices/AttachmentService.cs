@@ -24,7 +24,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             RoutinizeDbContext dbContext
         ) : base(coreLogService, dbContext) { }
         
-        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TaskInsert) {
             await base.SetChangesToDbContext(any, task);
         }
 

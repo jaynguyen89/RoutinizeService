@@ -27,7 +27,7 @@ namespace RoutinizeCore.Models {
                 errorMessages.Add("Please enter some information for one of Title, Description or Details.");
 
             CoverImage = CoverImage?.Trim();
-            if (CoverImage != null) Regex.Replace(CoverImage, SharedConstants.ALL_SPACES, string.Empty);
+            if (CoverImage != null) Regex.Replace(CoverImage, SharedConstants.AllSpaces, string.Empty);
             
             if (!isUpdating) CreatedOn = DateTime.UtcNow;
 

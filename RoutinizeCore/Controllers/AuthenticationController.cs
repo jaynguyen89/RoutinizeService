@@ -125,14 +125,14 @@ namespace RoutinizeCore.Controllers {
             var isAccountUniqueIdValid = false;
             var accountUniqueId = string.Empty;
             while (!isAccountUniqueIdValid) {
-                accountUniqueId = Helpers.GenerateRandomString(SharedConstants.DEFAULT_UNIQUE_ID_LENGTH);
+                accountUniqueId = Helpers.GenerateRandomString(SharedConstants.DefaultUniqueIdLength);
                 isAccountUniqueIdValid = await _accountService.IsAccountUniqueIdAvailable(accountUniqueId);
 
                 if (isAccountUniqueIdValid)
                     accountUniqueId = accountUniqueId.ToUpper(); //Helpers.AppendCharacterToString(accountUniqueId);
             }
 
-            var activationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            var activationToken = Helpers.GenerateRandomString(SharedConstants.AccountActivationTokenLength);
             await _authenticationService.StartTransaction();
             
             var newAccountId = await _authenticationService.InsertNewUserAccount(registrationData, accountUniqueId, activationToken);
@@ -200,7 +200,7 @@ namespace RoutinizeCore.Controllers {
             
             await _authenticationService.CommitTransaction();
 
-            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationConfirmationEmail.html");
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EmailTemplatesDirectory }AccountActivationConfirmationEmail.html");
             var accountActivationConfirmationEmailTemplate = await fileReader.ReadToEndAsync();
 
             var accountActivationConfirmationEmailContent = accountActivationConfirmationEmailTemplate.Replace("[USER_NAME]", userAccount.Username);
@@ -230,7 +230,7 @@ namespace RoutinizeCore.Controllers {
                 Error = SharedEnums.HttpStatusCodes.NotFound
             });
             
-            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.AccountActivationTokenLength);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
             await _accountService.StartTransaction();
@@ -246,13 +246,13 @@ namespace RoutinizeCore.Controllers {
         }
 
         private async Task<bool> SendAccountActivationEmail(string username, string email, string activationToken) {
-            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }AccountActivationEmail.html");
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EmailTemplatesDirectory }AccountActivationEmail.html");
             var accountActivationEmailContent = await fileReader.ReadToEndAsync();
 
             accountActivationEmailContent = accountActivationEmailContent.Replace("[USER_NAME]", username);
             accountActivationEmailContent = accountActivationEmailContent.Replace("[USER_EMAIL]", email);
             accountActivationEmailContent = accountActivationEmailContent.Replace("[ACTIVATION_TOKEN]", activationToken);
-            accountActivationEmailContent = accountActivationEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            accountActivationEmailContent = accountActivationEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.AccountActivationEmailValidityDuration.ToString());
 
             var accountActivationEmail = new EmailContent {
                 Subject = "Activate your account",
@@ -328,9 +328,9 @@ namespace RoutinizeCore.Controllers {
             
             var sessionAuthExpiryTimestamp = authRecord.AuthTimestamp + (
                 authRecord.TrustedAuth ?
-                    SharedConstants.TRUSTED_AUTHENTICATION_EXPIRY_DURATION :
-                    SharedConstants.UNTRUSTED_AUTHENTICATION_EXPIRY_DURATION
-            ) * SharedConstants.MINUTES_PER_HOUR * SharedConstants.SECONDS_PER_MINUTE * SharedConstants.MILLIS_PER_SECOND;
+                    SharedConstants.TrustedAuthenticationExpiryDuration :
+                    SharedConstants.UntrustedAuthenticationExpiryDuration
+            ) * SharedConstants.MinutesPerHour * SharedConstants.SecondsPerMinute * SharedConstants.MillisPerSecond;
             if (sessionAuthExpiryTimestamp < Helpers.ConvertToUnixTimestamp(DateTime.UtcNow))
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed });
             
@@ -398,7 +398,7 @@ namespace RoutinizeCore.Controllers {
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
 
             userAccount.EmailConfirmed = false;
-            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.AccountActivationTokenLength);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
             await _accountService.StartTransaction();
@@ -435,7 +435,7 @@ namespace RoutinizeCore.Controllers {
             var userAccount = await _accountService.GetUserAccountById(forgotPasswordData.AccountId, false);
             if (userAccount == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while searching for your account." });
             
-            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            userAccount.RecoveryToken = Helpers.GenerateRandomString(SharedConstants.AccountActivationTokenLength);
             userAccount.TokenSetOn = DateTime.UtcNow;
 
             await _accountService.StartTransaction();
@@ -504,13 +504,13 @@ namespace RoutinizeCore.Controllers {
         }
         
         private async Task<bool> SendPasswordResetEmail(string username, string email, int accountId, string activationToken) {
-            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }RecoverPasswordEmail.html");
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EmailTemplatesDirectory }RecoverPasswordEmail.html");
             var recoverPasswordEmailContent = await fileReader.ReadToEndAsync();
 
             recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[USER_NAME]", username);
             recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[ACCOUNT_ID]", accountId.ToString());
             recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[ACTIVATION_TOKEN]", activationToken);
-            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            recoverPasswordEmailContent = recoverPasswordEmailContent.Replace("[VALIDITY_DURATION]", SharedConstants.AccountActivationEmailValidityDuration.ToString());
 
             var recoverPasswordEmail = new EmailContent {
                 Subject = "Activate your account",

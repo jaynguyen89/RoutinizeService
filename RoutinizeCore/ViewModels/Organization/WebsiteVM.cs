@@ -20,7 +20,7 @@ namespace RoutinizeCore.ViewModels.Organization {
         }
 
         private List<string> VerifyTitle() {
-            Title = Title?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Title = Title?.Trim()?.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Title)) return new List<string>() { "Website title is missing." };
             
             Title = Helpers.CapitalizeFirstLetterOfSentence(Title);
@@ -31,7 +31,7 @@ namespace RoutinizeCore.ViewModels.Organization {
         }
 
         private List<string> VerifyUrl() {
-            Url = Url?.Trim()?.Replace(SharedConstants.ALL_SPACES, string.Empty);
+            Url = Url?.Trim()?.Replace(SharedConstants.AllSpaces, string.Empty);
             if (!Helpers.IsProperString(Url)) return new List<string>() { "Website URL is missing." };
 
             Url = Url.ToLower();

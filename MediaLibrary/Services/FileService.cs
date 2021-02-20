@@ -35,7 +35,7 @@ namespace MediaLibrary.Services {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(uploadedData.TokenId);
                 if (apiAccessToken.AccountId != uploadedData.AccountId) return null;
 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["form"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.ContentTypes["form"]));
                 var formData = new MultipartFormDataContent {
                     { new StringContent(uploadedData.AccountId.ToString()), "accountId" },
                     { new StringContent(apiAccessToken.TokenString), "apiKey" },
@@ -69,7 +69,7 @@ namespace MediaLibrary.Services {
                 var apiAccessToken = await _dbContext.Tokens.FindAsync(tokenId);
                 if (apiAccessToken.AccountId != accountId) return null;
                 
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.CONTENT_TYPES["json"]));
+                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(SharedConstants.ContentTypes["json"]));
                 var response = await _httpClient.PostAsJsonAsync(
                     "attachment/remove-attachments",
                     JsonConvert.SerializeObject(new {

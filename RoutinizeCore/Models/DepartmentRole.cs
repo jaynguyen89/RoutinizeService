@@ -19,7 +19,7 @@ namespace RoutinizeCore.Models
         public string RoleName { get; set; }
         public bool IsManagerialRole { get; set; }
         public string Description { get; set; }
-        public byte EnumValue { get; set; }
+        public byte HierarchyIndex { get; set; }
         public string ForDepartmentIds { get; set; }
         public DateTime AddedOn { get; set; }
         public bool AllowCreateDepartment { get; set; }

@@ -28,7 +28,7 @@ namespace RoutinizeCore.Controllers {
             var token = new Token {
                 AccountId = accountId,
                 TokenString = Helpers.GenerateRandomString(tokenLength, true),
-                Target = SharedConstants.API_TOKEN_TARGETS[task]
+                Target = SharedConstants.ApiTokenTargets[task]
             };
 
             var result = await _apiAccessService.SaveApiToken(token);

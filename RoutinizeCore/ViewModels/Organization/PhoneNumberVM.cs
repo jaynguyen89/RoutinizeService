@@ -22,7 +22,7 @@ namespace RoutinizeCore.ViewModels.Organization {
         }
         
         private List<string> VerifyTitle() {
-            Title = Title?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Title = Title?.Trim()?.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(Title)) return new List<string>() { "Phone number title is missing." };
             
             Title = Helpers.CapitalizeFirstLetterOfSentence(Title);
@@ -33,7 +33,7 @@ namespace RoutinizeCore.ViewModels.Organization {
         }
 
         private List<string> VerifyPhoneNumber() {
-            PhoneNumber = PhoneNumber?.Trim()?.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            PhoneNumber = PhoneNumber?.Trim()?.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             if (!Helpers.IsProperString(PhoneNumber)) return new List<string>() { "Phone number is missing" };
 
             PhoneNumber = PhoneNumber.ToUpper();
@@ -51,7 +51,7 @@ namespace RoutinizeCore.ViewModels.Organization {
                 return default;
             }
             
-            Extension = Extension.Trim().Replace(SharedConstants.ALL_SPACES, string.Empty);
+            Extension = Extension.Trim().Replace(SharedConstants.AllSpaces, string.Empty);
             var regex = new Regex(@"^\d{1,}$");
             return regex.IsMatch(Extension) ? default : new List<string>() { "Phone extension should be a number." };
         }

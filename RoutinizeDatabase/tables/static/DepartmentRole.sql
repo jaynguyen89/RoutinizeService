@@ -8,7 +8,7 @@ CREATE TABLE [dbo].[DepartmentRole]
 	RoleName NVARCHAR(100) NOT NULL,
 	IsManagerialRole BIT NOT NULL DEFAULT 0,
 	[Description] NVARCHAR(300) NOT NULL,
-	--EnumValue TINYINT NOT NULL,
+	HierarchyIndex TINYINT NOT NULL,
 	ForDepartmentIds NVARCHAR(4000) DEFAULT NULL, -- Save in JSON format int[]
 	AddedOn DATETIME2(7) NOT NULL DEFAULT(GETDATE()),
 	-- Permissions for organization-level users

@@ -17,7 +17,7 @@ namespace RoutinizeCore.Models {
         private List<string> VerifyTitle() {
             if (!Helpers.IsProperString(Title)) return new List<string> { "Position title is missing." };
 
-            Title = Title.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Title = Title.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             return Title.Length > 100 ? new List<string> { "Position title is too long. Max 100 characters." } : default;
         }
 
@@ -27,14 +27,14 @@ namespace RoutinizeCore.Models {
                 return default;
             }
 
-            Description = Description.Trim().Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            Description = Description.Trim().Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             Description = Helpers.CapitalizeFirstLetterOfSentence(Description);
             return Description.Length > 300 ? new List<string> { "Position description is too long. Max 300 characters." } : default;
         }
 
         public static PositionTitle GetDefaultManagerialTitle() {
             return new PositionTitle {
-                Title = SharedConstants.DEFAULT_POSITION_TITLE,
+                Title = SharedConstants.DefaultPositionTitle,
                 Description = "Chief Executive Officer: Head of the organization, assigned to the user who added the organization.",
                 AddedOn = DateTime.UtcNow
             };

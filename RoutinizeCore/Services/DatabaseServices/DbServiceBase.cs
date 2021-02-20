@@ -29,12 +29,12 @@ namespace RoutinizeCore.Services.DatabaseServices {
         /// <summary>
         /// Use in a combination with CommitChanges.
         /// </summary>
-        protected async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+        protected async Task SetChangesToDbContext(object any, string task = SharedConstants.TaskInsert) {
             switch (task) {
-                case SharedConstants.TASK_INSERT:
+                case SharedConstants.TaskInsert:
                     await _dbContext.AddAsync(any);
                     break;
-                case SharedConstants.TASK_UPDATE:
+                case SharedConstants.TaskUpdate:
                     _dbContext.Update(any);
                     break;
                 default:

@@ -9,7 +9,7 @@ namespace RoutinizeCore.Services.Interfaces {
         /// <summary>
         /// Use in a combination with CommitChanges.
         /// </summary>
-        Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT);
+        Task SetChangesToDbContext(object any, string task = SharedConstants.TaskInsert);
 
         /// <summary>
         /// Use in a combination with SetChangesToDbContext.

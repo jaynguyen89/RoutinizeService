@@ -9,8 +9,8 @@ namespace AssistantLibrary.Interfaces {
         TwoFactorAuth GetTwoFactorAuthSetup(
             [NotNull] string secretKey,
             [NotNull] string email,
-            [NotNull] string projectName = SharedConstants.PROJECT_NAME,
-            [NotNull] int imageSize = SharedConstants.TWO_FA_QR_IMAGE_SIZE
+            [NotNull] string projectName = SharedConstants.ProjectName,
+            [NotNull] int imageSize = SharedConstants.TwoFaQrImageSize
         );
 
         bool VerifyTwoFactorAuth([NotNull] string secretKey,[NotNull] string pin);

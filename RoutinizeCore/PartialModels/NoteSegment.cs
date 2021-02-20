@@ -9,7 +9,7 @@ namespace RoutinizeCore.Models {
             if (!Helpers.IsProperString(Body)) return false;
 
             var body = Body.Trim();
-            body = body.Replace(SharedConstants.ALL_SPACES, SharedConstants.MONO_SPACE);
+            body = body.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
 
             return Helpers.IsProperString(body);
         }

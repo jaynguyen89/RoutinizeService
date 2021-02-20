@@ -24,7 +24,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
             RoutinizeDbContext dbContext
         ) : base(coreLogService, dbContext) { }
         
-        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TASK_INSERT) {
+        public new async Task SetChangesToDbContext(object any, string task = SharedConstants.TaskInsert) {
             await base.SetChangesToDbContext(any, task);
         }
 
@@ -97,7 +97,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 if (dbAccount == null) return new KeyValuePair<bool, bool?>(false, null);
 
                 if (dbAccount.TokenSetOn == null || 
-                    dbAccount.TokenSetOn.Value.AddHours(SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION) <= DateTime.UtcNow
+                    dbAccount.TokenSetOn.Value.AddHours(SharedConstants.AccountActivationEmailValidityDuration) <= DateTime.UtcNow
                 )
                     return new KeyValuePair<bool, bool?>(false, true);
                 

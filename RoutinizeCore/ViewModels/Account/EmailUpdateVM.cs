@@ -29,7 +29,7 @@ namespace RoutinizeCore.ViewModels.Account {
                 errors.Add(1);
 
             var fmTest = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-            if (!fmTest.IsMatch(NewEmail) || SharedConstants.INVALID_EMAIL_TOKENS.Any(NewEmail.Contains))
+            if (!fmTest.IsMatch(NewEmail) || SharedConstants.InvalidEmailTokens.Any(NewEmail.Contains))
                 errors.Add(2);
 
             if (errors.Count == 0) {

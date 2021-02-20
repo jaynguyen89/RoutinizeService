@@ -31,7 +31,7 @@ namespace RoutinizeCore.ViewModels.Authentication {
                 errors.Add(1);
 
             var fmTest = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-            if (!fmTest.IsMatch(Email) || SharedConstants.INVALID_EMAIL_TOKENS.Any(Email.Contains))
+            if (!fmTest.IsMatch(Email) || SharedConstants.InvalidEmailTokens.Any(Email.Contains))
                 errors.Add(2);
 
             if (errors.Count == 0) {
@@ -59,7 +59,7 @@ namespace RoutinizeCore.ViewModels.Authentication {
             if (!spTest.IsMatch(Username))
                 errors.Add(6);
 
-            if (errors.Count == 0 && (SharedConstants.INVALID_EMAIL_TOKENS.Any(Username.Contains) ||
+            if (errors.Count == 0 && (SharedConstants.InvalidEmailTokens.Any(Username.Contains) ||
                 "_-.".Contains(Username[0]) || "_-.".Contains(Username[^1])))
                 errors.Add(7);
 

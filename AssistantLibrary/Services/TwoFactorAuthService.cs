@@ -19,8 +19,8 @@ namespace AssistantLibrary.Services {
         public TwoFactorAuth GetTwoFactorAuthSetup(
             [NotNull] string secretKey,
             [NotNull] string email,
-            [NotNull] string projectName = SharedConstants.PROJECT_NAME,
-            [NotNull] int imageSize = SharedConstants.TWO_FA_QR_IMAGE_SIZE
+            [NotNull] string projectName = SharedConstants.ProjectName,
+            [NotNull] int imageSize = SharedConstants.TwoFaQrImageSize
         ) {
             var authenticator = _authenticator.GenerateSetupCode(
                 projectName, email, secretKey, true, imageSize
@@ -33,7 +33,7 @@ namespace AssistantLibrary.Services {
         }
 
         public bool VerifyTwoFactorAuth([NotNull] string secretKey, [NotNull] string pin) {
-            return _authenticator.ValidateTwoFactorPIN(secretKey, pin, TimeSpan.FromMinutes(SharedConstants.TWO_FA_TOLERANCE));
+            return _authenticator.ValidateTwoFactorPIN(secretKey, pin, TimeSpan.FromMinutes(SharedConstants.TwoFaTolerance));
         }
     }
 }

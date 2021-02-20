@@ -43,7 +43,7 @@ namespace AssistantLibrary.Services {
             if (_withLogo) {
                 var darkColor = ColorTranslator.FromHtml(_darkColor);
                 var lightColor = ColorTranslator.FromHtml(_lightColor);
-                var logo = (Bitmap) Image.FromFile($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }{ _logoName }");
+                var logo = (Bitmap) Image.FromFile($"{ SharedConstants.EmailTemplatesDirectory }{ _logoName }");
 
                 qrImage = qrCode.GetGraphic(_size, darkColor, lightColor, logo);
             }

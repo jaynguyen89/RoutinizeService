@@ -73,7 +73,7 @@ namespace RoutinizeCore.Controllers {
             userAccount.Email = emailUpdateData.NewEmail;
             userAccount.EmailConfirmed = false;
 
-            var confirmationToken = Helpers.GenerateRandomString(SharedConstants.ACCOUNT_ACTIVATION_TOKEN_LENGTH);
+            var confirmationToken = Helpers.GenerateRandomString(SharedConstants.AccountActivationTokenLength);
             userAccount.RecoveryToken = confirmationToken;
             userAccount.TokenSetOn = DateTime.UtcNow;
 
@@ -100,12 +100,12 @@ namespace RoutinizeCore.Controllers {
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An error occurred while updating your email." });
             }
 
-            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }EmailUpdateNotificationEmail.html");
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EmailTemplatesDirectory }EmailUpdateNotificationEmail.html");
             var emailUpdateNotificationContent = await fileReader.ReadToEndAsync();
 
             emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[USER_NAME]", userAccount.Username);
             emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[ACTIVATION_TOKEN]", confirmationToken);
-            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[VALIDITY_DURATION]", SharedConstants.ACCOUNT_ACTIVATION_EMAIL_VALIDITY_DURATION.ToString());
+            emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[VALIDITY_DURATION]", SharedConstants.AccountActivationEmailValidityDuration.ToString());
             emailUpdateNotificationContent = emailUpdateNotificationContent.Replace("[USER_EMAIL]", userAccount.Email);
             
             var emailUpdateEmail = new EmailContent {
@@ -209,7 +209,7 @@ namespace RoutinizeCore.Controllers {
         [HttpGet("enable-two-factor/{accountId}")]
         [RoutinizeActionFilter]
         public async Task<JsonResult> EnableTwoFactorAuthentication(int accountId) {
-            var twoFactorSecretKey = Helpers.GenerateRandomString(SharedConstants.TWO_FA_SECRET_KEY_LENGTH);
+            var twoFactorSecretKey = Helpers.GenerateRandomString(SharedConstants.TwoFaSecretKeyLength);
             var userAccount = await _accountService.GetUserAccountById(accountId);
 
             userAccount.TwoFactorEnabled = true;
@@ -240,7 +240,7 @@ namespace RoutinizeCore.Controllers {
             var updateResult = await _accountService.UpdateUserAccount(userAccount);
             if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
             
-            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EMAIL_TEMPLATES_DIRECTORY }TwoFaDisabledNotificationEmail.html");
+            using var fileReader = System.IO.File.OpenText($"{ SharedConstants.EmailTemplatesDirectory }TwoFaDisabledNotificationEmail.html");
             var twoFaDisabledNotificationEmailContent = await fileReader.ReadToEndAsync();
             twoFaDisabledNotificationEmailContent = twoFaDisabledNotificationEmailContent.Replace("[USER_NAME]", userAccount.Username);
 

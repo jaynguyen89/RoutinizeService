@@ -43,7 +43,7 @@ namespace RoutinizeCore.Services.ApplicationServices.CacheService {
                         );
                 }
                 catch (InvalidOperationException) {
-                    EntryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(SharedConstants.CACHE_ABSOLUTE_EXPIRATION));
+                    EntryOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(SharedConstants.CacheAbsoluteExpiration));
                 }
 
             MemoryCache.Set(entry.EntryKey, entry.Data, EntryOptions);
