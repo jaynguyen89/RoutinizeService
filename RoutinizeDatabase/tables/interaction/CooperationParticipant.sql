@@ -6,6 +6,7 @@
 	ParticipantType NVARCHAR(30) NOT NULL,
 	ParticipatedOn DATETIME2(7) NOT NULL DEFAULT (GETDATE()),
 	IsActive BIT NOT NULL DEFAULT 0,
+	LeftOn DATETIME2(7) DEFAULT NULL,
 	CONSTRAINT [PK_CooperationParticipant_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_CooperationParticipant_Cooperation_CooperationId] FOREIGN KEY ([CooperationId]) REFERENCES [dbo].[Cooperation] ([Id])
 )

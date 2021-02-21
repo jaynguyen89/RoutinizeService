@@ -14,8 +14,8 @@ namespace RoutinizeCore.Models
         }
 
         public int Id { get; set; }
-        public int OrganizationId { get; set; }
         public int AddedById { get; set; }
+        public int OrganizationId { get; set; }
         public string RoleName { get; set; }
         public bool IsManagerialRole { get; set; }
         public string Description { get; set; }

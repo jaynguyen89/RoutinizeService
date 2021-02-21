@@ -68,6 +68,7 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<UserDepartment> UserDepartments { get; set; }
         public virtual DbSet<UserOrganization> UserOrganizations { get; set; }
         public virtual DbSet<UserPrivacy> UserPrivacies { get; set; }
+        public virtual DbSet<UserRsaKey> UserRsaKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -314,6 +315,12 @@ namespace RoutinizeCore.DbContexts
             modelBuilder.Entity<Cooperation>(entity =>
             {
                 entity.ToTable("Cooperation");
+
+                entity.Property(e => e.ConfidedRequestResponderIds).HasMaxLength(1000);
+
+                entity.Property(e => e.ParticipantIdsToAllowRespondRequest).HasMaxLength(1000);
+
+                entity.Property(e => e.ParticipantIdsToAllowUnlock).HasMaxLength(1000);
             });
 
             modelBuilder.Entity<CooperationParticipant>(entity =>
@@ -336,9 +343,7 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("CooperationRequest");
 
-                entity.Property(e => e.Message).HasMaxLength(4000);
-
-                entity.Property(e => e.RequestAcceptance).HasMaxLength(500);
+                entity.Property(e => e.Message).HasMaxLength(2000);
 
                 entity.Property(e => e.RequestedByType)
                     .IsRequired()
@@ -349,6 +354,8 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.RequestedToType)
                     .IsRequired()
                     .HasMaxLength(30);
+
+                entity.Property(e => e.ResponderNote).HasMaxLength(1000);
             });
 
             modelBuilder.Entity<CooperationTaskVault>(entity =>
@@ -1070,6 +1077,34 @@ namespace RoutinizeCore.DbContexts
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.UserPrivacies)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<UserRsaKey>(entity =>
+            {
+                entity.ToTable("UserRsaKey");
+
+                entity.Property(e => e.GeneratedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.KeyExponent)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.KeyModulus)
+                    .IsRequired()
+                    .HasMaxLength(250);
+
+                entity.Property(e => e.PrivateKey)
+                    .IsRequired()
+                    .HasMaxLength(4000);
+
+                entity.Property(e => e.PublicKey)
+                    .IsRequired()
+                    .HasMaxLength(4000);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UserRsaKeys)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });

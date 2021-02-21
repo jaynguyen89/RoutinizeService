@@ -32,6 +32,7 @@ namespace RoutinizeCore.Models
             UserDepartments = new HashSet<UserDepartment>();
             UserOrganizations = new HashSet<UserOrganization>();
             UserPrivacies = new HashSet<UserPrivacy>();
+            UserRsaKeys = new HashSet<UserRsaKey>();
         }
 
         public int Id { get; set; }
@@ -68,5 +69,6 @@ namespace RoutinizeCore.Models
         public virtual ICollection<UserDepartment> UserDepartments { get; set; }
         public virtual ICollection<UserOrganization> UserOrganizations { get; set; }
         public virtual ICollection<UserPrivacy> UserPrivacies { get; set; }
+        public virtual ICollection<UserRsaKey> UserRsaKeys { get; set; }
     }
 }

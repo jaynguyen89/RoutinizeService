@@ -31,6 +31,7 @@ namespace RoutinizeCore.Services {
 
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IDepartmentRoleService, DepartmentRoleService>();
+            services.AddScoped<ICooperationService, CooperationService>();
             
             services.AddScoped<ITaskRelationService, TaskRelationService>();
 

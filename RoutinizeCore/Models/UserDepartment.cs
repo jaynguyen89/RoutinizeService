@@ -13,8 +13,8 @@ namespace RoutinizeCore.Models
         public int DepartmentId { get; set; }
         public int PositionId { get; set; }
         public string EmployeeCode { get; set; }
-        public bool IsActive { get; set; }
         public DateTime? JointOn { get; set; }
+        public bool IsActive { get; set; }
         public DateTime? LeftOn { get; set; }
 
         public virtual Department Department { get; set; }

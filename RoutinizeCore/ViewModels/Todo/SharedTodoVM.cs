@@ -2,7 +2,7 @@
 using HelperLibrary;
 using HelperLibrary.Shared;
 
-namespace RoutinizeCore.ViewModels.Todo {
+namespace RoutinizeCore.ViewModels.Attachment {
 
     public class SharedTodoVM {
         

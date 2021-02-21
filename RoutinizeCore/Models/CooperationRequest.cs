@@ -17,6 +17,10 @@ namespace RoutinizeCore.Models
         public bool IsAccepted { get; set; }
         public string RequestAcceptance { get; set; }
         public DateTime? AcceptedOn { get; set; }
+        public int? AcceptedById { get; set; }
         public DateTime? RejectedOn { get; set; }
+        public int? RejectedById { get; set; }
+        public string ResponderNote { get; set; }
+        public string ResponderSignatures { get; set; }
     }
 }

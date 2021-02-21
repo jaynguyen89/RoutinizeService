@@ -21,26 +21,44 @@ namespace RoutinizeCore.Controllers {
     public sealed class AttachmentController {
 
         private readonly ITodoService _todoService;
+        private readonly IOrganizationService _organizationService;
         private readonly IAttachmentService _attachmentService;
         private readonly IPhotoService _photoService;
         private readonly IFileService _fileService;
 
         public AttachmentController(
             ITodoService todoService,
+            IOrganizationService organizationService,
             IAttachmentService attachmentService,
             IPhotoService photoService,
             IFileService fileService
         ) {
             _todoService = todoService;
+            _organizationService = organizationService;
             _attachmentService = attachmentService;
             _photoService = photoService;
             _fileService = fileService;
         }
 
-        [HttpPost("set-cover-image")]
-        public async Task<JsonResult> SetCoverImage([FromHeader] int accountId,[FromBody] CoverUploadVM coverData) {
-            var todo = await _todoService.GetTodoById(coverData.TodoId);
-            if (todo == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+        [HttpPost("edit-cover-image")]
+        public async Task<JsonResult> SetCoverImage([FromHeader] int accountId,[FromBody] CoverImageVM coverData) {
+            var imageUpdateExpression = coverData.ItemType switch {
+                nameof(Todo) when coverData.TaskType.Equals(SharedConstants.TaskUpdate) => (Func<Task<bool>>)(async () => await SetTodoCoverImage(accountId, coverData)),
+                nameof(Todo) when coverData.TaskType.Equals(SharedConstants.TaskDelete) => async () => await RemoveTodoCoverImage(accountId, coverData),
+                nameof(Organization) when coverData.TaskType.Equals(SharedConstants.TaskUpdate) => async () => await SetOrganizationLogoImage(accountId, coverData),
+                nameof(Organization) when coverData.TaskType.Equals(SharedConstants.TaskDelete) => async () => await RemoveOrganizationLogoImage(accountId, coverData),
+                nameof(Department) when coverData.TaskType.Equals(SharedConstants.TaskUpdate) => async () => await SetDepartmentAvatarImage(accountId, coverData),
+                nameof(Department) when coverData.TaskType.Equals(SharedConstants.TaskDelete) => async () => await RemoveDepartmentAvatarImage(accountId, coverData),
+            };
+
+            var isSavingDataSuccess = imageUpdateExpression.Invoke().Result;
+            return isSavingDataSuccess ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success })
+                                       : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+        }
+
+        private async Task<bool> SetTodoCoverImage(int accountId, CoverImageVM coverData) {
+            var todo = await _todoService.GetTodoById(coverData.ItemId);
+            if (todo == null) return false;
 
             ImgSaveResult httpResult;
             if (!Helpers.IsProperString(todo.CoverImage))
@@ -61,31 +79,124 @@ namespace RoutinizeCore.Controllers {
                     }
                 );
 
+            if (httpResult.Error) return false;
             var savedImageName = $"{ httpResult.Result.Location }{ httpResult.Result.Name }";
-            if (httpResult.Error) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving file." });
 
             todo.CoverImage = savedImageName;
-            var result = await _todoService.UpdateTodo(todo);
-            if (!result) return new JsonResult(new JsonResponse {Result = SharedEnums.RequestResults.Success, Data = savedImageName});
+            if (await _todoService.UpdateTodo(todo)) return true;
             
             await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, httpResult.Result.Name);
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            return false;
         }
 
-        [HttpDelete("remove-cover-image/{todoId}/{tokenId}")]
-        public async Task<JsonResult> RemoveCoverImage([FromHeader] int accountId,[FromRoute] int todoId,[FromRoute] int tokenId) {
-            var todo = await _todoService.GetTodoById(todoId);
-            if (todo == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+        private async Task<bool> RemoveTodoCoverImage(int accountId, CoverImageVM coverData) {
+            var todo = await _todoService.GetTodoById(coverData.ItemId);
+            if (todo == null) return false;
 
             todo.CoverImage = null;
             var updateResult = await _todoService.UpdateTodo(todo);
-            if (!updateResult) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            if (!updateResult) return false;
             
             var coverImgName = Helpers.ExtractImageNameFromPath(todo.CoverImage);
-            var httpResult = await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(tokenId, accountId, coverImgName);
+            var httpResult = await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, coverImgName);
 
-            return httpResult.Error ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Partial })
-                                    : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            return httpResult.Error;
+        }
+        
+        private async Task<bool> SetOrganizationLogoImage(int accountId, CoverImageVM coverData) {
+            var organization = await _organizationService.GetOrganizationById(coverData.ItemId);
+            if (organization == null) return false;
+
+            ImgSaveResult httpResult;
+            if (!Helpers.IsProperString(organization.LogoName))
+                httpResult = await _photoService.SendSavePhotosRequestToRoutinizeStorageApi(
+                    new ImgUploadVM {
+                        AccountId = accountId,
+                        TokenId = coverData.TokenId,
+                        UploadedFile = coverData.UploadedFile
+                    }
+                );
+            else
+                httpResult = await _photoService.SendReplacePhotosRequestToRoutinizeStorageApi(
+                    new ImgReplaceVM {
+                        AccountId = accountId,
+                        TokenId = coverData.TokenId,
+                        FileToSave = coverData.UploadedFile,
+                        CurrentImage = Helpers.ExtractImageNameFromPath(organization.LogoName)
+                    }
+                );
+
+            if (httpResult.Error) return false;
+            var savedImageName = $"{ httpResult.Result.Location }{ httpResult.Result.Name }";
+
+            organization.LogoName = savedImageName;
+            var updateResult = await _organizationService.UpdateOrganization(organization);
+            if (updateResult.HasValue && updateResult.Value) return true;
+            
+            await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, httpResult.Result.Name);
+            return false;
+        }
+
+        private async Task<bool> RemoveOrganizationLogoImage(int accountId, CoverImageVM coverData) {
+            var organization = await _organizationService.GetOrganizationById(coverData.ItemId);
+            if (organization == null) return false;
+
+            organization.LogoName = null;
+            var updateResult = await _organizationService.UpdateOrganization(organization);
+            if (!updateResult.HasValue || !updateResult.Value) return false;
+            
+            var coverImgName = Helpers.ExtractImageNameFromPath(organization.LogoName);
+            var httpResult = await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, coverImgName);
+
+            return httpResult.Error;
+        }
+        
+        private async Task<bool> SetDepartmentAvatarImage(int accountId, CoverImageVM coverData) {
+            var department = await _organizationService.GetDepartmentById(coverData.ItemId);
+            if (department == null) return false;
+
+            ImgSaveResult httpResult;
+            if (!Helpers.IsProperString(department.Avatar))
+                httpResult = await _photoService.SendSavePhotosRequestToRoutinizeStorageApi(
+                    new ImgUploadVM {
+                        AccountId = accountId,
+                        TokenId = coverData.TokenId,
+                        UploadedFile = coverData.UploadedFile
+                    }
+                );
+            else
+                httpResult = await _photoService.SendReplacePhotosRequestToRoutinizeStorageApi(
+                    new ImgReplaceVM {
+                        AccountId = accountId,
+                        TokenId = coverData.TokenId,
+                        FileToSave = coverData.UploadedFile,
+                        CurrentImage = Helpers.ExtractImageNameFromPath(department.Avatar)
+                    }
+                );
+
+            if (httpResult.Error) return false;
+            var savedImageName = $"{ httpResult.Result.Location }{ httpResult.Result.Name }";
+
+            department.Avatar = savedImageName;
+            var updateResult = await _organizationService.UpdateDepartment(department);
+            if (updateResult.HasValue && updateResult.Value) return true;
+            
+            await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, httpResult.Result.Name);
+            return false;
+        }
+
+        private async Task<bool> RemoveDepartmentAvatarImage(int accountId, CoverImageVM coverData) {
+            var department = await _organizationService.GetDepartmentById(coverData.ItemId);
+            if (department == null) return false;
+
+            department.Avatar = null;
+            var updateResult = await _organizationService.UpdateDepartment(department);
+            if (!updateResult.HasValue || !updateResult.Value) return false;
+            
+            var coverImgName = Helpers.ExtractImageNameFromPath(department.Avatar);
+            var httpResult = await _photoService.SendDeletePhotosRequestToRoutinizeStorageApi(coverData.TokenId, accountId, coverImgName);
+
+            return httpResult.Error;
         }
 
         [HttpPost("add")]

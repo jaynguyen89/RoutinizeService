@@ -13,6 +13,7 @@ namespace RoutinizeCore.Models
         public string ParticipantType { get; set; }
         public DateTime ParticipatedOn { get; set; }
         public bool IsActive { get; set; }
+        public DateTime? LeftOn { get; set; }
 
         public virtual Cooperation Cooperation { get; set; }
     }
