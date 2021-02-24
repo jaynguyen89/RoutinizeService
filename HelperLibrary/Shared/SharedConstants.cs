@@ -5,6 +5,8 @@ namespace HelperLibrary.Shared {
 
     public static class SharedConstants {
 
+        public const int PreferedRsaKeyLength = 1024;
+
         public const int CacheAbsoluteExpiration = 3600; //seconds
         
         public const int TwoFaSecretKeyLength = 32;
@@ -48,6 +50,7 @@ namespace HelperLibrary.Shared {
             "image/gif", "image/png", "image/jpg", "image/jpeg"
         };
 
+        public const string Na = "N/A";
         public const string AllSpaces = @"\s+";
         public const string DoubleSpace = "  ";
         public const string MonoSpace = " ";
@@ -86,5 +89,11 @@ namespace HelperLibrary.Shared {
         public const int UniqueIdLengthForCloseMatch = 6;
 
         public const int OwnerHierarchyIndex = 0;
+
+        public const string ResponseGettingDataIssue = "An issue happened while getting data.";
+        public const string ResponseSavingDataIssue = "An issue happened while saving data.";
+        public const string ResponseUpdatingDataIssue = "An issue happened while updating data.";
+        public const string ResponseRemovingDataIssue = "An issue happened while removing data.";
+        public const string ResponseAuthorizationIssue = "You are not authorized for this action.";
     }
 }

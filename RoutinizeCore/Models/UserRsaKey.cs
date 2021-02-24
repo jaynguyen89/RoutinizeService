@@ -9,9 +9,6 @@ namespace RoutinizeCore.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public bool SignatureEnabled { get; set; }
-        public string KeyModulus { get; set; }
-        public string KeyExponent { get; set; }
         public string PublicKey { get; set; }
         public string PrivateKey { get; set; }
         public bool IsActive { get; set; }

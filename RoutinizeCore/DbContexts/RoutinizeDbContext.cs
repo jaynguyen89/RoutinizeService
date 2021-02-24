@@ -318,9 +318,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.ConfidedRequestResponderIds).HasMaxLength(1000);
 
-                entity.Property(e => e.ParticipantIdsToAllowRespondRequest).HasMaxLength(1000);
-
-                entity.Property(e => e.ParticipantIdsToAllowUnlock).HasMaxLength(1000);
+                entity.Property(e => e.RequestAcceptancePolicy).HasMaxLength(1000);
             });
 
             modelBuilder.Entity<CooperationParticipant>(entity =>
@@ -345,6 +343,8 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.Message).HasMaxLength(2000);
 
+                entity.Property(e => e.AcceptanceNote).HasMaxLength(100);
+
                 entity.Property(e => e.RequestedByType)
                     .IsRequired()
                     .HasMaxLength(30);
@@ -354,8 +354,6 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.RequestedToType)
                     .IsRequired()
                     .HasMaxLength(30);
-
-                entity.Property(e => e.ResponderNote).HasMaxLength(1000);
             });
 
             modelBuilder.Entity<CooperationTaskVault>(entity =>
@@ -417,9 +415,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description)
-                    .IsRequired()
-                    .HasMaxLength(300);
+                entity.Property(e => e.Description).HasMaxLength(300);
 
                 entity.Property(e => e.ForDepartmentIds).HasMaxLength(4000);
 
@@ -1087,21 +1083,13 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.GeneratedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.KeyExponent)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.Property(e => e.KeyModulus)
-                    .IsRequired()
-                    .HasMaxLength(250);
-
                 entity.Property(e => e.PrivateKey)
                     .IsRequired()
-                    .HasMaxLength(4000);
+                    .HasMaxLength(500);
 
                 entity.Property(e => e.PublicKey)
                     .IsRequired()
-                    .HasMaxLength(4000);
+                    .HasMaxLength(500);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.UserRsaKeys)

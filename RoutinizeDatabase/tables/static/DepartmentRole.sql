@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[DepartmentRole]
 	ForDepartmentIds NVARCHAR(4000) DEFAULT NULL, -- Save in JSON format int[]
 	AddedOn DATETIME2(7) NOT NULL DEFAULT(GETDATE()),
 	-- Permissions for organization-level users
+	AllowManageCooperation BIT NOT NULL DEFAULT 0,
 	AllowCreateDepartment BIT NOT NULL DEFAULT 0,
 	AllowEditDepartment BIT NOT NULL DEFAULT 0,
 	AllowDeleteDepartment BIT NOT NULL DEFAULT 0,

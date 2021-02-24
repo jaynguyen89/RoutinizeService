@@ -64,6 +64,8 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<bool?> HasUserBeenAddedTo(string destination, int userId, int organizationId);
         
         Task<GenericRoleVM[]> GetRolesAccordingToDepartmentId(int departmentId, int organizationId);
+        
+        Task<bool?> IsUserBelongedToOrganizationAndAllowedToManageCooperation(int userId, int organizationId);
     }
 
 }

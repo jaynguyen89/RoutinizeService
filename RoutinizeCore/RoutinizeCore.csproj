@@ -54,8 +54,4 @@
     <_ContentIncludedByDefault Remove="NotifierLibrary\obj\project.packagespec.json" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModels\Cooperation" />
-  </ItemGroup>
-
 </Project>

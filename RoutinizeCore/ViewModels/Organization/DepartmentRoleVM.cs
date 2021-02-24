@@ -77,6 +77,8 @@ namespace RoutinizeCore.ViewModels.Organization {
 
     public sealed class AllPermissionsVM : CommonPermissionVM {
         
+        public bool AllowManageCooperation { get; set; }
+        
         public bool AllowCreateDepartment { get; set; }
         
         public bool AllowEditDepartment { get; set; }
@@ -97,6 +99,7 @@ namespace RoutinizeCore.ViewModels.Organization {
         
         public static implicit operator AllPermissionsVM(DepartmentRole role) {
             return new() {
+                AllowManageCooperation = role.AllowManageCooperation,
                 AllowCreateDepartment = role.AllowCreateDepartment,
                 AllowEditDepartment = role.AllowEditDepartment,
                 AllowDeleteDepartment = role.AllowDeleteDepartment,

@@ -22,6 +22,7 @@ namespace RoutinizeCore.Models
         public byte HierarchyIndex { get; set; }
         public string ForDepartmentIds { get; set; }
         public DateTime AddedOn { get; set; }
+        public bool AllowManageCooperation { get; set; }
         public bool AllowCreateDepartment { get; set; }
         public bool AllowEditDepartment { get; set; }
         public bool AllowDeleteDepartment { get; set; }

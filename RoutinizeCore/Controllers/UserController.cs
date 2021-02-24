@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AssistantLibrary.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using MediaLibrary.Interfaces;
@@ -21,15 +22,18 @@ namespace RoutinizeCore.Controllers {
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;
         private readonly IAvatarService _avatarService;
+        private readonly IRsaService _rsaService;
 
         public UserController(
             IUserService userService,
             IAddressService addressService,
-            IAvatarService avatarService
+            IAvatarService avatarService,
+            IRsaService rsaService
         ) {
             _userService = userService;
             _addressService = addressService;
             _avatarService = avatarService;
+            _rsaService = rsaService;
         }
 
         [HttpGet("is-user-profile-initialized")]
@@ -203,6 +207,22 @@ namespace RoutinizeCore.Controllers {
 
             return !result.HasValue || !result.Value
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpGet("signature")]
+        public async Task<JsonResult> DoesUserHaveSignature([FromHeader] int userId) {
+            var (error, keyDate) = await _userService.CheckActiveRsaKey(userId);
+            return error ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                         : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = keyDate });
+        }
+
+        [HttpPut("new-signature")]
+        public async Task<JsonResult> GenerateNewRsaKey([FromHeader] int userId) {
+            _rsaService.GenerateRsaKeyPair();
+            var saveResult = await _userService.SaveNewUserRsaKey(userId, _rsaService.PublicKey, _rsaService.PrivateKey);
+            return !saveResult.HasValue || !saveResult.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 

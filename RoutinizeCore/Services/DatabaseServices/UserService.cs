@@ -434,6 +434,104 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
+        public async Task<KeyValuePair<bool, DateTime?>> CheckActiveRsaKey(int userId) {
+            try {
+                var dbRsaKey = await _dbContext.UserRsaKeys.SingleOrDefaultAsync(rsaKey => rsaKey.UserId == userId && rsaKey.IsActive);
+                return dbRsaKey == null ? new KeyValuePair<bool, DateTime?>(false, null)
+                                        : new KeyValuePair<bool, DateTime?>(false, dbRsaKey.GeneratedOn);
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(CheckActiveRsaKey) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while checking entry existed in UserRsaKeys with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return new KeyValuePair<bool, DateTime?>(true, null);
+            }
+        }
+
+        public async Task<bool?> SaveNewUserRsaKey(int userId, string publicKey, string privateKey) {
+            try {
+                var currentDbRsaKey = await _dbContext.UserRsaKeys.SingleOrDefaultAsync(rsaKey => rsaKey.UserId == userId && rsaKey.IsActive);
+
+                await base.StartTransaction();
+                if (currentDbRsaKey != null) {
+                    currentDbRsaKey.IsActive = false;
+
+                    _dbContext.UserRsaKeys.Update(currentDbRsaKey);
+                    var updateResult = await _dbContext.SaveChangesAsync();
+
+                    if (updateResult == 0) {
+                        await base.RevertTransaction();
+                        return null;
+                    }
+                }
+
+                var newRsaKey = new UserRsaKey {
+                    UserId = userId,
+                    PublicKey = publicKey,
+                    PrivateKey = privateKey,
+                    IsActive = true,
+                    GeneratedOn = DateTime.UtcNow
+                };
+
+                await _dbContext.UserRsaKeys.AddAsync(newRsaKey);
+                var saveResult = await _dbContext.SaveChangesAsync();
+
+                if (saveResult == 0) {
+                    await base.RevertTransaction();
+                    return false;
+                }
+
+                await base.CommitTransaction();
+                return true;
+            } catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(
+                    new RoutinizeCoreLog {
+                        Location = $"private {nameof(UserService)}.{nameof(SaveNewUserRsaKey)}",
+                        Caller = $"{new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName}",
+                        BriefInformation = nameof(ArgumentNullException),
+                        DetailedInformation = $"Error while getting a UserRsaKey with SingleOrDefault, null argument.\n\n{e.StackTrace}",
+                        ParamData = $"{nameof(userId)} = {userId}",
+                        Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                    }
+                );
+
+                return null;
+            } catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(
+                    new RoutinizeCoreLog {
+                        Location = $"{nameof(UserService)}.{nameof(SaveNewUserRsaKey)}",
+                        Caller = $"{new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName}",
+                        BriefInformation = nameof(InvalidOperationException),
+                        DetailedInformation = $"Error while getting UserRsaKey with SingleOrDefault, >1 entry matches predicate.\n\n{e.StackTrace}",
+                        ParamData = $"{nameof(userId)} = {userId}",
+                        Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                    }
+                );
+
+                return null;
+            } catch (DbUpdateException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(
+                    new RoutinizeCoreLog {
+                        Location = $"private {nameof(UserService)}.{nameof(SaveNewUserRsaKey)}",
+                        Caller = $"{new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName}",
+                        BriefInformation = nameof(DbUpdateException),
+                        DetailedInformation = $"Error while inserting entry to UserRsaKey.\n\n{e.StackTrace}",
+                        ParamData = $"{nameof(userId)} = {userId}",
+                        Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                    }
+                );
+
+                await base.RevertTransaction();
+                return null;
+            }
+        }
+
         private async Task<int?> GetUserPrivacyOrAppSettingIdByUserId([NotNull] int userId, string assetType = nameof(UserPrivacy)) {
             try {
                 return assetType.Equals(nameof(UserPrivacy))

@@ -40,6 +40,7 @@ namespace RoutinizeCore.Models {
                 Description = "Default Owner role is created when user creates an organization. This role is assigned, and grants all permissions, to that user by default.",
                 HierarchyIndex = 0,
                 AddedOn = DateTime.UtcNow,
+                AllowManageCooperation = true,
                 AllowCreateDepartment = true,
                 AllowEditDepartment = true,
                 AllowDeleteDepartment = true,
@@ -67,6 +68,7 @@ namespace RoutinizeCore.Models {
                 RoleName = role.RoleName,
                 IsManagerialRole = true,
                 AddedOn = DateTime.UtcNow,
+                AllowManageCooperation = role.Permissions.AllowManageCooperation,
                 AllowCreateDepartment = role.Permissions.AllowCreateDepartment,
                 AllowEditDepartment = role.Permissions.AllowEditDepartment,
                 AllowDeleteDepartment = role.Permissions.AllowDeleteDepartment,
@@ -114,6 +116,7 @@ namespace RoutinizeCore.Models {
             ForDepartmentIds = newRoleData.ForDepartmentIds;
             HierarchyIndex = newRoleData.HierarchyIndex;
 
+            AllowManageCooperation = newRoleData.AllowManageCooperation;
             AllowCreateDepartment = newRoleData.AllowCreateDepartment;
             AllowEditDepartment = newRoleData.AllowEditDepartment;
             AllowDeleteDepartment = newRoleData.AllowDeleteDepartment;

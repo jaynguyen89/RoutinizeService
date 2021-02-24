@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using RoutinizeCore.Models;
@@ -36,5 +37,11 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<Account> GetAccountByUserId([NotNull] int userId);
         
         Task<bool?> DoesUserHasPremiumOrNoteUnlocked(int userId);
+        
+        Task<KeyValuePair<bool, DateTime?>> CheckActiveRsaKey(int userId);
+        
+        Task<bool?> SaveNewUserRsaKey(int userId, string publicKey, string privateKey);
+        
+        Task<UserRsaKey> GetUserRsaKeyByUserId(int userId);
     }
 }

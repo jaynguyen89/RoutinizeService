@@ -14,6 +14,7 @@ This library provides the following services:
 - Email Sender
 - Google Two Factor Authentication
 - QRCode generator with QRCoder
+- RSA Service: generates Public-Private Keys for digital signature
 - Assistant Service: supports cryptography producer and verifier
 
 ###### HelperLibrary

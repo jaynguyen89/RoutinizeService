@@ -14,13 +14,12 @@ namespace RoutinizeCore.Models
         public string RequestedToType { get; set; }
         public string Message { get; set; }
         public DateTime RequestedOn { get; set; }
-        public bool IsAccepted { get; set; }
-        public string RequestAcceptance { get; set; }
+        public bool? IsAccepted { get; set; }
         public DateTime? AcceptedOn { get; set; }
         public int? AcceptedById { get; set; }
         public DateTime? RejectedOn { get; set; }
         public int? RejectedById { get; set; }
-        public string ResponderNote { get; set; }
         public string ResponderSignatures { get; set; }
+        public string AcceptanceNote { get; set; }
     }
 }

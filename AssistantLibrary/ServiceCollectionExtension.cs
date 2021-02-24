@@ -14,6 +14,7 @@ namespace AssistantLibrary {
             services.AddScoped<IGoogleRecaptchaService, GoogleRecaptchaService>();
             services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
             services.AddScoped<IQrCodeMaker, QrCodeMaker>();
+            services.AddScoped<IRsaService, RsaService>();
 
             return services;
         }
