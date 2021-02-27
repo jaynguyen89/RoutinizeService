@@ -7,6 +7,12 @@ namespace RoutinizeCore.Models
 {
     public partial class CooperationParticipant
     {
+        public CooperationParticipant()
+        {
+            ParticipantReturnRequests = new HashSet<ParticipantReturnRequest>();
+            SigningCheckers = new HashSet<SigningChecker>();
+        }
+
         public int Id { get; set; }
         public int CooperationId { get; set; }
         public int ParticipantId { get; set; }
@@ -16,5 +22,7 @@ namespace RoutinizeCore.Models
         public DateTime? LeftOn { get; set; }
 
         public virtual Cooperation Cooperation { get; set; }
+        public virtual ICollection<ParticipantReturnRequest> ParticipantReturnRequests { get; set; }
+        public virtual ICollection<SigningChecker> SigningCheckers { get; set; }
     }
 }

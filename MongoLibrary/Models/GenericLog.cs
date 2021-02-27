@@ -1,6 +1,6 @@
 ﻿namespace MongoLibrary.Models {
 
-    public class RoutinizeAccountLog {
+    public class GenericLog {
         
         public string DataType { get; set; }
         

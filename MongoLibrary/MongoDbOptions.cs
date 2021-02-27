@@ -1,6 +1,6 @@
 ﻿namespace MongoLibrary {
 
-    public class MongoDbOptions {
+    public sealed class MongoDbOptions {
         
         public string Connection { get; set; }
         
@@ -13,5 +13,7 @@
         public string ClientLogCollection { get; set; }
         
         public string AccountLogCollection { get; set; }
+        
+        public string CooperationLogCollection { get; set; }
     }
 }

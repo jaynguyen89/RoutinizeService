@@ -17,6 +17,7 @@ namespace RoutinizeCore.Models
             DepartmentRoles = new HashSet<DepartmentRole>();
             GroupShares = new HashSet<GroupShare>();
             Notes = new HashSet<Note>();
+            ParticipantReturnRequests = new HashSet<ParticipantReturnRequest>();
             Projects = new HashSet<Project>();
             RandomIdeas = new HashSet<RandomIdea>();
             TaskFolders = new HashSet<TaskFolder>();
@@ -54,6 +55,7 @@ namespace RoutinizeCore.Models
         public virtual ICollection<DepartmentRole> DepartmentRoles { get; set; }
         public virtual ICollection<GroupShare> GroupShares { get; set; }
         public virtual ICollection<Note> Notes { get; set; }
+        public virtual ICollection<ParticipantReturnRequest> ParticipantReturnRequests { get; set; }
         public virtual ICollection<Project> Projects { get; set; }
         public virtual ICollection<RandomIdea> RandomIdeas { get; set; }
         public virtual ICollection<TaskFolder> TaskFolders { get; set; }

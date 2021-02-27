@@ -3,7 +3,7 @@ using HelperLibrary;
 
 namespace RoutinizeCore.ViewModels.Cooperation {
 
-    public sealed class CooperationRequestVM {
+    public class CooperationRequestVM {
         
         public int RequestedById { get; set; }
         
@@ -25,5 +25,10 @@ namespace RoutinizeCore.ViewModels.Cooperation {
                 ? new[] { "Message is too long. Max 2000 characters." }
                 : Array.Empty<string>();
         }
+    }
+
+    public sealed class CooperationRequestDetailVM : CooperationRequestVM {
+        
+        public bool AllowRespond { get; set; }
     }
 }

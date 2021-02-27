@@ -30,7 +30,7 @@ namespace MongoLibrary.Services {
             _logger.LogInformation("RoutinizeAccountLogService.InsertRoutinizeAccountLog - Service starts");
 
             try {
-                var dataLog = new RoutinizeAccountLog {
+                var dataLog = new GenericLog {
                     DataType = nameof(T),
                     Data = JsonConvert.SerializeObject(data)
                 };
@@ -48,7 +48,7 @@ namespace MongoLibrary.Services {
             _logger.LogInformation("RoutinizeAccountLogService.GetRoutinizeAccountLogInRange - Service starts");
 
             try {
-                var dataLogs = await _context.RoutinizeAccountLogCollection.Find(Builders<RoutinizeAccountLog>.Filter.Empty).Skip(start).Limit(end).ToListAsync();
+                var dataLogs = await _context.RoutinizeAccountLogCollection.Find(Builders<GenericLog>.Filter.Empty).Skip(start).Limit(end).ToListAsync();
 
                 var dataList = new List<object>();
                 dataLogs.ForEach(log => dataList.Add(log.Data));
@@ -66,10 +66,10 @@ namespace MongoLibrary.Services {
 
             try {
                 var logEntry = await _context.RoutinizeAccountLogCollection.Find(
-                    Builders<RoutinizeAccountLog>.Filter.Eq("dataType", nameof(T)) &
-                    Builders<RoutinizeAccountLog>.Filter.Eq("Data.accountId", id) &
-                    Builders<RoutinizeAccountLog>.Filter.Eq("Data.activity", activity) &
-                    Builders<RoutinizeAccountLog>.Filter.Eq("Data.isCompleted", id)
+                    Builders<GenericLog>.Filter.Eq("dataType", nameof(T)) &
+                    Builders<GenericLog>.Filter.Eq("data.accountId", id) &
+                    Builders<GenericLog>.Filter.Eq("data.activity", activity) &
+                    Builders<GenericLog>.Filter.Eq("data.isCompleted", id)
                 ).SingleAsync();
 
                 return JsonConvert.DeserializeObject<T>(logEntry.Data);
@@ -85,8 +85,8 @@ namespace MongoLibrary.Services {
 
             try {
                 var result = await _context.RoutinizeAccountLogCollection.DeleteOneAsync(
-                    Builders<RoutinizeAccountLog>.Filter.Eq("dataType", nameof(T)) &
-                    Builders<RoutinizeAccountLog>.Filter.Eq("data", JsonConvert.SerializeObject(entry))
+                    Builders<GenericLog>.Filter.Eq("dataType", nameof(T)) &
+                    Builders<GenericLog>.Filter.Eq("data", JsonConvert.SerializeObject(entry))
                 );
 
                 return result.IsAcknowledged;

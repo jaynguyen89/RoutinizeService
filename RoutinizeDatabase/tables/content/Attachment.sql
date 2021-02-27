@@ -2,7 +2,7 @@
 (
 	Id INT IDENTITY(1, 1) NOT NULL,
 	AddressId INT DEFAULT NULL,
-	ItemId INT NOT NULL, --References to Todo, TodoGroup, Note, Note Segment, Project, Team, Task or Comment
+	ItemId INT NOT NULL, --References to Todo, TodoGroup, Note, Note Segment, Project, Team, Task, TeamTask, Comment, Cooperation
 	ItemType NVARCHAR(30) NOT NULL,
 	PermissionId INT DEFAULT NULL,
 	UploadedById INT NOT NULL,

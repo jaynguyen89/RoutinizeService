@@ -6,6 +6,7 @@ using AssistantLibrary.Interfaces;
 using HelperLibrary;
 using HelperLibrary.Shared;
 using Microsoft.AspNetCore.Mvc;
+using MongoLibrary.Interfaces;
 using Newtonsoft.Json;
 using NotifierLibrary.Interfaces;
 using RoutinizeCore.Attributes;
@@ -25,24 +26,51 @@ namespace RoutinizeCore.Controllers {
         private readonly IOrganizationService _organizationService;
         private readonly IUserService _userService;
         private readonly IRsaService _rsaService;
+        private readonly ICooperationLogService _cooperationLog;
 
         public CooperationController(
             ICooperationService cooperationService,
             IOrganizationService organizationService,
             IUserService userService,
             IRsaService rsaService,
+            ICooperationLogService cooperationLog,
             IUserNotifier userNotifier
         ) : base(userNotifier) {
             _cooperationService = cooperationService;
             _organizationService = organizationService;
             _userService = userService;
             _rsaService = rsaService;
+            _cooperationLog = cooperationLog;
+        }
+
+        [HttpGet("is-active/{cooperationId}")]
+        public async Task<JsonResult> IsCooperationActive([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationId);
+            if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationId);
+            return !isCooperationActive.HasValue ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = isCooperationActive.Value });
         }
 
         [HttpPost("request")]
         public async Task<JsonResult> MakeCooperationRequest(CooperationRequestVM cooperationRequest) {
-            
-            
+            if (cooperationRequest.RequestedToType.Equals(nameof(Cooperation))) {
+                var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationRequest.RequestedToId);
+                if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to join: cooperation has ended." });
+
+                var alreadyInCooperation = await _cooperationService.IsAlreadyAParticipantInCooperation(cooperationRequest.RequestedById, cooperationRequest.RequestedByType, cooperationRequest.RequestedToId);
+                if (!alreadyInCooperation.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                if (alreadyInCooperation.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to join: you're already in the cooperation." });
+            }
+            else {
+                var alreadyCooperate = await _cooperationService.AreTheyAlreadyCooperating(cooperationRequest);
+                if (!alreadyCooperate.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                if (alreadyCooperate.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to join: you two already cooperate." });
+            }
+
             var isRequestExisted = await _cooperationService.IsCooperationRequestAlreadyMade(cooperationRequest);
             if (!isRequestExisted.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             if (isRequestExisted.Value)  return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = $"You already requested to cooperate with this { cooperationRequest.RequestedToType }." });
@@ -106,7 +134,7 @@ namespace RoutinizeCore.Controllers {
             
             if (!cooperationRequest.RequestedToType.Equals(nameof(Cooperation))) {
                 cooperationToUpdate = Cooperation.GetDefaultInstance();
-                
+
                 cooperationToUpdate.AgreementSigners = JsonConvert.SerializeObject(
                     new AgreementSignersVM {
                         ExpectedSigner = new ExpectedSignerVM {
@@ -151,7 +179,7 @@ namespace RoutinizeCore.Controllers {
             }
             
             await _cooperationService.CommitTransaction();
-            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = cooperationToUpdate.Id });
         }
 
         private PoolingParticipantsVM AddParticipantsFromRequestToCooperation(CooperationRequest cooperationRequest) {
@@ -172,10 +200,13 @@ namespace RoutinizeCore.Controllers {
             
             switch (cooperationRequest.RequestedToType) {
                 case nameof(Cooperation): //Responder is a User or a member of Organization in the Cooperation
-                    var cooperationRequestAcceptancePolicy = await _cooperationService.GetRequestAcceptancePolicy(cooperationRequest.RequestedToId);
+                    var cooperation = await _cooperationService.GetCooperationById(cooperationRequest.RequestedToId);
+                    if (cooperation == null) return null;
+                    
+                    var cooperationRequestAcceptancePolicy = cooperation.RequestAcceptancePolicy;
                     if (!Helpers.IsProperString(cooperationRequestAcceptancePolicy)) return null;
                     
-                    var (responderType, organizationId) = _cooperationService.IsResponderAUserOrAnOrganizationMember(cooperationRequest.RequestedToId, response.ResponderId);
+                    var (responderType, organizationId) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(response.ResponderId, cooperationRequest.RequestedToId);
                     if (!Helpers.IsProperString(responderType)) return null;
 
                     var requestAcceptancePolicy = JsonConvert.DeserializeObject<RequestAcceptancePolicyVM>(cooperationRequestAcceptancePolicy);
@@ -286,7 +317,7 @@ namespace RoutinizeCore.Controllers {
                     isAuthorized = allowedToRespond.Value;
                     break;
                 default: //nameof(Cooperation)
-                    var authorizedToRespond = await _cooperationService.IsResponderAParticipantAllowedToRespondRequest(responderId, requestedToId);
+                    var authorizedToRespond = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(responderId, requestedToId);
                     if (!authorizedToRespond.HasValue) return null;
                     isAuthorized = authorizedToRespond.Value;
                     break;
@@ -361,7 +392,7 @@ namespace RoutinizeCore.Controllers {
             }
 
             var addParticipantsResult = await _cooperationService.AddParticipantsToCooperationById(createCooperationResult.Value, participants);
-            if (!addParticipantsResult.HasValue || !addParticipantsResult.Value) {
+            if (addParticipantsResult == null) {
                 await _cooperationService.RevertTransaction();
                 return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
             }
@@ -372,9 +403,17 @@ namespace RoutinizeCore.Controllers {
         
         [HttpPut("sign/{cooperationId}")]
         public async Task<JsonResult> SignCooperationAgreement([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to sign: cooperation has ended." });
+            
             var (participantType, organizationId) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationId);
             if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            
+            var (shouldSign, signingChecker) = await _cooperationService.SearchValidSigningCheckerForSigner(userId, cooperationId, participantType);
+            if (!shouldSign.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!shouldSign.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You do not need to sign anything." });
 
             var cooperation = await _cooperationService.GetCooperationById(cooperationId);
             if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
@@ -384,6 +423,7 @@ namespace RoutinizeCore.Controllers {
             if (userHasSigned) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You already signed on this cooperation." });
 
             var userRsaKeys = await _userService.GetUserRsaKeyByUserId(userId);
+            if (userRsaKeys == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
 
             _rsaService.PrivateKey = userRsaKeys.PrivateKey;
             var signatureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -415,86 +455,562 @@ namespace RoutinizeCore.Controllers {
             }
 
             cooperation.AgreementSigners = JsonConvert.SerializeObject(agreementSigners);
-            var updateResult = await _cooperationService.UpdateCooperation(cooperation);
+            await _cooperationService.StartTransaction();
+            
+            var updateCooperationResult = await _cooperationService.UpdateCooperation(cooperation);
+            if (!updateCooperationResult.HasValue || !updateCooperationResult.Value) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
 
+            var participant = await _cooperationService.SearchCooperationParticipantBy(userId, cooperationId, participantType);
+            if (participant == null) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            }
+
+            participant.IsActive = true;
+            var updateParticipantResult = await _cooperationService.UpdateCooperationParticipant(participant);
+            if (!updateParticipantResult.HasValue || !updateParticipantResult.Value) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            signingChecker.IsValid = false;
+            signingChecker.InvalidOn = DateTime.UtcNow;
+            var updateSigningCheckerResult = await _cooperationService.UpdateSigningChecker(signingChecker);
+            if (!updateSigningCheckerResult.HasValue || !updateSigningCheckerResult.Value) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            await _cooperationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpPut("add-participant/{cooperationId}/{participantUniqueId}/{participantType}")]
+        public async Task<JsonResult> AddParticipantToCooperation(
+            [FromHeader] int userId,[FromRoute] int cooperationId,[FromRoute] string participantUniqueId,[FromRoute] string participantType
+        ) {
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to add: cooperation has ended." });
+            
+            var authorizedToAdd = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, cooperationId);
+            if (!authorizedToAdd.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!authorizedToAdd.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            User userParticipant = null;
+            Organization organizationParticipant = null;
+            if (participantType.Equals(nameof(User))) userParticipant = await _userService.GetUserByUniqueId(participantUniqueId);
+            else organizationParticipant = await _organizationService.GetOrganizationByUniqueId(participantUniqueId);
+            
+            if (userParticipant == null && organizationParticipant == null)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var cooperation = await _cooperationService.GetCooperationById(cooperationId);
+            if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            
+            var cooperationParticipant = new CooperationParticipant {
+                CooperationId = cooperationId,
+                ParticipantId = userParticipant?.Id ?? organizationParticipant.Id,
+                ParticipantType = participantType,
+                ParticipatedOn = DateTime.UtcNow
+            };
+
+            await _cooperationService.StartTransaction();
+            
+            var saveParticipantResult = await _cooperationService.InsertNewCooperationParticipant(cooperationParticipant);
+            if (!saveParticipantResult.HasValue || saveParticipantResult.Value < 1) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            }
+
+            var agreementSigner = JsonConvert.DeserializeObject<AgreementSignersVM>(cooperation.AgreementSigners);
+            if (participantType.Equals(nameof(User)))
+                agreementSigner.ExpectedSigner.SignersAsUser = new KeyValuePair<int, int>(
+                    agreementSigner.ExpectedSigner.SignersAsUser.Key,
+                    agreementSigner.ExpectedSigner.SignersAsUser.Value + 1
+                );
+            else
+                agreementSigner.ExpectedSigner.SignerAsOrganization.Add(organizationParticipant.Id, false);
+
+            cooperation.AgreementSigners = JsonConvert.SerializeObject(agreementSigner);
+            var saveCooperationResult = await _cooperationService.UpdateCooperation(cooperation);
+            if (!saveCooperationResult.HasValue || !saveCooperationResult.Value) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." });
+            }
+
+            await _cooperationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+
+        [HttpPut("update-preference")]
+        public async Task<JsonResult> UpdateCooperationPreference([FromHeader] int userId,[FromBody] CooperationPreferenceVM preference) {
+            var errors = preference.VerifyPreference();
+            if (errors.Length != 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = errors });
+            
+            var isCooperationActive = await _cooperationService.IsCooperationActive(preference.CooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to update: cooperation has ended." });
+            
+            var authorizedToAdd = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, preference.CooperationId);
+            if (!authorizedToAdd.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!authorizedToAdd.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var unauthorizedIds = new List<int>();
+            if (preference.ConfidedRequestResponderIds.Length != 0)
+                foreach (var confidedId in preference.ConfidedRequestResponderIds) {
+                    var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(confidedId, preference.CooperationId);
+                    if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                    if (participantType.Length == 0) unauthorizedIds.Add(confidedId);
+                }
+
+            if (unauthorizedIds.Count != 0) return new JsonResult(new JsonResponse {
+                Result = SharedEnums.RequestResults.Denied,
+                Data = unauthorizedIds,
+                Message = "Found unauthorized users in the confided responders list."
+            });
+
+            var cooperation = await _cooperationService.GetCooperationById(preference.CooperationId);
+            if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            
+            if (preference.RequireSigning) ClearAgreementSigningOnCooperationUpdate(ref cooperation);
+            cooperation.AllowAnyoneToRespondRequest = preference.AllowAnyoneToResponseRequest;
+            cooperation.ConfidedRequestResponderIds = JsonConvert.SerializeObject(preference.ConfidedRequestResponderIds);
+            cooperation.RequestAcceptancePolicy = JsonConvert.SerializeObject(preference.RequestAcceptancePolicy);
+            
+            var updateResult = await _cooperationService.UpdateCooperation(cooperation, preference.RequireSigning);
+            return !updateResult.HasValue || !updateResult.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        [HttpPut("update-tnc")]
+        public async Task<JsonResult> UpdateCooperationTermsAndConditions([FromHeader] int userId,[FromBody] TermsAndConditionsVM termsAndConditions) {
+            if (!Helpers.IsProperString(termsAndConditions.TermsAndConditions)) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "No changes to update." });
+            
+            var isCooperationActive = await _cooperationService.IsCooperationActive(termsAndConditions.CooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to update: cooperation has ended." });
+            
+            var authorizedToAdd = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, termsAndConditions.CooperationId);
+            if (!authorizedToAdd.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!authorizedToAdd.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var cooperation = await _cooperationService.GetCooperationById(termsAndConditions.CooperationId);
+            if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            cooperation.TermsAndConditions = termsAndConditions.TermsAndConditions;
+            if (termsAndConditions.RequireSigning) ClearAgreementSigningOnCooperationUpdate(ref cooperation);
+            
+            var updateResult = await _cooperationService.UpdateCooperation(cooperation, termsAndConditions.RequireSigning);
             return !updateResult.HasValue || !updateResult.Value
                 ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." })
                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
-        [HttpPut("add-participant")]
-        public async Task<JsonResult> AddParticipantToCooperation() {
-            
+        private void ClearAgreementSigningOnCooperationUpdate(ref Cooperation cooperation) {
+            cooperation.IsInEffect = false;
+            var agreementSigners = JsonConvert.DeserializeObject<AgreementSignersVM>(cooperation.AgreementSigners);
+
+            agreementSigners.Signers.Clear();
+            agreementSigners.ExpectedSigner.SignersAsUser = new KeyValuePair<int, int>(0, agreementSigners.ExpectedSigner.SignersAsUser.Value);
+            agreementSigners.ExpectedSigner.SignerAsOrganization = agreementSigners.ExpectedSigner.SignerAsOrganization.ToDictionary(signer => signer.Key, _ => false);
+
+            cooperation.AgreementSigners = JsonConvert.SerializeObject(agreementSigners);
         }
-        
+
         // [HttpPost("add-document")]
         // public async Task<JsonResult> AddSupportedDocumentsToCooperation() {
         //     
         // }
         
         [HttpPost("grant-access")]
-        public async Task<JsonResult> GrantDepartmentAccess() {
+        public async Task<JsonResult> GrantDepartmentAccess([FromHeader] int userId,[FromBody] DepartmentAccessVM departmentAccessData) {
+            var (error, falseDepartmentIds) = await GetErrorsUnderlyingDepartmentAccessRequest(userId, departmentAccessData);
+            switch (error) {
+                case 0:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                case 1:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to update access: cooperation has ended." });
+                case 2:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "\"From\" Participant not found in the cooperation." });
+                case 3:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "\"To\" Participant not found in the cooperation." });
+                case 4:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            }
             
+            if (falseDepartmentIds.Length != 0) return new JsonResult(new JsonResponse {
+                Result = SharedEnums.RequestResults.Denied,
+                Data = falseDepartmentIds,
+                Message = "Found inexisted or inaccessible departments."
+            });
+            
+            var departmentAccess = (DepartmentAccess) departmentAccessData;
+            var saveResult = await _cooperationService.InsertNewDepartmentAccess(departmentAccess);
+            return !saveResult.HasValue || saveResult.Value < 1
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
         }
         
         [HttpPut("update-access")]
-        public async Task<JsonResult> UpdateDepartmentAccess() {
+        public async Task<JsonResult> UpdateDepartmentAccess([FromHeader] int userId,[FromBody] DepartmentAccessVM departmentAccessData) {
+            var (error, falseDepartmentIds) = await GetErrorsUnderlyingDepartmentAccessRequest(userId, departmentAccessData);
+            switch (error) {
+                case 0:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                case 1:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to update access: cooperation has ended." });
+                case 2:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "\"From\" Participant not found in the cooperation." });
+                case 3:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "\"To\" Participant not found in the cooperation." });
+                case 4:
+                    return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            }
             
-        }
-        
-        [HttpPost("create-task-vault")]
-        public async Task<JsonResult> CreateCooperationTaskVault() {
+            if (falseDepartmentIds.Length != 0) return new JsonResult(new JsonResponse {
+                Result = SharedEnums.RequestResults.Denied,
+                Data = falseDepartmentIds,
+                Message = "Found inexisted or inaccessible departments."
+            });
+
+            var departmentAccess = await _organizationService.GetDepartmentAccessById(departmentAccessData.Id);
+            if (departmentAccess == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            departmentAccess.UpdateDataBy(departmentAccessData);
             
-        }
-        
-        [HttpPut("update-task-vault")]
-        public async Task<JsonResult> UpdateCooperationTaskVault() {
-            
-        }
-        
-        [HttpPut("end")]
-        public async Task<JsonResult> EndCooperation() {
-            
+            var updateResult = await _cooperationService.UpdateDepartmentAccess(departmentAccess);
+            return !updateResult.HasValue || !updateResult.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
 
-        [HttpPut("leave")]
-        public async Task<JsonResult> LeaveCooperation() {
+        private async Task<KeyValuePair<int, int[]>> GetErrorsUnderlyingDepartmentAccessRequest(int userId, DepartmentAccessVM departmentAccess) {
+            var isCooperationActive = await _cooperationService.IsCooperationActive(departmentAccess.CooperationId);
+            if (!isCooperationActive.HasValue) return new KeyValuePair<int, int[]>(0, null);
+            if (!isCooperationActive.Value) return new KeyValuePair<int, int[]>(1, null);
             
+            var isAParticipantInCooperation = await _cooperationService.DoesCooperationHaveThisParticipant(departmentAccess.FromParticipantId, departmentAccess.CooperationId, nameof(Organization));
+            if (!isAParticipantInCooperation.HasValue) return new KeyValuePair<int, int[]>(0, null);
+            if (!isAParticipantInCooperation.Value) return new KeyValuePair<int, int[]>(2, null);
+            
+            isAParticipantInCooperation = await _cooperationService.DoesCooperationHaveThisParticipant(departmentAccess.AccessGivenToParticipantId, departmentAccess.CooperationId);
+            if (!isAParticipantInCooperation.HasValue) return new KeyValuePair<int, int[]>(0, null);
+            if (!isAParticipantInCooperation.Value) return new KeyValuePair<int, int[]>(3, null);
+
+            var isAuthorized = await _organizationService.IsUserBelongedToOrganizationAndAllowedToManageCooperation(userId, departmentAccess.FromParticipantId);
+            if (!isAuthorized.HasValue) return new KeyValuePair<int, int[]>(0, null);
+            if (!isAuthorized.Value) return new KeyValuePair<int, int[]>(4, null);
+
+            var falseDepartmentIds = new List<int>();
+            foreach (var departmentId in departmentAccess.AccessibleDepartmentIds) {
+                var existedAndAccessible = await _organizationService.IsThisDepartmentExistedAndForCooperation(departmentId, departmentAccess.FromParticipantId);
+                if (!existedAndAccessible.HasValue) return new KeyValuePair<int, int[]>(0, null);
+                if (!existedAndAccessible.Value) falseDepartmentIds.Add(departmentId);
+            }
+
+            return falseDepartmentIds.Count != 0
+                ? new KeyValuePair<int, int[]>(5, falseDepartmentIds.ToArray())
+                : new KeyValuePair<int, int[]>(-1, null);
         }
 
-        [HttpGet("get-sent-requests")]
-        public async Task<JsonResult> GetCooperationRequestsSentByOrganizationOrUser() {
+        [HttpPut("leave/{participantId}")]
+        public async Task<JsonResult> LeaveCooperation([FromHeader] int userId,[FromRoute] int cooperationParticipantId) {
+            //Todo: check if there is any assigned tasks in this participant task vault
+            //Todo: check if this participant leaves, is there anyone allowed to manage request/cooperation
+            var cooperationParticipant = await _cooperationService.GetCooperationParticipantById(cooperationParticipantId);
+            if (cooperationParticipant == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
             
-        }
-        
-        [HttpGet("get-received-requests-by-user")]
-        public async Task<JsonResult> GetCooperationRequestsReceivedByUser() {
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationParticipant.CooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to leave: cooperation has ended." });
             
-        }
-        
-        [HttpGet("get-received-requests-by-organization")]
-        public async Task<JsonResult> GetCooperationRequestsReceivedByOrganization() {
-            
-        }
-        
-        [HttpGet("get-received-requests-by-coop")]
-        public async Task<JsonResult> GetCooperationRequestsReceivedByCooperation() {
-            
-        }
-        
-        [HttpGet("get")]
-        public async Task<JsonResult> GetCooperationsHavingUserOrOrganization() {
-            
-        }
+            var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationParticipant.CooperationId);
+            if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
 
-        [HttpPut("update-preference")]
-        public async Task<JsonResult> UpdateCooperationPreference() {
+            cooperationParticipant.IsActive = false;
+            cooperationParticipant.LeftOn = DateTime.UtcNow;
+
+            var updateResult = await _cooperationService.UpdateCooperationParticipant(cooperationParticipant);
+            if (!updateResult.HasValue || !updateResult.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+
+            await _cooperationLog.InsertCooperationParticipantLog(new CooperationParticipantLog {
+                ParticipantId = cooperationParticipant.Id,
+                Activity = "Leave the cooperation",
+                Timestamp = DateTime.UtcNow
+            });
             
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
         }
         
-        [HttpPut("update-tnc")]
-        public async Task<JsonResult> UpdateCooperationTermsAndConditions() {
+        [HttpPost("request-to-return")]
+        public async Task<JsonResult> MakeRequestToReturnToCooperation([FromHeader] int userId,[FromBody] ReturnRequestVM returnRequest) {
+            var cooperationParticipant = await _cooperationService.GetCooperationParticipantById(returnRequest.CooperationParticipantId);
+            if (cooperationParticipant == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationParticipant.CooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to return: cooperation has ended." });
             
+            var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationParticipant.CooperationId);
+            if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var dbReturnRequest = new ParticipantReturnRequest {
+                CooperationParticipantId = returnRequest.CooperationParticipantId,
+                Message = returnRequest.Message,
+                RequestedOn = DateTime.UtcNow
+            };
+
+            var saveResult = await _cooperationService.InsertNewParticipantReturnRequest(dbReturnRequest);
+            return !saveResult.HasValue || saveResult.Value < 1
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while saving data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = saveResult.Value });
+        }
+        
+        [HttpDelete("cancel-request-to-return/{requestId}")]
+        public async Task<JsonResult> RevokeRequestToReturn([FromHeader] int userId,[FromRoute] int requestId) {
+            var isAuthorized = await _cooperationService.IsReturnRequestBelongedToThisUser(requestId, userId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var deleteResult = await _cooperationService.RemoveParticipantReturnRequestById(requestId);
+            return !deleteResult.HasValue || !deleteResult.Value
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while removing data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        
+        [HttpPut("respond-to-request-to-return")]
+        public async Task<JsonResult> RespondToRequestToReturnToCooperation([FromHeader] int userId,[FromBody] ReturnRequestResponseVM response) {
+            var error = response.VerifyNote();
+            if (error.Length != 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Data = error });
+            
+            var cooperation = await _cooperationService.SearchForCooperationFromParticipantReturnRequest(response.RequestId);
+            if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var isAuthorized = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, cooperation.Id);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+
+            var returnRequest = await _cooperationService.GetParticipantReturnRequestById(response.RequestId);
+            if (returnRequest == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var userRsaKeys = await _userService.GetUserRsaKeyByUserId(userId);
+            if (userRsaKeys == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            
+            _rsaService.PrivateKey = userRsaKeys.PrivateKey;
+            var signatureTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            returnRequest.IsAccepted = response.IsAccepted;
+            returnRequest.RespondedById = userId;
+            returnRequest.RespondedOn = DateTime.UtcNow;
+            returnRequest.RespondNote = JsonConvert.SerializeObject(new DbSignatureRecordVM {
+                ResponderId = userId,
+                IsAccepted = response.IsAccepted,
+                Timestamp = signatureTimestamp,
+                Note = response.Note,
+                Signature = _rsaService.Sign($"{ userId }.{ returnRequest.Id }.{ response.IsAccepted }.{ signatureTimestamp }")
+            });
+
+            await _cooperationService.StartTransaction();
+            
+            var updateRequestResult = await _cooperationService.UpdateParticipantReturnRequest(returnRequest);
+            if (!updateRequestResult.HasValue || !updateRequestResult.Value) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            var signingChecker = new SigningChecker {
+                CooperationParticipantId = returnRequest.CooperationParticipantId,
+                CreatedOn = DateTime.UtcNow,
+                ForActivity = nameof(ParticipantReturnRequest)
+            };
+
+            var saveSigningCheckerResult = await _cooperationService.InsertNewSigningChecker(signingChecker);
+            if (!saveSigningCheckerResult.HasValue || saveSigningCheckerResult.Value < 1) {
+                await _cooperationService.RevertTransaction();
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            }
+
+            await _cooperationService.CommitTransaction();
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        [HttpPut("end/{cooperationId}")]
+        public async Task<JsonResult> EndCooperation([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var isAuthorized = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, cooperationId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to end: cooperation has ended." });
+
+            var cooperation = await _cooperationService.GetCooperationById(cooperationId);
+            if (cooperation == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var user = await _userService.GetUserById(userId);
+            if (user == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            cooperation.IsInEffect = false;
+            cooperation.EndedOn = DateTime.UtcNow;
+
+            var updateCooperationResult = await _cooperationService.UpdateCooperation(cooperation);
+            if (!updateCooperationResult.HasValue || !updateCooperationResult.Value)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+
+            await _cooperationLog.InsertCooperationParticipantLog(new CooperationLog {
+                CooperationId = cooperationId,
+                Activity = $"Cooperation was deactivated and ended by { user.FirstName } { user.LastName }.",
+                Timestamp = DateTime.UtcNow
+            });
+
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        [HttpPut("revive/{cooperationId}")]
+        public async Task<JsonResult> ReviveCooperation([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var isAuthorized = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, cooperationId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "You are not authorized for this action." });
+            
+            var isCooperationActive = await _cooperationService.IsCooperationActive(cooperationId);
+            if (!isCooperationActive.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (isCooperationActive.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "Unable to revive: cooperation is active." });
+            
+            var user = await _userService.GetUserById(userId);
+            if (user == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+            var reviveCooperationResult = await _cooperationService.ReviveCooperationAndRequireSignaturesIfNeeded(cooperationId);
+            if (!reviveCooperationResult.HasValue || !reviveCooperationResult.Value)
+                return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while updating data." });
+            
+            await _cooperationLog.InsertCooperationParticipantLog(new CooperationLog {
+                CooperationId = cooperationId,
+                Activity = $"Cooperation was re-activated by { user.FirstName } { user.LastName }.",
+                Timestamp = DateTime.UtcNow
+            });
+            
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success });
+        }
+        
+        [HttpGet("get-sent-requests/{sentById}/{sentByType}")]
+        public async Task<JsonResult> GetCooperationRequestsSentBy([FromRoute] int sentById,[FromRoute] string sentByType = nameof(User)) { //or Organization
+            var sentCooperationRequests = await _cooperationService.GetCooperationRequestsSentBy(sentById, sentByType);
+            return sentCooperationRequests == null
+                ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = sentCooperationRequests });
+        }
+        
+        [HttpGet("get-received-requests/{receivedById}/{receivedByType}")]
+        public async Task<JsonResult> GetCooperationRequestsReceivedBy([FromHeader] int userId,[FromRoute] int receivedById,[FromRoute] string receivedByType = nameof(User)) { //or Organization, or Cooperation
+            var allowRespond = true;
+            if (receivedByType.Equals(nameof(Cooperation))) {
+                var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, receivedById);
+                if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+                if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+
+                var isAuthorized = await _cooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(userId, receivedById);
+                if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+
+                allowRespond = isAuthorized.Value;
+            }
+
+            var cooperationRequests = await _cooperationService.GetCooperationRequestsReceivedBy(receivedById, receivedByType);
+            if (cooperationRequests == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            
+            foreach (var requestDetail in cooperationRequests) requestDetail.AllowRespond = allowRespond;
+            return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = cooperationRequests });
+        }
+        
+        /// <summary>
+        /// If a user wants to know which cooperations they have
+        /// </summary>
+        [HttpGet("get-for-user")]
+        public async Task<JsonResult> GetCooperationsHavingUser([FromHeader] int userId) {
+            var cooperations = await _cooperationService.GetCooperationsByUserId(userId);
+            return cooperations == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                        : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = cooperations });
+        }
+        
+        /// <summary>
+        /// If someone in an organization (with permission to manage cooperation) wants to know which cooperations their organization has
+        /// </summary>
+        [HttpGet("get-for-organization/{organizationId}")]
+        public async Task<JsonResult> GetCooperationsHavingOrganization([FromHeader] int userId,[FromHeader] int organizationId) {
+            var isAuthorized = await _organizationService.IsUserBelongedToOrganizationAndAllowedToManageCooperation(userId, organizationId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+            
+            var cooperations = await _cooperationService.GetCooperationsByOrganizationId(organizationId);
+            return cooperations == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                        : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = cooperations });
+        }
+        
+        [HttpGet("details/{cooperationId}")]
+        public async Task<JsonResult> GetCooperationDetails([FromRoute] int cooperationId) {
+            var cooperationDetail = await _cooperationService.GetCooperationDetailsFor(cooperationId);
+            return cooperationDetail == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                             : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = cooperationDetail });
+        }
+        
+        [HttpGet("get-participants/{cooperationId}")]
+        public async Task<JsonResult> GetCooperationParticipants([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationId);
+            if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+
+            var participants = await _cooperationService.GetCooperationParticipantsFor(cooperationId);
+            return participants == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                        : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = participants });
+        }
+        
+        [HttpGet("get-return-requests/{cooperationId}")]
+        public async Task<JsonResult> GetParticipantReturnRequestsForCooperation([FromHeader] int userId,[FromRoute] int cooperationId) {
+            var (participantType, _) = await _cooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(userId, cooperationId);
+            if (participantType == null) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (participantType.Length == 0) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+
+            var returnRequests = await _cooperationService.GetReturnRequestsByCooperationId(cooperationId);
+            return returnRequests == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                          : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = returnRequests });
+        }
+        
+        /// <summary>
+        /// When a participant wants to know what departments they have the access to,
+        /// get the departments that a participant has access to.
+        /// Those departments are grouped by its organization that gives the access.
+        /// </summary>
+        [HttpGet("get-accessible-departments/{participantId}/{cooperationId}")]
+        public async Task<JsonResult> GetDepartmentsAccessibleToParticipant([FromRoute] int participantId,[FromRoute] int cooperationId) {
+            var isAuthorized = await _cooperationService.DoesCooperationHaveThisParticipant(participantId, cooperationId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+
+            var accessibleDepartments = await _cooperationService.GetDepartmentsAccessibleTo(participantId, cooperationId);
+            return accessibleDepartments == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                                 : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = accessibleDepartments });
+        }
+        
+        /// <summary>
+        /// Check if userId is someone within the organization and having permission to manage cooperation.
+        /// View the departments that a participant has access to, those departments should be in the viewer's organization
+        /// </summary>
+        [HttpGet("get-departments-with-accessibility/{organizationId}/{participantId}")]
+        public async Task<JsonResult> GetDepartmentsWithAccessibilityStatus([FromHeader] int userId,[FromRoute] int organizationId,[FromRoute] int participantId) {
+            var isAuthorized = await _organizationService.IsUserBelongedToOrganizationAndAllowedToManageCooperation(userId, organizationId);
+            if (!isAuthorized.HasValue) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." });
+            if (!isAuthorized.Value) return new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Denied, Message = "You are not authorized for this action." });
+
+            var departmentsGivenAccess = await _cooperationService.GetOrganizationDepartmentsGivenAccessToParticipant(organizationId, participantId);
+            return departmentsGivenAccess == null ? new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Failed, Message = "An issue happened while getting data." })
+                                                  : new JsonResult(new JsonResponse { Result = SharedEnums.RequestResults.Success, Data = departmentsGivenAccess });
         }
     }
 }

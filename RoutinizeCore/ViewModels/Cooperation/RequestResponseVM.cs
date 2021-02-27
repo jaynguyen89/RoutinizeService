@@ -65,22 +65,4 @@ namespace RoutinizeCore.ViewModels.Cooperation {
                                      : Array.Empty<string>();
         }
     }
-
-    public sealed class RequestAcceptancePolicyVM {
-        
-        //AcceptIfAllParticipantsAccept and RejectIfOneParticipantReject can be true together
-        //if AcceptBasingOnMajority is true, AcceptIfAllParticipantsAccept and RejectIfOneParticipantReject are ignored
-        
-        public bool AcceptIfAllParticipantsAccept { get; set; }
-        
-        public bool RejectIfOneParticipantReject { get; set; }
-        
-        public bool AcceptBasingOnMajority { get; set; }
-        
-        public bool EarlyAutoAccept { get; set; } //If accept% is greater than reject% and no-response% altogether, then just accept without waiting for the rest of responders
-        
-        public double PercentageOfMajority { get; set; } //From 50% to 90%
-        
-        public double RangeForTurningToBeDetermined { get; set; } //From 0% to 10%
-    }
 }

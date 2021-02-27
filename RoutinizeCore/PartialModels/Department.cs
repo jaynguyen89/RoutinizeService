@@ -58,6 +58,7 @@ namespace RoutinizeCore.Models {
             Name = department.Name;
             Description = department.Description;
             ContactDetails = department.ContactDetails;
+            ForCooperation = department.ForCooperation;
         }
     }
 }

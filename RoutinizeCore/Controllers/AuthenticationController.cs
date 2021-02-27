@@ -70,6 +70,11 @@ namespace RoutinizeCore.Controllers {
                     Message = "Error: Improper request format.",
                     Error = SharedEnums.HttpStatusCodes.Forbidden
                 }),
+                SharedEnums.ActionFilterResults.IrrelevantAuthError => new JsonResult(new JsonResponse {
+                    Result = SharedEnums.RequestResults.Denied,
+                    Message = "Error: Your auth data is irrelevant.",
+                    Error = SharedEnums.HttpStatusCodes.Forbidden
+                }),
                 _ => throw new ArgumentOutOfRangeException(nameof(actionFilterResults), actionFilterResults, null)
             };
         }

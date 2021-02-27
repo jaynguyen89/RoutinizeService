@@ -21,6 +21,7 @@ namespace RoutinizeCore.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public string ContactDetails { get; set; }
+        public bool ForCooperation { get; set; }
 
         public virtual Organization Organization { get; set; }
         public virtual Department Parent { get; set; }

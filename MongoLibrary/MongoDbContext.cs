@@ -10,7 +10,9 @@ namespace MongoLibrary {
 
         public IMongoCollection<RoutinizeCoreLog> RoutinizeCoreLogCollection { get; private set; }
         
-        public IMongoCollection<RoutinizeAccountLog> RoutinizeAccountLogCollection { get; private set; }
+        public IMongoCollection<GenericLog> RoutinizeAccountLogCollection { get; private set; }
+        
+        public IMongoCollection<GenericLog> RoutinizeCooperationLogCollection { get; private set; }
 
         public MongoDbContext(IOptions<MongoDbOptions> options) {
             var connection = new MongoClient(options.Value.Connection);
@@ -22,7 +24,11 @@ namespace MongoLibrary {
         }
 
         public void SetRoutinizeDataLogCollection(string collectionName) {
-            RoutinizeAccountLogCollection = _database.GetCollection<RoutinizeAccountLog>($"{collectionName}");
+            RoutinizeAccountLogCollection = _database.GetCollection<GenericLog>($"{ collectionName }");
+        }
+
+        public void SetRoutinizeCooperationLogCollection(string collectionName) {
+            RoutinizeCooperationLogCollection = _database.GetCollection<GenericLog>($"{ collectionName }");
         }
     }
 }

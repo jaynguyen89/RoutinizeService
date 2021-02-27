@@ -42,12 +42,14 @@ namespace RoutinizeCore.DbContexts
         public virtual DbSet<Note> Notes { get; set; }
         public virtual DbSet<NoteSegment> NoteSegments { get; set; }
         public virtual DbSet<Organization> Organizations { get; set; }
+        public virtual DbSet<ParticipantReturnRequest> ParticipantReturnRequests { get; set; }
         public virtual DbSet<PositionTitle> PositionTitles { get; set; }
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<ProjectIteration> ProjectIterations { get; set; }
         public virtual DbSet<ProjectRelation> ProjectRelations { get; set; }
         public virtual DbSet<RandomIdea> RandomIdeas { get; set; }
         public virtual DbSet<Relationship> Relationships { get; set; }
+        public virtual DbSet<SigningChecker> SigningCheckers { get; set; }
         public virtual DbSet<TaskComment> TaskComments { get; set; }
         public virtual DbSet<TaskFolder> TaskFolders { get; set; }
         public virtual DbSet<TaskLegend> TaskLegends { get; set; }
@@ -341,9 +343,9 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("CooperationRequest");
 
-                entity.Property(e => e.Message).HasMaxLength(2000);
-
                 entity.Property(e => e.AcceptanceNote).HasMaxLength(100);
+
+                entity.Property(e => e.Message).HasMaxLength(2000);
 
                 entity.Property(e => e.RequestedByType)
                     .IsRequired()
@@ -566,6 +568,27 @@ namespace RoutinizeCore.DbContexts
                     .HasForeignKey(d => d.MotherId);
             });
 
+            modelBuilder.Entity<ParticipantReturnRequest>(entity =>
+            {
+                entity.ToTable("ParticipantReturnRequest");
+
+                entity.Property(e => e.Message).HasMaxLength(300);
+
+                entity.Property(e => e.RequestedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.RespondNote).HasMaxLength(1500);
+
+                entity.HasOne(d => d.CooperationParticipant)
+                    .WithMany(p => p.ParticipantReturnRequests)
+                    .HasForeignKey(d => d.CooperationParticipantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.RespondedBy)
+                    .WithMany(p => p.ParticipantReturnRequests)
+                    .HasForeignKey(d => d.RespondedById)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             modelBuilder.Entity<PositionTitle>(entity =>
             {
                 entity.ToTable("PositionTitle");
@@ -671,6 +694,20 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.OppositeName)
                     .IsRequired()
                     .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<SigningChecker>(entity =>
+            {
+                entity.ToTable("SigningChecker");
+
+                entity.Property(e => e.ForActivity).HasMaxLength(50);
+
+                entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.HasOne(d => d.CooperationParticipant)
+                    .WithMany(p => p.SigningCheckers)
+                    .HasForeignKey(d => d.CooperationParticipantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<TaskComment>(entity =>
