@@ -10,8 +10,9 @@ namespace RoutinizeCore.Models {
                 AllowAnyoneToRespondRequest = true,
                 RequestAcceptancePolicy = JsonConvert.SerializeObject(
                     new RequestAcceptancePolicyVM {
-                        AcceptIfAllParticipantsAccept = true,
-                        RejectIfOneParticipantReject = true,
+                        AcceptIfOneParticipantAccept = true
+                        //AcceptIfAllParticipantsAccept = true,
+                        //RejectIfOneParticipantReject = true,
                         // AcceptBasingOnMajority = true,
                         // EarlyAutoAccept = true,
                         // PercentageOfMajority = 0.5,

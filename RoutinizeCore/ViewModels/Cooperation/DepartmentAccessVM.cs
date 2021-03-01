@@ -2,7 +2,7 @@
 
 namespace RoutinizeCore.ViewModels.Cooperation {
 
-    public class DepartmentAccessVM {
+    public sealed class DepartmentAccessVM {
         
         public int Id { get; set; }
         
@@ -17,11 +17,10 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         public GenericDepartmentVM[] AccessibleDepartments { get; set; }
     }
 
-    public class DepartmentAccessDetailVM {
+    public sealed class AccessibleDepartmentVM {
         
-    }
-
-    public class AccessibleDepartmentVM {
+        public OrganizationVM Organization { get; set; }
         
+        public GenericDepartmentVM[] Departments { get; set; }
     }
 }

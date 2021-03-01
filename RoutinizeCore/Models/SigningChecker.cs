@@ -11,7 +11,7 @@ namespace RoutinizeCore.Models
         public int CooperationParticipantId { get; set; }
         public string ForActivity { get; set; }
         public DateTime CreatedOn { get; set; }
-        public bool? IsValid { get; set; }
+        public bool IsValid { get; set; }
         public DateTime? InvalidOn { get; set; }
 
         public virtual CooperationParticipant CooperationParticipant { get; set; }

@@ -67,11 +67,9 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<bool?> IsUserBelongedToOrganizationAndAllowedToManageCooperation(int userId, int organizationId);
         
-        Task<Organization> GetOrganizationByUniqueId(string participantUniqueId);
+        Task<Organization> GetOrganizationByUniqueId(string uniqueId);
         
         Task<bool?> IsThisDepartmentExistedAndForCooperation(int departmentId, int organizationId);
-        
-        Task<DepartmentAccess> GetDepartmentAccessById(int departmentAccessId);
     }
 
 }

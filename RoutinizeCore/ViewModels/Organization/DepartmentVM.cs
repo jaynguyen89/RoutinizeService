@@ -8,21 +8,22 @@ namespace RoutinizeCore.ViewModels.Organization {
         
         public string Name { get; set; }
 
+        public string Avatar { get; set; }
+        
         public static implicit operator GenericDepartmentVM(Department department) {
             return new() {
                 Id = department.Id,
-                Name = department.Name
+                Name = department.Name,
+                Avatar = department.Avatar
             };
         }
     }
     
     public sealed class DepartmentVM : GenericDepartmentVM {
         
-        public string Avatar { get; set; }
-        
         public OrganizationVM Organization { get; set; }
         
-        public GenericDepartmentVM GenericDepartment { get; set; }
+        public GenericDepartmentVM Parent { get; set; }
         
         public string Description { get; set; }
         
@@ -34,7 +35,7 @@ namespace RoutinizeCore.ViewModels.Organization {
                 Name = department.Name,
                 Avatar = department.Avatar,
                 Organization = department.Organization,
-                GenericDepartment = department.Parent,
+                Parent = department.Parent,
                 Description = department.Description,
                 ContactDetail = department.ContactDetails
             };

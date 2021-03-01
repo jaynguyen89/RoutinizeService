@@ -1,5 +1,7 @@
 ﻿using System;
 using HelperLibrary;
+using RoutinizeCore.ViewModels.Organization;
+using RoutinizeCore.ViewModels.User;
 
 namespace RoutinizeCore.ViewModels.Cooperation {
 
@@ -27,8 +29,24 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         }
     }
 
-    public sealed class CooperationRequestDetailVM : CooperationRequestVM {
+    public sealed class CooperationRequestDetailVM {
         
+        public int Id { get; set; }
+        
+        public CommunicatorVM Communicator { get; set; } //Sender or Receiver of the Request
+
         public bool AllowRespond { get; set; }
+        
+        public sealed class CommunicatorVM {
+            //User, Organization, Cooperation can't be null or having value at once
+            
+            public UserVM User { get; set; }
+            
+            public OrganizationVM Organization { get; set; }
+            
+            public CooperationVM Cooperation { get; set; }
+            
+            public string Type { get; set; } //nameof(User) || nameof(Organization) || nameof(Cooperation)
+        }
     }
 }

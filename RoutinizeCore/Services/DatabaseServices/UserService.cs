@@ -532,6 +532,38 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
+        public async Task<UserRsaKey> GetUserRsaKeyByUserId(int userId) {
+            try {
+                return await _dbContext.UserRsaKeys.SingleOrDefaultAsync(key => key.UserId == userId && key.IsActive);
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(GetUserRsaKeyByUserId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting entry from UserRsaKeys by SingleOrDefault, null argument.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(
+                    new RoutinizeCoreLog {
+                        Location = $"{nameof(UserService)}.{nameof(GetUserRsaKeyByUserId)}",
+                        Caller = $"{new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName}",
+                        BriefInformation = nameof(InvalidOperationException),
+                        DetailedInformation = $"Error while getting UserRsaKey with SingleOrDefault, >1 entry matches predicate.\n\n{e.StackTrace}",
+                        ParamData = $"{nameof(userId)} = {userId}",
+                        Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                    }
+                );
+
+                return null;
+            }
+        }
+
         private async Task<int?> GetUserPrivacyOrAppSettingIdByUserId([NotNull] int userId, string assetType = nameof(UserPrivacy)) {
             try {
                 return assetType.Equals(nameof(UserPrivacy))
