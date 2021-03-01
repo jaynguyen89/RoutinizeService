@@ -318,6 +318,8 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Cooperation");
 
+                entity.Property(e => e.Name).HasMaxLength(100);
+
                 entity.Property(e => e.ConfidedRequestResponderIds).HasMaxLength(1000);
 
                 entity.Property(e => e.RequestAcceptancePolicy).HasMaxLength(1000);

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using RoutinizeCore.Models;
 using RoutinizeCore.ViewModels.Cooperation;
+using RoutinizeCore.ViewModels.Organization;
 
 namespace RoutinizeCore.Services.Interfaces {
 
     public interface ICooperationService : IDbServiceBase {
 
-        Task<CooperationParticipant> SearchCooperationParticipantBy(int userId, int cooperationId, string participantType);
+        Task<CooperationParticipant> GetCooperationParticipantBy(int userIdOrOrganizationId, int cooperationId, string participantType);
         
         Task<int?> InsertNewCooperation(Cooperation cooperation);
         
@@ -26,9 +27,12 @@ namespace RoutinizeCore.Services.Interfaces {
         /// </summary>
         Task<bool?> IsUserAParticipantAllowedToManageCooperationAndRequest(int userId, int cooperationId);
         
-        bool IsThisTheLastResponder(string responderSignatures, int cooperationId, int responderId);
+        /// <summary>
+        /// Here, the `responderId` is an alias of `userId`.
+        /// </summary>
+        Task<bool?> IsThisTheLastResponder(string responderSignatures, int cooperationId, int responderId);
         
-        bool DoOtherRespondersAcceptTheRequest(string responderSignatures);
+        bool? DoOtherRespondersAcceptTheRequest(string responderSignatures);
         
         /// <summary>
         /// Key == null for error. Key == string.Empty for not authorized.
@@ -44,7 +48,7 @@ namespace RoutinizeCore.Services.Interfaces {
         /// </summary>
         Task<bool?> DoesCooperationHaveThisParticipant(int participantId, int cooperationId, string participantType = null);
         
-        Tuple<int, int, int> GetCountsForAccepterRejecterAndNoResponse(string responderSignatures);
+        Tuple<int, int, int> GetCountsForAccepterRejecterAndNoResponse(string responderSignatures, string confidedResponderIds);
         
         Task<bool?> RemoveCooperationRequest(CooperationRequest cooperationRequest);
         
@@ -60,13 +64,13 @@ namespace RoutinizeCore.Services.Interfaces {
         /// <summary>
         /// Inserts 1 Cooperation instance. RequireSigning == true -> also insert a SigningChecker for each of its participants afterwards.
         /// </summary>
-        Task<bool?> UpdateCooperation(Cooperation newCooperation, bool requireSigning = false);
+        Task<bool?> UpdateCooperation(Cooperation cooperation, bool requireSigning = false);
         
         Task<Cooperation> GetCooperationById(int cooperationId);
         
         Task<int?> InsertNewDepartmentAccess(DepartmentAccess departmentAccess);
         
-        Task<bool?> UpdateDepartmentAccess(object departmentAccess);
+        Task<bool?> UpdateDepartmentAccess(DepartmentAccess departmentAccess);
         
         Task<CooperationParticipant> GetCooperationParticipantById(int cooperationParticipantId);
         
@@ -82,7 +86,7 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<Cooperation> SearchForCooperationFromParticipantReturnRequest(int requestId);
         
-        Task<ParticipantReturnRequest> GetParticipantReturnRequestById(int responseRequestId);
+        Task<ParticipantReturnRequest> GetParticipantReturnRequestById(int requestId);
         
         Task<bool?> UpdateParticipantReturnRequest(ParticipantReturnRequest returnRequest);
         
@@ -96,11 +100,11 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<CooperationRequestDetailVM[]> GetCooperationRequestsSentBy(int sentById, string sentByType);
         
-        Task<CooperationRequestDetailVM[]> GetCooperationRequestsReceivedBy(int participantId, string participantType);
+        Task<CooperationRequestDetailVM[]> GetCooperationRequestsReceivedBy(int receivedById, string receivedByType);
         
         Task<CooperationDetailVM> GetCooperationDetailsFor(int cooperationId);
         
-        Task<CooperationVM[]> GetCooperationsByUserId(int userId);
+        Task<CooperationVM[]> GetCooperationsByUserId(int userId, bool activeStatus = true);
         
         Task<CooperationVM[]> GetCooperationsByOrganizationId(int organizationId);
         
@@ -108,12 +112,18 @@ namespace RoutinizeCore.Services.Interfaces {
         
         Task<ReturnRequestDetailVM[]> GetReturnRequestsByCooperationId(int cooperationId);
         
-        Task<AccessibleDepartmentVM[]> GetDepartmentsAccessibleTo(int participantId, int cooperationId);
+        Task<AccessibleDepartmentVM[]> GetDepartmentsAccessibleBy(int participantId, int cooperationId);
         
         Task<bool?> IsAlreadyAParticipantInCooperation(int requestedById, string requestedByType, int cooperationId);
         
         Task<bool?> AreTheyAlreadyCooperating(CooperationRequestVM cooperationRequest);
         
-        Task<DepartmentAccessDetailVM[]> GetOrganizationDepartmentsGivenAccessToParticipant(int organizationId, int participantId);
+        Task<GenericDepartmentVM[]> GetOrganizationDepartmentsGivenAccessToParticipant(int organizationId, int participantId);
+
+        Task<DepartmentAccess> GetDepartmentAccessById(int departmentAccessId);
+
+        Task<bool?> HasThisCooperationRequestBeenRespondedBy(int userId, int requestId, int organizationId = -1);
+        
+        Task<SigningTaskVM[]> GetSigningTasksFromSigningCheckerByUserId(int userId);
     }
 }

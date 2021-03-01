@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using HelperLibrary;
 
 namespace RoutinizeCore.ViewModels.Cooperation {
 
@@ -6,12 +8,27 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         
         public int CooperationId { get; set; }
         
+        public string Name { get; set; }
+        
         public bool RequireSigning { get; set; }
     }
 
     public sealed class TermsAndConditionsVM : UpdateCooperationVM {
         
         public string TermsAndConditions { get; set; }
+
+        public string[] VerifyData() {
+            if (!Helpers.IsProperString(TermsAndConditions))
+                TermsAndConditions = null;
+            
+            if (Helpers.IsProperString(Name))
+                return Name.Length > 100
+                    ? new[] {"Cooperation name is too long. Max 100 characters."}
+                    : Array.Empty<string>();
+            
+            Name = null;
+            return Array.Empty<string>();
+        }
     }
 
     public sealed class CooperationPreferenceVM : UpdateCooperationVM {
@@ -39,6 +56,8 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         
         public bool RejectIfOneParticipantReject { get; set; }
         
+        public bool AcceptIfOneParticipantAccept { get; set; }
+        
         public bool AcceptBasingOnMajority { get; set; }
         
         public bool EarlyAutoAccept { get; set; } //If accept% is greater than reject% and no-response% altogether, then just accept without waiting for the rest of responders
@@ -49,7 +68,7 @@ namespace RoutinizeCore.ViewModels.Cooperation {
 
         public List<string> VerifyAcceptancePolicy() {
             if (!AcceptBasingOnMajority) return new List<string>();
-            
+
             var errors = new List<string>();
             if (PercentageOfMajority < 0.5 || PercentageOfMajority > 0.99) errors.Add("Please set Majority Percentage within 50% and 99%.");
             if (RangeForTurningToBeDetermined < 0 || RangeForTurningToBeDetermined > 0.1) errors.Add("Please set Range For Determining within 0 and 10%.");

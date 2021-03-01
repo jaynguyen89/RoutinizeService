@@ -1,5 +1,6 @@
 ﻿using System;
 using HelperLibrary;
+using Newtonsoft.Json;
 using RoutinizeCore.Models;
 using RoutinizeCore.ViewModels.User;
 
@@ -45,11 +46,15 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         
         public int Id { get; set; }
         
-        public CooperationParticipant Participant { get; set; }
+        public CooperationParticipantVM Participant { get; set; }
         
         public string Message { get; set; }
         
         public DateTime RequestedOn { get; set; }
+        
+        public bool AllowRespond { get; set; }
+        
+        public ResponseVM Response { get; set; }
 
         public class ResponseVM {
             
@@ -59,7 +64,24 @@ namespace RoutinizeCore.ViewModels.Cooperation {
             
             public DateTime? RespondedOn { get; set; }
             
-            public DbSignatureRecordVM SignatureRecord { get; set; }
+            public DbSignatureRecordVM Signature { get; set; }
+
+            public static implicit operator ResponseVM(ParticipantReturnRequest request) {
+                return new() {
+                    IsAccepted = request.IsAccepted.Value,
+                    RespondedOn = request.RespondedOn,
+                    Signature = JsonConvert.DeserializeObject<DbSignatureRecordVM>(request.RespondNote)
+                };
+            }
+        }
+
+        public static implicit operator ReturnRequestDetailVM(ParticipantReturnRequest request) {
+            return new() {
+                Id = request.Id,
+                Message = request.Message,
+                RequestedOn = request.RequestedOn,
+                Response = request.IsAccepted.HasValue ? request : null
+            };
         }
     }
 }

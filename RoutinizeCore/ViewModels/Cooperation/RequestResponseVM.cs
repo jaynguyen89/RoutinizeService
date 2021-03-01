@@ -37,7 +37,7 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         public List<DbOrganizationSignatureRecordVM> OrganizationSignatures { get; set; } = new();
     }
 
-    public sealed class DbOrganizationSignatureRecordVM : DbRequestAcceptanceVM {
+    public sealed class DbOrganizationSignatureRecordVM {
         
         public int OrganizationId { get; set; }
         

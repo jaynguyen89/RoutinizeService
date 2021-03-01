@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using RoutinizeCore.Models;
 
 namespace RoutinizeCore.ViewModels.Cooperation {
 
@@ -27,5 +29,14 @@ namespace RoutinizeCore.ViewModels.Cooperation {
         
         //Key: organizationId. Value: has someone in it signed or not
         public Dictionary<int, bool> SignerAsOrganization { get; set; }
+    }
+
+    public sealed class SigningTaskVM {
+        
+        public int SigningCheckerId { get; set; }
+        
+        public CooperationVM Cooperation { get; set; }
+        
+        public DateTime CreatedOn { get; set; }
     }
 }

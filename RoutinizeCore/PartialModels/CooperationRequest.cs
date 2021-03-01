@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 using RoutinizeCore.ViewModels.Cooperation;
 
 namespace RoutinizeCore.Models {
@@ -12,7 +13,8 @@ namespace RoutinizeCore.Models {
                 RequestedToId = request.RequestedToId,
                 RequestedToType = request.RequestedToType,
                 Message = request.Message,
-                RequestedOn = DateTime.UtcNow
+                RequestedOn = DateTime.UtcNow,
+                ResponderSignatures = JsonConvert.SerializeObject(new SignaturePoolVM())
             };
         }
     }

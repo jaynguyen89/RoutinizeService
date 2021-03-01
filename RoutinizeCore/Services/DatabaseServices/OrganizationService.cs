@@ -809,7 +809,7 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while searching UserDepartments or UserOrganization with AnyAsync.\n\n{ e.StackTrace }",
-                    ParamData = $"({ nameof(destination) }, { userId }, { nameof(organizationId) }) = ({destination}, { userId }, { organizationId })",
+                    ParamData = $"({ nameof(destination) }, { userId }, { nameof(organizationId) }) = ({ destination }, { userId }, { organizationId })",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
@@ -835,7 +835,83 @@ namespace RoutinizeCore.Services.DatabaseServices {
                     Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
                     BriefInformation = nameof(ArgumentNullException),
                     DetailedInformation = $"Error while getting DepartmentRoles with Where-ToArray.\n\n{ e.StackTrace }",
-                    ParamData = $"({ nameof(departmentId) }, { nameof(organizationId) }) = ({departmentId}, { organizationId })",
+                    ParamData = $"({ nameof(departmentId) }, { nameof(organizationId) }) = ({ departmentId }, { organizationId })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<bool?> IsUserBelongedToOrganizationAndAllowedToManageCooperation(int userId, int organizationId) {
+            try {
+                return await _dbContext.UserDepartments.AnyAsync(
+                    userDepartment => userDepartment.UserId == userId &&
+                                      userDepartment.IsActive &&
+                                      userDepartment.DepartmentRole.OrganizationId == organizationId &&
+                                      userDepartment.DepartmentRole.IsManagerialRole &&
+                                      userDepartment.DepartmentRole.AllowManageCooperation
+                );
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(OrganizationService) }.{ nameof(IsUserBelongedToOrganizationAndAllowedToManageCooperation) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting DepartmentRoles with Where-ToArray.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(userId) }, { nameof(organizationId) }) = ({ userId }, { organizationId })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<Organization> GetOrganizationByUniqueId(string uniqueId) {
+            try {
+                return await _dbContext.Organizations.SingleOrDefaultAsync(organization => organization.UniqueId.Equals(uniqueId.ToUpper()));
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(OrganizationService) }.{ nameof(GetOrganizationByUniqueId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting Organization with SingleOrDefault, null argument.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(uniqueId) } = { uniqueId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+            catch (InvalidOperationException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(OrganizationService) }.{ nameof(GetOrganizationByUniqueId) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(InvalidOperationException),
+                    DetailedInformation = $"Error while getting Organization with SingleOrDefault, >1 entry matching predicate.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(uniqueId) } = { uniqueId }",
+                    Severity = SharedEnums.LogSeverity.High.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
+        public async Task<bool?> IsThisDepartmentExistedAndForCooperation(int departmentId, int organizationId) {
+            try {
+                return await _dbContext.Departments.AnyAsync(
+                    department => department.Id == departmentId &&
+                                  department.OrganizationId == organizationId &&
+                                  department.ForCooperation
+                );
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"{ nameof(OrganizationService) }.{ nameof(IsThisDepartmentExistedAndForCooperation) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while getting Department with AnyAsync, null argument.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(departmentId) }, { nameof(organizationId) }) = ({ departmentId }, { organizationId })",
                     Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
                 });
 
