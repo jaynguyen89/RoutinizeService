@@ -10,8 +10,6 @@ namespace RoutinizeCore.ViewModels.User {
     /// So only AvatarName or AvatarFile contains value at any time.
     /// </summary>
     public class ProfileAvatarVM {
-        
-        public int AccountId { get; set; }
 
         public string AvatarName { get; set; } = null;
 

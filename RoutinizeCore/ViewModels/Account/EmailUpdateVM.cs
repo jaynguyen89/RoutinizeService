@@ -3,17 +3,20 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace RoutinizeCore.ViewModels.Account {
 
+    [SwaggerSchema(Required = new [] { "AccountId", "NewEmail", "NewEmailConfirm", "Password" })]
     public sealed class EmailUpdateVM {
         
-        public int AccountId { get; set; }
-        
+        [SwaggerSchema("The new email to replace the current one.")]
         public string NewEmail { get; set; }
         
+        [SwaggerSchema("Must match newEmail.")]
         public string NewEmailConfirm { get; set; }
         
+        [SwaggerSchema("The account's current password.")]
         public string Password { get; set; }
         
         public List<int> VerifyNewEmail() {

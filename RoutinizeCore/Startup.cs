@@ -1,3 +1,4 @@
+using System;
 using HelperLibrary;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,9 +9,12 @@ using Microsoft.Extensions.Hosting;
 using AssistantLibrary;
 using AssistantLibrary.Models;
 using MediaLibrary;
+using Microsoft.OpenApi.Models;
 using MongoLibrary;
 using RoutinizeCore.Services;
 using RoutinizeCore.ViewModels;
+using System.Reflection;
+using System.IO;
 
 namespace RoutinizeCore {
     
@@ -24,6 +28,30 @@ namespace RoutinizeCore {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
+            services.AddSwaggerGen(options => {
+                options.SwaggerDoc(
+                    "RoutinizeAPI Document & Testing",
+                    new OpenApiInfo {
+                        Title = "RoutinizeAPI",
+                        Version = "v1.0",
+                        Description = "The documentation and testing tool for Routinize API.",
+                        Contact = new OpenApiContact {
+                            Name = "Jay Nguyen",
+                            Email = "jay.nguyen@jaydeveloper.com",
+                            Url = new Uri("https://jaydeveloper.com")
+                        }
+                    });
+
+                var xmlFile = $"{ Assembly.GetExecutingAssembly().GetName().Name }.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
+                
+                options.EnableAnnotations(
+                    enableAnnotationsForInheritance: true,
+                    enableAnnotationsForPolymorphism: true
+                );
+            });
+            
             services.AddCors();
             services.AddControllers();
             
@@ -55,6 +83,11 @@ namespace RoutinizeCore {
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
             if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options => {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "RoutinizeAPI v1.0");
+            });
 
             app.UseHttpsRedirection();
             app.UseRouting();

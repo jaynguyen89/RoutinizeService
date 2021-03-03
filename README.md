@@ -6,6 +6,8 @@
 RoutinizeService contains **RoutinizeCore**, which is the main API that communicates with client.
 **RoutinizeCore** makes use of other *services* and *libraries* to separate the logics into smaller manageable sub-services.
 
+The RoutinizeService is documented by **Swagger/OpenAPI** for development, testing and debugging. 
+
 ###### AssistantLibrary
 
 This library provides the following services:
@@ -52,3 +54,132 @@ This library is developed using a combination of ***CakePHP*** and .NET framewor
 - CakePHP project: runs in Apache server; provides services to process photos, videos and audios; saves them to local server storage and update data to MySQL server.
 - .NET project: uses MySQL connector to access MySQL server; provides services to RoutinizeCore; communicates with the CakePHP project.
 
+
+###### Swagger attributes and annotations to use
+
+[Produces("application/json")]
+[Route("api/[controller]")]
+[ApiController]
+public class TodoController : ControllerBase
+
+
+[HttpPost("{id}")]
+[ProducesResponseType(typeof(Product), 200)]
+[ProducesResponseType(typeof(IDictionary<string, string>), 400)]
+[ProducesResponseType(500)]
+public IActionResult GetById(int id)
+
+
+public class PagingParams
+{
+    [Required]
+    public int PageNo { get; set; }
+
+    public int PageSize { get; set; }
+
+    [DefaultValue(false)]
+    public bool IsComplete { get; set; }
+}
+
+
+/// <summary>
+/// Retrieves a specific product by unique id
+/// </summary>
+/// <remarks>Awesomeness!</remarks>
+/// <param name="id" example="123">The product id</param>
+/// <response code="200">Product created</response>
+/// <response code="400">Product has missing/invalid values</response>
+/// <response code="500">Oops! Can't create your product right now</response>
+[HttpGet("{id}")]
+[ProducesResponseType(typeof(Product), 200)]
+[ProducesResponseType(typeof(IDictionary<string, string>), 400)]
+[ProducesResponseType(500)]
+public Product GetById(int id)
+
+
+/// <summary>
+/// Creates a TodoItem.
+/// </summary>
+/// <remarks>
+/// Sample request:
+///
+///     POST /Todo
+///     {
+///        "id": 1,
+///        "name": "Item1",
+///        "isComplete": true
+///     }
+///
+/// </remarks>
+/// <param name="item"></param>
+/// <returns>A newly created TodoItem</returns>
+/// <response code="201">Returns the newly created item</response>
+/// <response code="400">If the item is null</response>            
+[HttpPost]
+[ProducesResponseType(StatusCodes.Status201Created)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+public ActionResult<TodoItem> Create(TodoItem item)
+{
+    _context.TodoItems.Add(item);
+    _context.SaveChanges();
+
+    return CreatedAtRoute("GetTodo", new { id = item.Id }, item);
+}
+
+
+public class Product
+{
+    /// <summary>
+    /// The name of the product
+    /// </summary>
+    /// <example>Men's basketball shoes</example>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Quantity left in stock
+    /// </summary>
+    /// <example>10</example>
+    public int AvailableStock { get; set; }
+}
+
+
+[HttpGet]
+public IActionResult GetProducts(
+    [FromQuery, SwaggerParameter("Search keywords", Required = true)]string keywords)
+
+
+[HttpPost]
+public IActionResult CreateProduct(
+    [FromBody, SwaggerRequestBody("The product payload", Required = true)]Product product)
+
+
+[SwaggerSchema(Required = new[] { "Description" })]
+public class Product
+{
+	[SwaggerSchema("The product identifier", ReadOnly = true)]
+	public int Id { get; set; }
+
+	[SwaggerSchema("The product description")]
+	public string Description { get; set; }
+
+	[SwaggerSchema("The date it was created", Format = "date")]
+	public DateTime DateCreated { get; set; }
+}
+
+
+[SwaggerTag("Create, read, update and delete Products")]
+public class ProductsController
+
+
+[SwaggerSubType(typeof(Rectangle))]
+[SwaggerSubType(typeof(Circle))]
+public abstract class Shape
+
+
+[SwaggerDiscriminator("shapeType")]
+[SwaggerSubType(typeof(Rectangle), DiscriminatorValue = "rectangle")]
+[SwaggerSubType(typeof(Circle), DiscriminatorValue = "circle")]
+public abstract class Shape
+{
+    public ShapeType { get; set; }
+}
