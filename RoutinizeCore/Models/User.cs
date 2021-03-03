@@ -22,6 +22,7 @@ namespace RoutinizeCore.Models
             RandomIdeas = new HashSet<RandomIdea>();
             TaskFolders = new HashSet<TaskFolder>();
             TaskLegends = new HashSet<TaskLegend>();
+            TaskVaultItems = new HashSet<TaskVaultItem>();
             TeamInvitationInvitationSentBies = new HashSet<TeamInvitation>();
             TeamInvitationInvitationSentTos = new HashSet<TeamInvitation>();
             TeamMembers = new HashSet<TeamMember>();
@@ -60,6 +61,7 @@ namespace RoutinizeCore.Models
         public virtual ICollection<RandomIdea> RandomIdeas { get; set; }
         public virtual ICollection<TaskFolder> TaskFolders { get; set; }
         public virtual ICollection<TaskLegend> TaskLegends { get; set; }
+        public virtual ICollection<TaskVaultItem> TaskVaultItems { get; set; }
         public virtual ICollection<TeamInvitation> TeamInvitationInvitationSentBies { get; set; }
         public virtual ICollection<TeamInvitation> TeamInvitationInvitationSentTos { get; set; }
         public virtual ICollection<TeamMember> TeamMembers { get; set; }

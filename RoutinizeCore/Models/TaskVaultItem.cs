@@ -12,7 +12,9 @@ namespace RoutinizeCore.Models
         public int ItemId { get; set; }
         public string ItemType { get; set; }
         public DateTime AddedOn { get; set; }
+        public int AddedByUserId { get; set; }
 
+        public virtual User AddedByUser { get; set; }
         public virtual CooperationTaskVault TaskVault { get; set; }
     }
 }

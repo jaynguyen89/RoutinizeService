@@ -9,6 +9,7 @@ namespace RoutinizeCore.Models
     {
         public Department()
         {
+            CooperationTaskVaults = new HashSet<CooperationTaskVault>();
             InverseParent = new HashSet<Department>();
             TeamDepartments = new HashSet<TeamDepartment>();
             UserDepartments = new HashSet<UserDepartment>();
@@ -25,6 +26,7 @@ namespace RoutinizeCore.Models
 
         public virtual Organization Organization { get; set; }
         public virtual Department Parent { get; set; }
+        public virtual ICollection<CooperationTaskVault> CooperationTaskVaults { get; set; }
         public virtual ICollection<Department> InverseParent { get; set; }
         public virtual ICollection<TeamDepartment> TeamDepartments { get; set; }
         public virtual ICollection<UserDepartment> UserDepartments { get; set; }

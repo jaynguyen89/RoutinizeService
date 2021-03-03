@@ -9,6 +9,8 @@ namespace RoutinizeCore.Models
     {
         public CooperationParticipant()
         {
+            CooperationTaskVaultAssignedToCooperators = new HashSet<CooperationTaskVault>();
+            CooperationTaskVaultPossessedByCooperators = new HashSet<CooperationTaskVault>();
             ParticipantReturnRequests = new HashSet<ParticipantReturnRequest>();
             SigningCheckers = new HashSet<SigningChecker>();
         }
@@ -22,6 +24,8 @@ namespace RoutinizeCore.Models
         public DateTime? LeftOn { get; set; }
 
         public virtual Cooperation Cooperation { get; set; }
+        public virtual ICollection<CooperationTaskVault> CooperationTaskVaultAssignedToCooperators { get; set; }
+        public virtual ICollection<CooperationTaskVault> CooperationTaskVaultPossessedByCooperators { get; set; }
         public virtual ICollection<ParticipantReturnRequest> ParticipantReturnRequests { get; set; }
         public virtual ICollection<SigningChecker> SigningCheckers { get; set; }
     }

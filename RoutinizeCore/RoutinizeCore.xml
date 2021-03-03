@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>RoutinizeCore</name>
+    </assembly>
+    <members>
+        <member name="M:RoutinizeCore.Controllers.AccountController.GetAccountUniqueId(System.Int32)">
+            <summary>
+            Gets the 16-character Unique ID (string) by Account ID. 
+            </summary>
+            <remarks>
+            Sample request:
+                GET /account/get-unique-id
+                Header
+                    {
+                        ...,
+                        "AccountId" : 1
+                    }
+            </remarks>>
+            <param name="accountId" example="2948">Account ID must be an Integer passed in request header.</param>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.AccountController.ChangeAccountEmail(System.Int32,RoutinizeCore.ViewModels.Account.EmailUpdateVM)">
+            <summary>
+            Changes the Account's email address. Sends a notification email to the old Account's email,
+            and a confirmation email to the new Account's email so user can re-activate their account.
+            </summary>
+            <remarks>
+            Sample request:
+                PUT /account/change-account-email
+                Body
+                    {
+                        "accountId": 1,
+                        "newEmail": "example@domain.com",
+                        "newEmailConfirm": "example@domain.com", --> must match the value of `newEmail`
+                        "password": "password" --> Confirm the account's password
+                    }
+            </remarks>
+            <param name="accountId" example="2947">The account's ID.</param>
+            <param name="emailUpdateData">The required data to update Account's email.</param>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.CooperationController.GetCooperationsHavingUserActive(System.Int32,System.Int32)">
+            <summary>
+            If a user wants to know which cooperations they have
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.CooperationController.GetCooperationsHavingOrganization(System.Int32,System.Int32)">
+            <summary>
+            If someone in an organization (with permission to manage cooperation) wants to know which cooperations their organization has
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.CooperationController.GetDepartmentsAccessibleByParticipant(System.Int32,System.Int32)">
+            <summary>
+            When a participant wants to know what departments they have the access to,
+            get the departments that a participant has access to.
+            Those departments are grouped by its organization that gives the access.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.CooperationController.GetDepartmentsWithAccessibilityStatus(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Check if userId is someone within the organization and having permission to manage cooperation.
+            View the departments that a participant has access to, those departments should be in the viewer's organization
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.CooperationController.ShouldSignCooperationAgreement(System.Int32)">
+            <summary>
+            Supporting a user needs to sign a cooperation agreement within a cooperation.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.TodoController.AddNewPersonalTodo(RoutinizeCore.Models.Todo)">
+            <summary>
+            To add new PERSONAL item WITHOUT attachments and WITHOUT group.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Controllers.TodoController.AddNewSharedTodo(RoutinizeCore.ViewModels.Attachment.SharedTodoVM)">
+            <summary>
+            Add new SHARED item WITHOUT attachment and WITHOUT group.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.SetChangesToDbContext(System.Object,System.String)">
+            <summary>
+            Use in a combination with CommitChanges.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.CommitChanges">
+            <summary>
+            Use in a combination with SetChangesToDbContext.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.ToggleTransactionAuto(System.Boolean)">
+            <summary>
+            Caution: make sure you know what you do when using this method
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.StartTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.CommitTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.RevertTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.DatabaseServices.DbServiceBase.ExecuteRawOn``1(System.String)">
+            <summary>
+            Execute an on-demand query against the database.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IContentGroupService.GetOwnerActiveContentGroups(System.Int32,System.String)">
+            <summary>
+            Returns Dictionary with Key being the number of items in Value (the number of Todos in ContentGroup)
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IContentGroupService.GetOwnerArchivedContentGroups(System.Int32,System.String)">
+            <summary>
+            Returns Dictionary with Key being the number of items in Value (the number of Todos in ContentGroup)
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IContentGroupService.GetSharedActiveContentGroups(System.Int32,System.String)">
+            <summary>
+            Returns Dictionary with Key being the number of items in Value (the number of Todos in ContentGroup)
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IContentGroupService.GetSharedArchivedContentGroups(System.Int32,System.String)">
+            <summary>
+            Returns Dictionary with Key being the number of items in Value (the number of Todos in ContentGroup)
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.AddParticipantsToCooperationById(System.Int32,RoutinizeCore.ViewModels.Cooperation.PoolingParticipantsVM)">
+            <summary>
+            Insert 1 CooperationParticipant instance for each participant in `participants` and create SigningChecker.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.IsUserAParticipantAllowedToManageCooperationAndRequest(System.Int32,System.Int32)">
+            <summary>
+            Check if a participant in cooperation is allowed to manage cooperation request by cooperation policy
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.IsThisTheLastResponder(System.String,System.Int32,System.Int32)">
+            <summary>
+            Here, the `responderId` is an alias of `userId`.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.IsThisUserAParticipantOrBelongedToAnOrganizationInThisCooperation(System.Int32,System.Int32)">
+            <summary>
+            Key == null for error. Key == string.Empty for not authorized.
+            Key == nameof(User) if cooperator is a User participant, Value == 0 accordingly
+            Key == nameof(Organization) if cooperator is an Organization participant, Value == organizationId
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.DoesCooperationHaveThisParticipant(System.Int32,System.Int32,System.String)">
+            <summary>
+            Simply check if a participant is found in a cooperation. Returns boolean for existed/inexisted, null for error.
+            participantType == null -> check for both types of participant
+            participantType == nameof(User) || nameof(Organization) -> check for the specified type of participant
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.InsertNewCooperationParticipant(RoutinizeCore.Models.CooperationParticipant)">
+            <summary>
+            Insert 1 CooperationParticipant instance. Create SigningChecker after insertion done.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.ICooperationService.UpdateCooperation(RoutinizeCore.Models.Cooperation,System.Boolean)">
+            <summary>
+            Inserts 1 Cooperation instance. RequireSigning == true -> also insert a SigningChecker for each of its participants afterwards.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.SetChangesToDbContext(System.Object,System.String)">
+            <summary>
+            Use in a combination with CommitChanges.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.CommitChanges">
+            <summary>
+            Use in a combination with SetChangesToDbContext.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.ToggleTransactionAuto(System.Boolean)">
+            <summary>
+            Caution: make sure you know what you do when using this method
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.StartTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.CommitTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.RevertTransaction">
+            <summary>
+            StartTransaction, CommitTransaction and RevertTransaction must be used together.
+            </summary>
+        </member>
+        <member name="M:RoutinizeCore.Services.Interfaces.IDbServiceBase.ExecuteRawOn``1(System.String)">
+            <summary>
+            Execute an on-demand query against the database.
+            </summary>
+        </member>
+        <member name="T:RoutinizeCore.ViewModels.User.ProfileAvatarVM">
+            <summary>
+            In Routinize app, user can select an image from app asset or upload their own image for avatar.
+            So only AvatarName or AvatarFile contains value at any time.
+            </summary>
+        </member>
+    </members>
+</doc>

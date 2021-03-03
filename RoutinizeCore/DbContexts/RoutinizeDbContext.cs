@@ -318,9 +318,9 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("Cooperation");
 
-                entity.Property(e => e.Name).HasMaxLength(100);
-
                 entity.Property(e => e.ConfidedRequestResponderIds).HasMaxLength(1000);
+
+                entity.Property(e => e.Name).HasMaxLength(100);
 
                 entity.Property(e => e.RequestAcceptancePolicy).HasMaxLength(1000);
             });
@@ -370,9 +370,24 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.TaskVaultName).HasMaxLength(100);
 
+                entity.HasOne(d => d.AssignedToCooperator)
+                    .WithMany(p => p.CooperationTaskVaultAssignedToCooperators)
+                    .HasForeignKey(d => d.AssignedToCooperatorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.AssociatedWithDepartment)
+                    .WithMany(p => p.CooperationTaskVaults)
+                    .HasForeignKey(d => d.AssociatedWithDepartmentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
                 entity.HasOne(d => d.Cooperation)
                     .WithMany(p => p.CooperationTaskVaults)
                     .HasForeignKey(d => d.CooperationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.PossessedByCooperator)
+                    .WithMany(p => p.CooperationTaskVaultPossessedByCooperators)
+                    .HasForeignKey(d => d.PossessedByCooperatorId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -419,7 +434,9 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.Description).HasMaxLength(300);
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(300);
 
                 entity.Property(e => e.ForDepartmentIds).HasMaxLength(4000);
 
@@ -578,7 +595,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.Property(e => e.RequestedOn).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.RespondNote).HasMaxLength(1500);
+                entity.Property(e => e.RespondNote).HasMaxLength(300);
 
                 entity.HasOne(d => d.CooperationParticipant)
                     .WithMany(p => p.ParticipantReturnRequests)
@@ -702,9 +719,9 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("SigningChecker");
 
-                entity.Property(e => e.ForActivity).HasMaxLength(50);
-
                 entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ForActivity).HasMaxLength(50);
 
                 entity.HasOne(d => d.CooperationParticipant)
                     .WithMany(p => p.SigningCheckers)
@@ -824,6 +841,11 @@ namespace RoutinizeCore.DbContexts
                 entity.Property(e => e.ItemType)
                     .IsRequired()
                     .HasMaxLength(30);
+
+                entity.HasOne(d => d.AddedByUser)
+                    .WithMany(p => p.TaskVaultItems)
+                    .HasForeignKey(d => d.AddedByUserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
 
                 entity.HasOne(d => d.TaskVault)
                     .WithMany(p => p.TaskVaultItems)

@@ -20,8 +20,8 @@ namespace RoutinizeCore.Models
         public bool IsInEffect { get; set; }
         public DateTime? StartedOn { get; set; }
         public DateTime? EndedOn { get; set; }
-        public string ConfidedRequestResponderIds { get; set; }
         public bool AllowAnyoneToRespondRequest { get; set; }
+        public string ConfidedRequestResponderIds { get; set; }
         public string RequestAcceptancePolicy { get; set; }
         public string AgreementSigners { get; set; }
 

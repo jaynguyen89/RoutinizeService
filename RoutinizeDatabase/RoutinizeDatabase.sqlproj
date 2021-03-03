@@ -121,6 +121,9 @@
     <Build Include="tables\interaction\CooperationRequest.sql" />
     <Build Include="tables\static\PositionTitle.sql" />
     <Build Include="tables\collaboration\TeamProject.sql" />
+    <Build Include="tables\interaction\ParticipantReturnRequest.sql" />
+    <Build Include="tables\static\SigningChecker.sql" />
+    <Build Include="tables\static\UserRsaKey.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="obj\Debug\RoutinizeDatabase.sqlproj.FileListAbsolute.txt" />
