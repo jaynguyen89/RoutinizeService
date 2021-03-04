@@ -42,5 +42,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<Note[]> GetSharedActiveNotes([NotNull] int userId);
         
         Task<Note[]> GetSharedArchivedNotes([NotNull] int userId);
+        
+        Task<bool?> DoAllNotesBelongToThisUser(int[] noteIds, int userId);
     }
 }

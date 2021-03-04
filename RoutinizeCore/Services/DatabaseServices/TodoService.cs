@@ -475,5 +475,34 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
         }
+
+        public async Task<bool?> DoAllTodosBelongToThisUser(int[] todoIds, int userId) {
+            try {
+                foreach (var todoId in todoIds) {
+                    var isBelongedToUser = await _dbContext.Todos
+                                                           .AnyAsync(
+                                                               todo => todo.Id == todoId &&
+                                                                       todo.UserId == userId &&
+                                                                       !todo.DeletedOn.HasValue
+                                                           );
+
+                    if (!isBelongedToUser) return false;
+                }
+
+                return true;
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(TodoService) }.{ nameof(DoAllTodosBelongToThisUser) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Todos with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(userId) }, { nameof(todoIds) }) = ({ userId }, { JsonConvert.SerializeObject(todoIds) })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return default;
+            }
+        }
     }
 }

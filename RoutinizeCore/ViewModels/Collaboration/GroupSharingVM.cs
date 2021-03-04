@@ -1,6 +1,7 @@
 ﻿using System;
 using HelperLibrary;
 using HelperLibrary.Shared;
+using RoutinizeCore.Models;
 
 namespace RoutinizeCore.ViewModels.Collaboration {
 
@@ -23,6 +24,9 @@ namespace RoutinizeCore.ViewModels.Collaboration {
             Message = Message?.Trim();
             Message = Message?.Replace(SharedConstants.AllSpaces, SharedConstants.MonoSpace);
             if (Message?.Length > 150) return new[] { "Message is too long. Max 150 characters." };
+
+            if (GroupOfType.Equals(nameof(RandomIdea)))
+                return new[] { "Group of your ideas is not shareable." };
             
             Message = Helpers.CapitalizeFirstLetterOfSentence(Message);
             return Array.Empty<string>();

@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using RoutinizeCore.Models;
+using RoutinizeCore.ViewModels.ItemGroup;
 
 namespace RoutinizeCore.Services.Interfaces {
 
@@ -46,5 +47,9 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<KeyValuePair<int, ContentGroup>[]> GetSharedArchivedContentGroups([NotNull] int userId,[NotNull] string groupType);
         
         Task<object[]> GetItemsForContentGroupById([NotNull] int groupId);
+        
+        bool? AddItemsToContentGroupFrom(ItemGroupVM itemGroup);
+        
+        bool? RemoveItemsFromContentGroupFor(ItemGroupVM itemGroup);
     }
 }

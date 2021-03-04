@@ -535,8 +535,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.HasOne(d => d.Group)
                     .WithMany(p => p.Notes)
-                    .HasForeignKey(d => d.GroupId)
-                    .HasConstraintName("FK_Note_NoteGroup_GroupId");
+                    .HasForeignKey(d => d.GroupId);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Notes)
@@ -692,9 +691,15 @@ namespace RoutinizeCore.DbContexts
             {
                 entity.ToTable("RandomIdea");
 
+                entity.Property(e => e.AddedOn).HasDefaultValueSql("(getdate())");
+
                 entity.Property(e => e.Content)
                     .IsRequired()
                     .HasMaxLength(4000);
+
+                entity.HasOne(d => d.Group)
+                    .WithMany(p => p.RandomIdeas)
+                    .HasForeignKey(d => d.GroupId);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.RandomIdeas)
@@ -1039,8 +1044,7 @@ namespace RoutinizeCore.DbContexts
 
                 entity.HasOne(d => d.Group)
                     .WithMany(p => p.Todos)
-                    .HasForeignKey(d => d.GroupId)
-                    .HasConstraintName("FK_Todo_TodoGroup_GroupId");
+                    .HasForeignKey(d => d.GroupId);
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.TodoUsers)

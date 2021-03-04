@@ -16,6 +16,6 @@
 	DeletedOn DATETIME2(7) DEFAULT NULL,
 	CONSTRAINT [PK_Todo_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_Todo_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]),
-	CONSTRAINT [FK_Todo_TodoGroup_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [dbo].[ContentGroup] ([Id]),
+	CONSTRAINT [FK_Todo_ContentGroup_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [dbo].[ContentGroup] ([Id]),
 	CONSTRAINT [FK_Todo_User_DoneById] FOREIGN KEY ([DoneById]) REFERENCES [dbo].[User] ([Id])
 )

@@ -11,6 +11,7 @@ namespace RoutinizeCore.Models
         {
             GroupShares = new HashSet<GroupShare>();
             Notes = new HashSet<Note>();
+            RandomIdeas = new HashSet<RandomIdea>();
             Todos = new HashSet<Todo>();
         }
 
@@ -26,6 +27,7 @@ namespace RoutinizeCore.Models
         public virtual User CreatedBy { get; set; }
         public virtual ICollection<GroupShare> GroupShares { get; set; }
         public virtual ICollection<Note> Notes { get; set; }
+        public virtual ICollection<RandomIdea> RandomIdeas { get; set; }
         public virtual ICollection<Todo> Todos { get; set; }
     }
 }

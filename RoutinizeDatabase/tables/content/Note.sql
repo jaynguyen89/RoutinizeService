@@ -10,5 +10,5 @@
 	DeletedOn DATETIME2(7) DEFAULT NULL,
 	CONSTRAINT [PK_Note_Id] PRIMARY KEY ([Id] ASC),
 	CONSTRAINT [FK_Note_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]), --ON DELETE CASCADE
-	CONSTRAINT [FK_Note_NoteGroup_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [dbo].[ContentGroup] ([Id])
+	CONSTRAINT [FK_Note_ContentGroup_GroupId] FOREIGN KEY ([GroupId]) REFERENCES [dbo].[ContentGroup] ([Id])
 )

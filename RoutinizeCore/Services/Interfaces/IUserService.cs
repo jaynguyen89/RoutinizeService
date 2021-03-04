@@ -43,5 +43,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<bool?> SaveNewUserRsaKey(int userId, string publicKey, string privateKey);
         
         Task<UserRsaKey> GetUserRsaKeyByUserId(int userId);
+        
+        Task<bool?> DoesUserHasPremiumForAnything(int userId);
     }
 }

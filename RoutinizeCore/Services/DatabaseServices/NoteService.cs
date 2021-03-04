@@ -525,5 +525,34 @@ namespace RoutinizeCore.Services.DatabaseServices {
                 return null;
             }
         }
+
+        public async Task<bool?> DoAllNotesBelongToThisUser(int[] noteIds, int userId) {
+            try {
+                foreach (var todoId in noteIds) {
+                    var isBelongedToUser = await _dbContext.Notes
+                                                           .AnyAsync(
+                                                               note => note.Id == todoId &&
+                                                                       note.UserId == userId &&
+                                                                       !note.DeletedOn.HasValue
+                                                           );
+
+                    if (!isBelongedToUser) return false;
+                }
+
+                return true;
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(NoteService) }.{ nameof(DoAllNotesBelongToThisUser) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching Notes with AnyAsync.\n\n{ e.StackTrace }",
+                    ParamData = $"({ nameof(userId) }, { nameof(noteIds) }) = ({ userId }, { JsonConvert.SerializeObject(noteIds) })",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return default;
+            }
+        }
     }
 }

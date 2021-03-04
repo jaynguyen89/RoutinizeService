@@ -36,5 +36,7 @@ namespace RoutinizeCore.Services.Interfaces {
         Task<bool?> IsTodoSharedToAnyoneElseExceptThisCollaborator([NotNull] int collaboratorId,[NotNull] int todoId,[NotNull] int ownerId);
         
         Task<User> GetTodoOwnerFor([NotNull] int itemId);
+        
+        Task<bool?> DoAllTodosBelongToThisUser(int[] todoIds, int userId);
     }
 }

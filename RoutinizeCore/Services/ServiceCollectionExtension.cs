@@ -25,6 +25,7 @@ namespace RoutinizeCore.Services {
 
             services.AddScoped<ITodoService, TodoService>();
             services.AddScoped<INoteService, NoteService>();
+            services.AddScoped<IRandomIdeaService, RandomIdeaService>();
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<ICollaborationService, CollaborationService>();
             services.AddScoped<IContentGroupService, ContentGroupService>();
@@ -32,7 +33,9 @@ namespace RoutinizeCore.Services {
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IDepartmentRoleService, DepartmentRoleService>();
             services.AddScoped<ICooperationService, CooperationService>();
-            
+
+            services.AddScoped<ITaskVaultService, TaskVaultService>();
+            services.AddScoped<ITaskFolderService, TaskFolderService>();
             services.AddScoped<ITaskRelationService, TaskRelationService>();
 
             return services;

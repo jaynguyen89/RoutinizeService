@@ -564,6 +564,32 @@ namespace RoutinizeCore.Services.DatabaseServices {
             }
         }
 
+        public async Task<bool?> DoesUserHasPremiumForAnything(int userId) {
+            try {
+                return await _dbContext.AppSettings
+                                       .AnyAsync(
+                                           settings => (settings.IsPremium ||
+                                                                settings.CollabUnlocked ||
+                                                                settings.NoteUnlocked ||
+                                                                settings.TodoUnlocked ||
+                                                                settings.ShouldHideAds) &&
+                                                                settings.UserId == userId
+                                       );
+            }
+            catch (ArgumentNullException e) {
+                await _coreLogService.InsertRoutinizeCoreLog(new RoutinizeCoreLog {
+                    Location = $"private { nameof(UserService) }.{ nameof(DoesUserHasPremiumForAnything) }",
+                    Caller = $"{ new StackTrace().GetFrame(4)?.GetMethod()?.DeclaringType?.FullName }",
+                    BriefInformation = nameof(ArgumentNullException),
+                    DetailedInformation = $"Error while searching entry from AppSettings by AnyAsync, null argument.\n\n{ e.StackTrace }",
+                    ParamData = $"{ nameof(userId) } = { userId }",
+                    Severity = SharedEnums.LogSeverity.Caution.GetEnumValue()
+                });
+
+                return null;
+            }
+        }
+
         private async Task<int?> GetUserPrivacyOrAppSettingIdByUserId([NotNull] int userId, string assetType = nameof(UserPrivacy)) {
             try {
                 return assetType.Equals(nameof(UserPrivacy))
